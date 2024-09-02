@@ -1,0 +1,606 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineSystem.cmake:233 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The system is: Linux - 6.10.6-200.fsync.fc40.x86_64 - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1131 (message)"
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCUDACompiler.cmake:75 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Checking whether the CUDA compiler is NVIDIA using "" matched "nvcc: NVIDIA \\(R\\) Cuda compiler driver":
+      nvcc: NVIDIA (R) Cuda compiler driver
+      Copyright (c) 2005-2023 NVIDIA Corporation
+      Built on Fri_Sep__8_19:17:24_PDT_2023
+      Cuda compilation tools, release 12.3, V12.3.52
+      Build cuda_12.3.r12.3/compiler.33281558_0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:53 (__determine_compiler_id_test)"
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCUDACompiler.cmake:135 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the CUDA compiler identification source file "CMakeCUDACompilerId.cu" succeeded.
+      Compiler: /usr/local/cuda-12.3/bin/nvcc 
+      Build flags: 
+      Id flags: --keep;--keep-dir;tmp -v
+      
+      The output was:
+      0
+      #$ NVCC_PREPEND_FLAGS="-ccbin /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11"
+      #$ NVCC_APPEND_FLAGS="-lstdc++"
+      #$ _NVVM_BRANCH_=nvvm
+      #$ _SPACE_= 
+      #$ _CUDART_=cudart
+      #$ _HERE_=/usr/local/cuda-12.3/bin
+      #$ _THERE_=/usr/local/cuda-12.3/bin
+      #$ _TARGET_SIZE_=
+      #$ _TARGET_DIR_=
+      #$ _TARGET_DIR_=targets/x86_64-linux
+      #$ TOP=/usr/local/cuda-12.3/bin/..
+      #$ NVVMIR_LIBRARY_DIR=/usr/local/cuda-12.3/bin/../nvvm/libdevice
+      #$ LD_LIBRARY_PATH=/usr/local/cuda-12.3/bin/../lib:/usr/local/cuda-12.3/lib64:
+      #$ PATH=/usr/local/cuda-12.3/bin/../nvvm/bin:/usr/local/cuda-12.3/bin:/usr/local/bin:/home/nema/.pyenv/shims:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin:/home/linuxbrew/.linuxbrew/opt/gcc@11/bin:/home/linuxbrew/.linuxbrew/opt/gcc@11/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/nema/.pyenv/bin:/home/nema/.pyenv/bin:/home/nema/.pyenv/bin:/home/nema/.juliaup/bin:/home/linuxbrew/.linuxbrew/opt/gcc@11/bin:/home/nema/.local/bin:/home/nema/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/home/nema/.local/share/JetBrains/Toolbox/scripts:/home/nema/.dotnet/tools:/home/nema/.local/share/JetBrains/Toolbox/scripts:/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64
+      #$ INCLUDES="-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"  
+      #$ LIBRARIES=  "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"
+      #$ CUDAFE_FLAGS=
+      #$ PTXAS_FLAGS=
+      #$ rm tmp/a_dlink.reg.c
+      #$ "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" 
+      #$ cudafe++ --c++17 --gnu_version=110400 --display_error_number --orig_src_file_name "CMakeCUDACompilerId.cu" --orig_src_path_name "/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/3.28.1/CompilerIdCUDA/CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" 
+      #$ "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" 
+      #$ cicc --c++17 --gnu_version=110400 --display_error_number --orig_src_file_name "CMakeCUDACompilerId.cu" --orig_src_path_name "/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/3.28.1/CompilerIdCUDA/CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 --no-version-ident -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"
+      #$ ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" 
+      #$ fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" 
+      #$ "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" 
+      #$ nvlink -m64 --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin" --host-ccbin "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11"
+      #$ fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" 
+      #$ "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -c -x c++ -DFATBINFILE="\\"tmp/a_dlink.fatbin.c\\"" -DREGISTERLINKBINARYFILE="\\"tmp/a_dlink.reg.c\\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -m64 "/usr/local/cuda-12.3/bin/crt/link.stub" -o "tmp/a_dlink.o" 
+      #$ "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o" -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" 
+      
+      
+      Compilation of the CUDA compiler identification source "CMakeCUDACompilerId.cu" produced "a.out"
+      
+      The CUDA compiler identification is NVIDIA, found in:
+        /home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/3.28.1/CompilerIdCUDA/a.out
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Internal/CMakeNVCCParseImplicitInfo.cmake:128 (message)"
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCUDACompiler.cmake:246 (cmake_nvcc_parse_implicit_info)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CUDA nvcc implicit link information:
+        found 'PATH=' string: [/usr/local/cuda-12.3/bin/../nvvm/bin:/usr/local/cuda-12.3/bin:/usr/local/bin:/home/nema/.pyenv/shims:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin:/home/linuxbrew/.linuxbrew/opt/gcc@11/bin:/home/linuxbrew/.linuxbrew/opt/gcc@11/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/nema/.pyenv/bin:/home/nema/.pyenv/bin:/home/nema/.pyenv/bin:/home/nema/.juliaup/bin:/home/linuxbrew/.linuxbrew/opt/gcc@11/bin:/home/nema/.local/bin:/home/nema/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/home/nema/.local/share/JetBrains/Toolbox/scripts:/home/nema/.dotnet/tools:/home/nema/.local/share/JetBrains/Toolbox/scripts:/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64]
+        found 'LIBRARIES=' string: ["-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"]
+        found 'INCLUDES=' string: ["-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"  ]
+        considering line: [#$ rm tmp/a_dlink.reg.c]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+        considering line: [cudafe++ --c++17 --gnu_version=110400 --display_error_number --orig_src_file_name "CMakeCUDACompilerId.cu" --orig_src_path_name "/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/3.28.1/CompilerIdCUDA/CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" ]
+        considering line: [cicc --c++17 --gnu_version=110400 --display_error_number --orig_src_file_name "CMakeCUDACompilerId.cu" --orig_src_path_name "/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/3.28.1/CompilerIdCUDA/CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 --no-version-ident -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"]
+        considering line: [ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" ]
+        considering line: [fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" ]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" ]
+        considering line: [nvlink -m64 --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin" --host-ccbin "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11"]
+          ignoring nvlink line
+        considering line: [fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" ]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -c -x c++ -DFATBINFILE="\\"tmp/a_dlink.fatbin.c\\"" -DREGISTERLINKBINARYFILE="\\"tmp/a_dlink.reg.c\\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -m64 "/usr/local/cuda-12.3/bin/crt/link.stub" -o "tmp/a_dlink.o" ]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o" -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+          extracted link line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o" -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+        considering line: []
+        extracted link launcher absolute path: [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11]
+      
+        link line regex: [^( *|.*[/\\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        link line: [cuda-fake-ld "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o" -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+          arg [cuda-fake-ld] ==> ignore
+          arg [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11] ==> ignore
+          arg [-D__CUDA_ARCH_LIST__=520] ==> ignore
+          arg [-m64] ==> ignore
+          arg [-Wl,--start-group] ==> ignore
+          arg [tmp/a_dlink.o] ==> ignore
+          arg [tmp/CMakeCUDACompilerId.o] ==> ignore
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs] ==> dir [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs]
+          arg [-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib] ==> dir [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib]
+          arg [-lcudadevrt] ==> lib [cudadevrt]
+          arg [-lcudart_static] ==> lib [cudart_static]
+          arg [-lrt] ==> lib [rt]
+          arg [-lpthread] ==> lib [pthread]
+          arg [-ldl] ==> lib [dl]
+          arg [-Wl,--end-group] ==> ignore
+          arg [-o] ==> ignore
+          arg [a.out] ==> ignore
+        collapse library dir [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs] ==> [/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs]
+        collapse library dir [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib] ==> [/usr/local/cuda-12.3/targets/x86_64-linux/lib]
+        implicit libs: [stdc++;cudadevrt;cudart_static;rt;pthread;dl]
+        implicit objs: []
+        implicit dirs: [/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs;/usr/local/cuda-12.3/targets/x86_64-linux/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Internal/CMakeNVCCParseImplicitInfo.cmake:146 (message)"
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCUDACompiler.cmake:246 (cmake_nvcc_parse_implicit_info)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CUDA nvcc include information:
+        found 'PATH=' string: [/usr/local/cuda-12.3/bin/../nvvm/bin:/usr/local/cuda-12.3/bin:/usr/local/bin:/home/nema/.pyenv/shims:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin:/home/linuxbrew/.linuxbrew/opt/gcc@11/bin:/home/linuxbrew/.linuxbrew/opt/gcc@11/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/nema/.pyenv/bin:/home/nema/.pyenv/bin:/home/nema/.pyenv/bin:/home/nema/.juliaup/bin:/home/linuxbrew/.linuxbrew/opt/gcc@11/bin:/home/nema/.local/bin:/home/nema/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/home/nema/.local/share/JetBrains/Toolbox/scripts:/home/nema/.dotnet/tools:/home/nema/.local/share/JetBrains/Toolbox/scripts:/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64]
+        found 'LIBRARIES=' string: ["-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"]
+        found 'INCLUDES=' string: ["-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"  ]
+        considering line: [#$ rm tmp/a_dlink.reg.c]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+        considering line: [cudafe++ --c++17 --gnu_version=110400 --display_error_number --orig_src_file_name "CMakeCUDACompilerId.cu" --orig_src_path_name "/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/3.28.1/CompilerIdCUDA/CMakeCUDACompilerId.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.cpp" --stub_file_name "CMakeCUDACompilerId.cudafe1.stub.c" --gen_module_id_file --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" "tmp/CMakeCUDACompilerId.cpp4.ii" ]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -include "cuda_runtime.h" -m64 "CMakeCUDACompilerId.cu" -o "tmp/CMakeCUDACompilerId.cpp1.ii" ]
+        considering line: [cicc --c++17 --gnu_version=110400 --display_error_number --orig_src_file_name "CMakeCUDACompilerId.cu" --orig_src_path_name "/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/3.28.1/CompilerIdCUDA/CMakeCUDACompilerId.cu" --allow_managed   -arch compute_52 -m64 --no-version-ident -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "CMakeCUDACompilerId.fatbin.c" -tused --module_id_file_name "tmp/CMakeCUDACompilerId.module_id" --gen_c_file_name "tmp/CMakeCUDACompilerId.cudafe1.c" --stub_file_name "tmp/CMakeCUDACompilerId.cudafe1.stub.c" --gen_device_file_name "tmp/CMakeCUDACompilerId.cudafe1.gpu"  "tmp/CMakeCUDACompilerId.cpp1.ii" -o "tmp/CMakeCUDACompilerId.ptx"]
+        considering line: [ptxas -arch=sm_52 -m64  "tmp/CMakeCUDACompilerId.ptx"  -o "tmp/CMakeCUDACompilerId.sm_52.cubin" ]
+        considering line: [fatbinary --create="tmp/CMakeCUDACompilerId.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=tmp/CMakeCUDACompilerId.sm_52.cubin" "--image3=kind=ptx,sm=52,file=tmp/CMakeCUDACompilerId.ptx" --embedded-fatbin="tmp/CMakeCUDACompilerId.fatbin.c" ]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH__=520 -D__CUDA_ARCH_LIST__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"   -m64 "tmp/CMakeCUDACompilerId.cudafe1.cpp" -o "tmp/CMakeCUDACompilerId.o" ]
+        considering line: [nvlink -m64 --arch=sm_52 --register-link-binaries="tmp/a_dlink.reg.c"  -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "tmp/CMakeCUDACompilerId.o"  -lcudadevrt  -o "tmp/a_dlink.sm_52.cubin" --host-ccbin "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11"]
+          ignoring nvlink line
+        considering line: [fatbinary --create="tmp/a_dlink.fatbin" -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=tmp/a_dlink.sm_52.cubin" --embedded-fatbin="tmp/a_dlink.fatbin.c" ]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -c -x c++ -DFATBINFILE="\\"tmp/a_dlink.fatbin.c\\"" -DREGISTERLINKBINARYFILE="\\"tmp/a_dlink.reg.c\\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=3 -D__CUDACC_VER_BUILD__=52 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=3 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -m64 "/usr/local/cuda-12.3/bin/crt/link.stub" -o "tmp/a_dlink.o" ]
+        considering line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o" -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+          extracted link line: ["/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o" -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+        considering line: []
+        extracted link launcher absolute path: [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11]
+      
+        link line regex: [^( *|.*[/\\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        link line: [cuda-fake-ld "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin"/gcc-11 -D__CUDA_ARCH_LIST__=520 -m64 -Wl,--start-group "tmp/a_dlink.o" "tmp/CMakeCUDACompilerId.o" -lstdc++   "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "a.out" ]
+          arg [cuda-fake-ld] ==> ignore
+          arg [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11] ==> ignore
+          arg [-D__CUDA_ARCH_LIST__=520] ==> ignore
+          arg [-m64] ==> ignore
+          arg [-Wl,--start-group] ==> ignore
+          arg [tmp/a_dlink.o] ==> ignore
+          arg [tmp/CMakeCUDACompilerId.o] ==> ignore
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs] ==> dir [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs]
+          arg [-L/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib] ==> dir [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib]
+          arg [-lcudadevrt] ==> lib [cudadevrt]
+          arg [-lcudart_static] ==> lib [cudart_static]
+          arg [-lrt] ==> lib [rt]
+          arg [-lpthread] ==> lib [pthread]
+          arg [-ldl] ==> lib [dl]
+          arg [-Wl,--end-group] ==> ignore
+          arg [-o] ==> ignore
+          arg [a.out] ==> ignore
+        collapse library dir [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib/stubs] ==> [/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs]
+        collapse library dir [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/lib] ==> [/usr/local/cuda-12.3/targets/x86_64-linux/lib]
+        implicit libs: [stdc++;cudadevrt;cudart_static;rt;pthread;dl]
+        implicit objs: []
+        implicit dirs: [/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs;/usr/local/cuda-12.3/targets/x86_64-linux/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestCUDACompiler.cmake:19 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    checks:
+      - "Detecting CUDA compiler ABI info"
+    directories:
+      source: "/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bfBshF"
+      binary: "/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bfBshF"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "52"
+      CMAKE_CUDA_FLAGS: ""
+      CMAKE_CUDA_FLAGS_DEBUG: "-g"
+      CMAKE_CUDA_RUNTIME_LIBRARY: "Static"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_CUDA_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bfBshF'
+        
+        Run Build Command(s): /home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_a8152
+        [1/2] /usr/local/cuda-12.3/bin/nvcc -forward-unknown-to-host-compiler   "--generate-code=arch=compute_52,code=[compute_52,sm_52]"   -Xcompiler=-v -MD -MT CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o -MF CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o.d -x cu -c /home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCUDACompilerABI.cu -o CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o
+        Reading specs from /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/specs
+        COLLECT_GCC=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11
+        Target: x86_64-pc-linux-gnu
+        Configured with: ../configure --prefix=/home/linuxbrew/.linuxbrew/opt/gcc@11 --libdir=/home/linuxbrew/.linuxbrew/opt/gcc@11/lib/gcc/11 --disable-nls --enable-checking=release --with-gcc-major-version-only --enable-languages=c,c++,objc,obj-c++,fortran,d --program-suffix=-11 --with-gmp=/home/linuxbrew/.linuxbrew/opt/gmp --with-mpfr=/home/linuxbrew/.linuxbrew/opt/mpfr --with-mpc=/home/linuxbrew/.linuxbrew/opt/libmpc --with-isl=/home/linuxbrew/.linuxbrew/opt/isl --with-zstd=/home/linuxbrew/.linuxbrew/opt/zstd --with-pkgversion='Homebrew GCC 11.4.0' --with-bugurl=https://github.com/Homebrew/homebrew-core/issues --enable-libphobos --with-boot-ldflags='-static-libstdc++ -static-libgcc ' --disable-multilib
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 11.4.0 (Homebrew GCC 11.4.0) 
+        COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-E' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=12' '-D' '__CUDACC_VER_MINOR__=3' '-D' '__CUDACC_VER_BUILD__=52' '-D' '__CUDA_API_VER_MAJOR__=12' '-D' '__CUDA_API_VER_MINOR__=3' '-D' '__NVCC_DIAG_PRAGMA_SUPPORT__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.ii' '-mtune=generic' '-march=x86-64' '-dumpdir' '/tmp/'
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/cc1plus -E -quiet -v -I /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include -imultiarch x86_64-linux-gnu -iprefix /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/ -D_GNU_SOURCE -D __CUDA_ARCH__=520 -D __CUDA_ARCH_LIST__=520 -D CUDA_DOUBLE_MATH_FUNCTIONS -D __CUDACC__ -D __NVCC__ -D __CUDACC_VER_MAJOR__=12 -D __CUDACC_VER_MINOR__=3 -D __CUDACC_VER_BUILD__=52 -D __CUDA_API_VER_MAJOR__=12 -D __CUDA_API_VER_MINOR__=3 -D __NVCC_DIAG_PRAGMA_SUPPORT__=1 -include cuda_runtime.h /home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCUDACompilerABI.cu -o /tmp/tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.ii -isysroot /home/linuxbrew/.linuxbrew/nonexistent -idirafter /home/linuxbrew/.linuxbrew/include -idirafter /usr/include/x86_64-linux-gnu -idirafter /usr/include -m64 -mtune=generic -march=x86-64 -dumpdir /tmp/ -dumpbase tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.cu -dumpbase-ext .cu
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include/x86_64-linux-gnu"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include/x86_64-linux-gnu"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include"
+        ignoring nonexistent directory "/usr/include/x86_64-linux-gnu"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../include
+         /home/linuxbrew/.linuxbrew/include
+         /usr/include
+        End of search list.
+        COMPILER_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/
+        LIBRARY_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-E' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=12' '-D' '__CUDACC_VER_MINOR__=3' '-D' '__CUDACC_VER_BUILD__=52' '-D' '__CUDA_API_VER_MAJOR__=12' '-D' '__CUDA_API_VER_MINOR__=3' '-D' '__NVCC_DIAG_PRAGMA_SUPPORT__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.ii' '-mtune=generic' '-march=x86-64' '-dumpdir' '/tmp/tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.'
+        Reading specs from /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/specs
+        COLLECT_GCC=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11
+        Target: x86_64-pc-linux-gnu
+        Configured with: ../configure --prefix=/home/linuxbrew/.linuxbrew/opt/gcc@11 --libdir=/home/linuxbrew/.linuxbrew/opt/gcc@11/lib/gcc/11 --disable-nls --enable-checking=release --with-gcc-major-version-only --enable-languages=c,c++,objc,obj-c++,fortran,d --program-suffix=-11 --with-gmp=/home/linuxbrew/.linuxbrew/opt/gmp --with-mpfr=/home/linuxbrew/.linuxbrew/opt/mpfr --with-mpc=/home/linuxbrew/.linuxbrew/opt/libmpc --with-isl=/home/linuxbrew/.linuxbrew/opt/isl --with-zstd=/home/linuxbrew/.linuxbrew/opt/zstd --with-pkgversion='Homebrew GCC 11.4.0' --with-bugurl=https://github.com/Homebrew/homebrew-core/issues --enable-libphobos --with-boot-ldflags='-static-libstdc++ -static-libgcc ' --disable-multilib
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 11.4.0 (Homebrew GCC 11.4.0) 
+        COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH_LIST__=520' '-E' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=12' '-D' '__CUDACC_VER_MINOR__=3' '-D' '__CUDACC_VER_BUILD__=52' '-D' '__CUDA_API_VER_MAJOR__=12' '-D' '__CUDA_API_VER_MINOR__=3' '-D' '__NVCC_DIAG_PRAGMA_SUPPORT__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.ii' '-mtune=generic' '-march=x86-64' '-dumpdir' '/tmp/'
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/cc1plus -E -quiet -v -I /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include -imultiarch x86_64-linux-gnu -iprefix /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/ -D_GNU_SOURCE -D __CUDA_ARCH_LIST__=520 -D __CUDACC__ -D __NVCC__ -D __CUDACC_VER_MAJOR__=12 -D __CUDACC_VER_MINOR__=3 -D __CUDACC_VER_BUILD__=52 -D __CUDA_API_VER_MAJOR__=12 -D __CUDA_API_VER_MINOR__=3 -D __NVCC_DIAG_PRAGMA_SUPPORT__=1 -include cuda_runtime.h /home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCUDACompilerABI.cu -o /tmp/tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.ii -isysroot /home/linuxbrew/.linuxbrew/nonexistent -idirafter /home/linuxbrew/.linuxbrew/include -idirafter /usr/include/x86_64-linux-gnu -idirafter /usr/include -m64 -mtune=generic -march=x86-64 -dumpdir /tmp/ -dumpbase tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.cu -dumpbase-ext .cu
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include/x86_64-linux-gnu"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include/x86_64-linux-gnu"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include"
+        ignoring nonexistent directory "/usr/include/x86_64-linux-gnu"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../include
+         /home/linuxbrew/.linuxbrew/include
+         /usr/include
+        End of search list.
+        COMPILER_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/
+        LIBRARY_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH_LIST__=520' '-E' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=12' '-D' '__CUDACC_VER_MINOR__=3' '-D' '__CUDACC_VER_BUILD__=52' '-D' '__CUDA_API_VER_MAJOR__=12' '-D' '__CUDA_API_VER_MINOR__=3' '-D' '__NVCC_DIAG_PRAGMA_SUPPORT__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.ii' '-mtune=generic' '-march=x86-64' '-dumpdir' '/tmp/tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.'
+        Reading specs from /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/specs
+        COLLECT_GCC=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11
+        Target: x86_64-pc-linux-gnu
+        Configured with: ../configure --prefix=/home/linuxbrew/.linuxbrew/opt/gcc@11 --libdir=/home/linuxbrew/.linuxbrew/opt/gcc@11/lib/gcc/11 --disable-nls --enable-checking=release --with-gcc-major-version-only --enable-languages=c,c++,objc,obj-c++,fortran,d --program-suffix=-11 --with-gmp=/home/linuxbrew/.linuxbrew/opt/gmp --with-mpfr=/home/linuxbrew/.linuxbrew/opt/mpfr --with-mpc=/home/linuxbrew/.linuxbrew/opt/libmpc --with-isl=/home/linuxbrew/.linuxbrew/opt/isl --with-zstd=/home/linuxbrew/.linuxbrew/opt/zstd --with-pkgversion='Homebrew GCC 11.4.0' --with-bugurl=https://github.com/Homebrew/homebrew-core/issues --enable-libphobos --with-boot-ldflags='-static-libstdc++ -static-libgcc ' --disable-multilib
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 11.4.0 (Homebrew GCC 11.4.0) 
+        COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a8152.dir/'
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/cc1plus -quiet -v -I /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include -imultiarch x86_64-linux-gnu -iprefix /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/ -D_GNU_SOURCE -D __CUDA_ARCH__=520 -D __CUDA_ARCH_LIST__=520 -D CUDA_DOUBLE_MATH_FUNCTIONS /tmp/tmpxft_00012985_00000000-6_CMakeCUDACompilerABI.cudafe1.cpp -isysroot /home/linuxbrew/.linuxbrew/nonexistent -idirafter /home/linuxbrew/.linuxbrew/include -idirafter /usr/include/x86_64-linux-gnu -idirafter /usr/include -quiet -dumpdir CMakeFiles/cmTC_a8152.dir/ -dumpbase CMakeCUDACompilerABI.cu.cpp -dumpbase-ext .cpp -m64 -mtune=generic -march=x86-64 -version -o /tmp/ccep5RuS.s
+        GNU C++17 (Homebrew GCC 11.4.0) version 11.4.0 (x86_64-pc-linux-gnu)
+        	compiled by GNU C version 11.4.0, GMP version 6.2.1, MPFR version 4.2.0-p12, MPC version 1.3.1, isl version isl-0.26-GMP
+        
+        warning: GMP header version 6.2.1 differs from library version 6.3.0.
+        warning: MPFR header version 4.2.0-p12 differs from library version 4.2.1.
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include/x86_64-linux-gnu"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include"
+        ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include/x86_64-linux-gnu"
+        ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include"
+        ignoring nonexistent directory "/usr/include/x86_64-linux-gnu"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../include
+         /home/linuxbrew/.linuxbrew/include
+         /usr/include
+        End of search list.
+        GNU C++17 (Homebrew GCC 11.4.0) version 11.4.0 (x86_64-pc-linux-gnu)
+        	compiled by GNU C version 11.4.0, GMP version 6.2.1, MPFR version 4.2.0-p12, MPC version 1.3.1, isl version isl-0.26-GMP
+        
+        warning: GMP header version 6.2.1 differs from library version 6.3.0.
+        warning: MPFR header version 4.2.0-p12 differs from library version 4.2.1.
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        Compiler executable checksum: 13715f7cd64a0ecf42f6e3534664bb58
+        COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a8152.dir/'
+         as -v -I /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include --64 -o CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o /tmp/ccep5RuS.s
+        GNU assembler version 2.41 (x86_64-redhat-linux) using BFD version version 2.41-37.fc40
+        COMPILER_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/
+        LIBRARY_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.'
+        [2/2] : && /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11 -v CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o -o cmTC_a8152  -lcudadevrt  -lcudart_static  -lrt  -lpthread  -ldl -L"/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs" -L"/usr/local/cuda-12.3/targets/x86_64-linux/lib" -lstdc++ && :
+        Reading specs from /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/specs
+        COLLECT_GCC=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11
+        COLLECT_LTO_WRAPPER=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/lto-wrapper
+        Target: x86_64-pc-linux-gnu
+        Configured with: ../configure --prefix=/home/linuxbrew/.linuxbrew/opt/gcc@11 --libdir=/home/linuxbrew/.linuxbrew/opt/gcc@11/lib/gcc/11 --disable-nls --enable-checking=release --with-gcc-major-version-only --enable-languages=c,c++,objc,obj-c++,fortran,d --program-suffix=-11 --with-gmp=/home/linuxbrew/.linuxbrew/opt/gmp --with-mpfr=/home/linuxbrew/.linuxbrew/opt/mpfr --with-mpc=/home/linuxbrew/.linuxbrew/opt/libmpc --with-isl=/home/linuxbrew/.linuxbrew/opt/isl --with-zstd=/home/linuxbrew/.linuxbrew/opt/zstd --with-pkgversion='Homebrew GCC 11.4.0' --with-bugurl=https://github.com/Homebrew/homebrew-core/issues --enable-libphobos --with-boot-ldflags='-static-libstdc++ -static-libgcc ' --disable-multilib
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 11.4.0 (Homebrew GCC 11.4.0) 
+        COMPILER_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/
+        LIBRARY_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_a8152' '-L/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs' '-L/usr/local/cuda-12.3/targets/x86_64-linux/lib' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_a8152.'
+         /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/collect2 -plugin /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/liblto_plugin.so -plugin-opt=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cceP7ETa.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 --dynamic-linker /home/linuxbrew/.linuxbrew/lib/ld.so -rpath /home/linuxbrew/.linuxbrew/lib/gcc/11 -o cmTC_a8152 /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crt1.o /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crti.o /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtbegin.o -L/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs -L/usr/local/cuda-12.3/targets/x86_64-linux/lib -L/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11 -L/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc -L/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../.. -L/home/linuxbrew/.linuxbrew/lib/gcc/11 -L/home/linuxbrew/.linuxbrew/lib CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o -lcudadevrt -lcudart_static -lrt -lpthread -ldl -lstdc++ -rpath /home/linuxbrew/.linuxbrew/lib -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtend.o /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtn.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_a8152' '-L/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs' '-L/usr/local/cuda-12.3/targets/x86_64-linux/lib' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_a8152.'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake:127 (message)"
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestCUDACompiler.cmake:19 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CUDA implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include]
+          add: [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11]
+          add: [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu]
+          add: [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward]
+          add: [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include]
+          add: [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed]
+          add: [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../include]
+          add: [/home/linuxbrew/.linuxbrew/include]
+          add: [/usr/include]
+        end of search list found
+        collapse include dir [/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include] ==> [/usr/local/cuda-12.3/targets/x86_64-linux/include]
+        collapse include dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/include/c++/11]
+        collapse include dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/include/c++/11/x86_64-pc-linux-gnu]
+        collapse include dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/include/c++/11/backward]
+        collapse include dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include]
+        collapse include dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed]
+        collapse include dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../include] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/include]
+        collapse include dir [/home/linuxbrew/.linuxbrew/include] ==> [/home/linuxbrew/.linuxbrew/include]
+        collapse include dir [/usr/include] ==> [/usr/include]
+        implicit include dirs: [/usr/local/cuda-12.3/targets/x86_64-linux/include;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/include/c++/11;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/include/c++/11/x86_64-pc-linux-gnu;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/include/c++/11/backward;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/include;/home/linuxbrew/.linuxbrew/include;/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake:159 (message)"
+      - "/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestCUDACompiler.cmake:19 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CUDA implicit link information:
+        link line regex: [^( *|.*[/\\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        ignore line: [Change Dir: '/home/nema/CLionProjects/untitled/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bfBshF']
+        ignore line: []
+        ignore line: [Run Build Command(s): /home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_a8152]
+        ignore line: [[1/2] /usr/local/cuda-12.3/bin/nvcc -forward-unknown-to-host-compiler   "--generate-code=arch=compute_52 code=[compute_52 sm_52]"   -Xcompiler=-v -MD -MT CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o -MF CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o.d -x cu -c /home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCUDACompilerABI.cu -o CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o]
+        ignore line: [Reading specs from /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/specs]
+        ignore line: [COLLECT_GCC=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Configured with: ../configure --prefix=/home/linuxbrew/.linuxbrew/opt/gcc@11 --libdir=/home/linuxbrew/.linuxbrew/opt/gcc@11/lib/gcc/11 --disable-nls --enable-checking=release --with-gcc-major-version-only --enable-languages=c,c++,objc,obj-c++,fortran,d --program-suffix=-11 --with-gmp=/home/linuxbrew/.linuxbrew/opt/gmp --with-mpfr=/home/linuxbrew/.linuxbrew/opt/mpfr --with-mpc=/home/linuxbrew/.linuxbrew/opt/libmpc --with-isl=/home/linuxbrew/.linuxbrew/opt/isl --with-zstd=/home/linuxbrew/.linuxbrew/opt/zstd --with-pkgversion='Homebrew GCC 11.4.0' --with-bugurl=https://github.com/Homebrew/homebrew-core/issues --enable-libphobos --with-boot-ldflags='-static-libstdc++ -static-libgcc ' --disable-multilib]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 11.4.0 (Homebrew GCC 11.4.0) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-E' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=12' '-D' '__CUDACC_VER_MINOR__=3' '-D' '__CUDACC_VER_BUILD__=52' '-D' '__CUDA_API_VER_MAJOR__=12' '-D' '__CUDA_API_VER_MINOR__=3' '-D' '__NVCC_DIAG_PRAGMA_SUPPORT__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.ii' '-mtune=generic' '-march=x86-64' '-dumpdir' '/tmp/']
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/cc1plus -E -quiet -v -I /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include -imultiarch x86_64-linux-gnu -iprefix /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/ -D_GNU_SOURCE -D __CUDA_ARCH__=520 -D __CUDA_ARCH_LIST__=520 -D CUDA_DOUBLE_MATH_FUNCTIONS -D __CUDACC__ -D __NVCC__ -D __CUDACC_VER_MAJOR__=12 -D __CUDACC_VER_MINOR__=3 -D __CUDACC_VER_BUILD__=52 -D __CUDA_API_VER_MAJOR__=12 -D __CUDA_API_VER_MINOR__=3 -D __NVCC_DIAG_PRAGMA_SUPPORT__=1 -include cuda_runtime.h /home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCUDACompilerABI.cu -o /tmp/tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.ii -isysroot /home/linuxbrew/.linuxbrew/nonexistent -idirafter /home/linuxbrew/.linuxbrew/include -idirafter /usr/include/x86_64-linux-gnu -idirafter /usr/include -m64 -mtune=generic -march=x86-64 -dumpdir /tmp/ -dumpbase tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.cu -dumpbase-ext .cu]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include/x86_64-linux-gnu"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include/x86_64-linux-gnu"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include"]
+        ignore line: [ignoring nonexistent directory "/usr/include/x86_64-linux-gnu"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../include]
+        ignore line: [ /home/linuxbrew/.linuxbrew/include]
+        ignore line: [ /usr/include]
+        ignore line: [End of search list.]
+        ignore line: [COMPILER_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/]
+        ignore line: [LIBRARY_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-E' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=12' '-D' '__CUDACC_VER_MINOR__=3' '-D' '__CUDACC_VER_BUILD__=52' '-D' '__CUDA_API_VER_MAJOR__=12' '-D' '__CUDA_API_VER_MINOR__=3' '-D' '__NVCC_DIAG_PRAGMA_SUPPORT__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.ii' '-mtune=generic' '-march=x86-64' '-dumpdir' '/tmp/tmpxft_00012985_00000000-7_CMakeCUDACompilerABI.cpp1.']
+        ignore line: [Reading specs from /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/specs]
+        ignore line: [COLLECT_GCC=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Configured with: ../configure --prefix=/home/linuxbrew/.linuxbrew/opt/gcc@11 --libdir=/home/linuxbrew/.linuxbrew/opt/gcc@11/lib/gcc/11 --disable-nls --enable-checking=release --with-gcc-major-version-only --enable-languages=c,c++,objc,obj-c++,fortran,d --program-suffix=-11 --with-gmp=/home/linuxbrew/.linuxbrew/opt/gmp --with-mpfr=/home/linuxbrew/.linuxbrew/opt/mpfr --with-mpc=/home/linuxbrew/.linuxbrew/opt/libmpc --with-isl=/home/linuxbrew/.linuxbrew/opt/isl --with-zstd=/home/linuxbrew/.linuxbrew/opt/zstd --with-pkgversion='Homebrew GCC 11.4.0' --with-bugurl=https://github.com/Homebrew/homebrew-core/issues --enable-libphobos --with-boot-ldflags='-static-libstdc++ -static-libgcc ' --disable-multilib]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 11.4.0 (Homebrew GCC 11.4.0) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH_LIST__=520' '-E' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=12' '-D' '__CUDACC_VER_MINOR__=3' '-D' '__CUDACC_VER_BUILD__=52' '-D' '__CUDA_API_VER_MAJOR__=12' '-D' '__CUDA_API_VER_MINOR__=3' '-D' '__NVCC_DIAG_PRAGMA_SUPPORT__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.ii' '-mtune=generic' '-march=x86-64' '-dumpdir' '/tmp/']
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/cc1plus -E -quiet -v -I /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include -imultiarch x86_64-linux-gnu -iprefix /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/ -D_GNU_SOURCE -D __CUDA_ARCH_LIST__=520 -D __CUDACC__ -D __NVCC__ -D __CUDACC_VER_MAJOR__=12 -D __CUDACC_VER_MINOR__=3 -D __CUDACC_VER_BUILD__=52 -D __CUDA_API_VER_MAJOR__=12 -D __CUDA_API_VER_MINOR__=3 -D __NVCC_DIAG_PRAGMA_SUPPORT__=1 -include cuda_runtime.h /home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCUDACompilerABI.cu -o /tmp/tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.ii -isysroot /home/linuxbrew/.linuxbrew/nonexistent -idirafter /home/linuxbrew/.linuxbrew/include -idirafter /usr/include/x86_64-linux-gnu -idirafter /usr/include -m64 -mtune=generic -march=x86-64 -dumpdir /tmp/ -dumpbase tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.cu -dumpbase-ext .cu]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include/x86_64-linux-gnu"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include/x86_64-linux-gnu"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include"]
+        ignore line: [ignoring nonexistent directory "/usr/include/x86_64-linux-gnu"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../include]
+        ignore line: [ /home/linuxbrew/.linuxbrew/include]
+        ignore line: [ /usr/include]
+        ignore line: [End of search list.]
+        ignore line: [COMPILER_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/]
+        ignore line: [LIBRARY_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH_LIST__=520' '-E' '-D' '__CUDACC__' '-D' '__NVCC__' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-D' '__CUDACC_VER_MAJOR__=12' '-D' '__CUDACC_VER_MINOR__=3' '-D' '__CUDACC_VER_BUILD__=52' '-D' '__CUDA_API_VER_MAJOR__=12' '-D' '__CUDA_API_VER_MINOR__=3' '-D' '__NVCC_DIAG_PRAGMA_SUPPORT__=1' '-include' 'cuda_runtime.h' '-m64' '-o' '/tmp/tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.ii' '-mtune=generic' '-march=x86-64' '-dumpdir' '/tmp/tmpxft_00012985_00000000-5_CMakeCUDACompilerABI.cpp4.']
+        ignore line: [Reading specs from /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/specs]
+        ignore line: [COLLECT_GCC=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Configured with: ../configure --prefix=/home/linuxbrew/.linuxbrew/opt/gcc@11 --libdir=/home/linuxbrew/.linuxbrew/opt/gcc@11/lib/gcc/11 --disable-nls --enable-checking=release --with-gcc-major-version-only --enable-languages=c,c++,objc,obj-c++,fortran,d --program-suffix=-11 --with-gmp=/home/linuxbrew/.linuxbrew/opt/gmp --with-mpfr=/home/linuxbrew/.linuxbrew/opt/mpfr --with-mpc=/home/linuxbrew/.linuxbrew/opt/libmpc --with-isl=/home/linuxbrew/.linuxbrew/opt/isl --with-zstd=/home/linuxbrew/.linuxbrew/opt/zstd --with-pkgversion='Homebrew GCC 11.4.0' --with-bugurl=https://github.com/Homebrew/homebrew-core/issues --enable-libphobos --with-boot-ldflags='-static-libstdc++ -static-libgcc ' --disable-multilib]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 11.4.0 (Homebrew GCC 11.4.0) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a8152.dir/']
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/cc1plus -quiet -v -I /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include -imultiarch x86_64-linux-gnu -iprefix /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/ -D_GNU_SOURCE -D __CUDA_ARCH__=520 -D __CUDA_ARCH_LIST__=520 -D CUDA_DOUBLE_MATH_FUNCTIONS /tmp/tmpxft_00012985_00000000-6_CMakeCUDACompilerABI.cudafe1.cpp -isysroot /home/linuxbrew/.linuxbrew/nonexistent -idirafter /home/linuxbrew/.linuxbrew/include -idirafter /usr/include/x86_64-linux-gnu -idirafter /usr/include -quiet -dumpdir CMakeFiles/cmTC_a8152.dir/ -dumpbase CMakeCUDACompilerABI.cu.cpp -dumpbase-ext .cpp -m64 -mtune=generic -march=x86-64 -version -o /tmp/ccep5RuS.s]
+        ignore line: [GNU C++17 (Homebrew GCC 11.4.0) version 11.4.0 (x86_64-pc-linux-gnu)]
+        ignore line: [	compiled by GNU C version 11.4.0  GMP version 6.2.1  MPFR version 4.2.0-p12  MPC version 1.3.1  isl version isl-0.26-GMP]
+        ignore line: []
+        ignore line: [warning: GMP header version 6.2.1 differs from library version 6.3.0.]
+        ignore line: [warning: MPFR header version 4.2.0-p12 differs from library version 4.2.1.]
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include/x86_64-linux-gnu"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/local/include"]
+        ignore line: [ignoring duplicate directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../x86_64-pc-linux-gnu/include"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include/x86_64-linux-gnu"]
+        ignore line: [ignoring nonexistent directory "/home/linuxbrew/.linuxbrew/nonexistent/usr/include"]
+        ignore line: [ignoring nonexistent directory "/usr/include/x86_64-linux-gnu"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/x86_64-pc-linux-gnu]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../../../../include/c++/11/backward]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/include-fixed]
+        ignore line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/../../../../include]
+        ignore line: [ /home/linuxbrew/.linuxbrew/include]
+        ignore line: [ /usr/include]
+        ignore line: [End of search list.]
+        ignore line: [GNU C++17 (Homebrew GCC 11.4.0) version 11.4.0 (x86_64-pc-linux-gnu)]
+        ignore line: [	compiled by GNU C version 11.4.0  GMP version 6.2.1  MPFR version 4.2.0-p12  MPC version 1.3.1  isl version isl-0.26-GMP]
+        ignore line: []
+        ignore line: [warning: GMP header version 6.2.1 differs from library version 6.3.0.]
+        ignore line: [warning: MPFR header version 4.2.0-p12 differs from library version 4.2.1.]
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [Compiler executable checksum: 13715f7cd64a0ecf42f6e3534664bb58]
+        ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a8152.dir/']
+        ignore line: [ as -v -I /usr/local/cuda-12.3/bin/../targets/x86_64-linux/include --64 -o CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o /tmp/ccep5RuS.s]
+        ignore line: [GNU assembler version 2.41 (x86_64-redhat-linux) using BFD version version 2.41-37.fc40]
+        ignore line: [COMPILER_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/]
+        ignore line: [LIBRARY_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-D' '__CUDA_ARCH__=520' '-D' '__CUDA_ARCH_LIST__=520' '-c' '-D' 'CUDA_DOUBLE_MATH_FUNCTIONS' '-v' '-I' '/usr/local/cuda-12.3/bin/../targets/x86_64-linux/include' '-m64' '-o' 'CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.']
+        ignore line: [[2/2] : && /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11 -v CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o -o cmTC_a8152  -lcudadevrt  -lcudart_static  -lrt  -lpthread  -ldl -L"/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs" -L"/usr/local/cuda-12.3/targets/x86_64-linux/lib" -lstdc++ && :]
+        ignore line: [Reading specs from /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/specs]
+        ignore line: [COLLECT_GCC=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/gcc-11]
+        ignore line: [COLLECT_LTO_WRAPPER=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/lto-wrapper]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Configured with: ../configure --prefix=/home/linuxbrew/.linuxbrew/opt/gcc@11 --libdir=/home/linuxbrew/.linuxbrew/opt/gcc@11/lib/gcc/11 --disable-nls --enable-checking=release --with-gcc-major-version-only --enable-languages=c,c++,objc,obj-c++,fortran,d --program-suffix=-11 --with-gmp=/home/linuxbrew/.linuxbrew/opt/gmp --with-mpfr=/home/linuxbrew/.linuxbrew/opt/mpfr --with-mpc=/home/linuxbrew/.linuxbrew/opt/libmpc --with-isl=/home/linuxbrew/.linuxbrew/opt/isl --with-zstd=/home/linuxbrew/.linuxbrew/opt/zstd --with-pkgversion='Homebrew GCC 11.4.0' --with-bugurl=https://github.com/Homebrew/homebrew-core/issues --enable-libphobos --with-boot-ldflags='-static-libstdc++ -static-libgcc ' --disable-multilib]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 11.4.0 (Homebrew GCC 11.4.0) ]
+        ignore line: [COMPILER_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/]
+        ignore line: [LIBRARY_PATH=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/:/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_a8152' '-L/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs' '-L/usr/local/cuda-12.3/targets/x86_64-linux/lib' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_a8152.']
+        link line: [ /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/collect2 -plugin /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/liblto_plugin.so -plugin-opt=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cceP7ETa.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 --dynamic-linker /home/linuxbrew/.linuxbrew/lib/ld.so -rpath /home/linuxbrew/.linuxbrew/lib/gcc/11 -o cmTC_a8152 /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crt1.o /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crti.o /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtbegin.o -L/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs -L/usr/local/cuda-12.3/targets/x86_64-linux/lib -L/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11 -L/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc -L/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../.. -L/home/linuxbrew/.linuxbrew/lib/gcc/11 -L/home/linuxbrew/.linuxbrew/lib CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o -lcudadevrt -lcudart_static -lrt -lpthread -ldl -lstdc++ -rpath /home/linuxbrew/.linuxbrew/lib -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtend.o /home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtn.o]
+          arg [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/collect2] ==> ignore
+          arg [-plugin] ==> ignore
+          arg [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/liblto_plugin.so] ==> ignore
+          arg [-plugin-opt=/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../libexec/gcc/x86_64-pc-linux-gnu/11/lto-wrapper] ==> ignore
+          arg [-plugin-opt=-fresolution=/tmp/cceP7ETa.res] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [--eh-frame-hdr] ==> ignore
+          arg [-m] ==> ignore
+          arg [elf_x86_64] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+          arg [--dynamic-linker] ==> ignore
+          arg [/home/linuxbrew/.linuxbrew/lib/ld.so] ==> ignore
+          arg [-rpath] ==> ignore
+          arg [/home/linuxbrew/.linuxbrew/lib/gcc/11] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_a8152] ==> ignore
+          arg [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crt1.o] ==> obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crt1.o]
+          arg [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crti.o] ==> obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crti.o]
+          arg [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtbegin.o] ==> obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtbegin.o]
+          arg [-L/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs] ==> dir [/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs]
+          arg [-L/usr/local/cuda-12.3/targets/x86_64-linux/lib] ==> dir [/usr/local/cuda-12.3/targets/x86_64-linux/lib]
+          arg [-L/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11] ==> dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11]
+          arg [-L/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc] ==> dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc]
+          arg [-L/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../..] ==> dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../..]
+          arg [-L/home/linuxbrew/.linuxbrew/lib/gcc/11] ==> dir [/home/linuxbrew/.linuxbrew/lib/gcc/11]
+          arg [-L/home/linuxbrew/.linuxbrew/lib] ==> dir [/home/linuxbrew/.linuxbrew/lib]
+          arg [CMakeFiles/cmTC_a8152.dir/CMakeCUDACompilerABI.cu.o] ==> ignore
+          arg [-lcudadevrt] ==> lib [cudadevrt]
+          arg [-lcudart_static] ==> lib [cudart_static]
+          arg [-lrt] ==> lib [rt]
+          arg [-lpthread] ==> lib [pthread]
+          arg [-ldl] ==> lib [dl]
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-rpath] ==> ignore
+          arg [/home/linuxbrew/.linuxbrew/lib] ==> ignore
+          arg [-lgcc] ==> lib [gcc]
+          arg [--push-state] ==> ignore
+          arg [--as-needed] ==> ignore
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [--pop-state] ==> ignore
+          arg [-lc] ==> lib [c]
+          arg [-lgcc] ==> lib [gcc]
+          arg [--push-state] ==> ignore
+          arg [--as-needed] ==> ignore
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [--pop-state] ==> ignore
+          arg [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtend.o] ==> obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtend.o]
+          arg [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtn.o] ==> obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtn.o]
+        collapse obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crt1.o] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crt1.o]
+        collapse obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crti.o] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crti.o]
+        collapse obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtbegin.o] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtbegin.o]
+        collapse obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtend.o] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtend.o]
+        collapse obj [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtn.o] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtn.o]
+        collapse library dir [/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs] ==> [/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs]
+        collapse library dir [/usr/local/cuda-12.3/targets/x86_64-linux/lib] ==> [/usr/local/cuda-12.3/targets/x86_64-linux/lib]
+        collapse library dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11]
+        collapse library dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc]
+        collapse library dir [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/bin/../lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/../../..] ==> [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11]
+        collapse library dir [/home/linuxbrew/.linuxbrew/lib/gcc/11] ==> [/home/linuxbrew/.linuxbrew/lib/gcc/11]
+        collapse library dir [/home/linuxbrew/.linuxbrew/lib] ==> [/home/linuxbrew/.linuxbrew/lib]
+        implicit libs: [cudadevrt;cudart_static;rt;pthread;dl;stdc++;gcc;gcc_s;c;gcc;gcc_s]
+        implicit objs: [/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crt1.o;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crti.o;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtbegin.o;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtend.o;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11/crtn.o]
+        implicit dirs: [/usr/local/cuda-12.3/targets/x86_64-linux/lib/stubs;/usr/local/cuda-12.3/targets/x86_64-linux/lib;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc/x86_64-pc-linux-gnu/11;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11/gcc;/home/linuxbrew/.linuxbrew/Cellar/gcc@11/11.4.0/lib/gcc/11;/home/linuxbrew/.linuxbrew/lib/gcc/11;/home/linuxbrew/.linuxbrew/lib]
+        implicit fwks: []
+      
+      
+...
