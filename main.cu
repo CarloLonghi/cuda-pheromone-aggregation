@@ -156,8 +156,8 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* grid) {
         float random_angle = curand_uniform(&states[id]) * 2.0f * M_PI;
         float new_direction_x = cosf(random_angle)+(DRIFT_FACTOR * max_concentration*cosf(bias));
         float new_direction_y = sinf(random_angle)+(DRIFT_FACTOR * max_concentration*sinf(bias));
-        float fx = LAMBDA * agents[id].angle + (1.0f - LAMBDA) * new_direction_x;
-        float fy = LAMBDA * agents[id].angle + (1.0f - LAMBDA) * new_direction_y;
+        float fx = LAMBDA * cosf(agents[id].angle) + (1.0f - LAMBDA) * new_direction_x;
+        float fy = LAMBDA * sinf(agents[id].angle) + (1.0f - LAMBDA) * new_direction_y;
         float len = sqrt(fx * fx + fy * fy);
         fx /= len;
         fy /= len;
