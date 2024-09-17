@@ -7,41 +7,42 @@
 using json = nlohmann::json;
 
 #define N 128                        // Grid size
-#define WORM_COUNT 500                 // Number of agents
+#define WORM_COUNT 200                 // Number of agents
 #define WIDTH 20.0f          // Width of the 2D space
 #define HEIGHT 20.0f         // Height of the 2D space
 #define BLOCK_SIZE 32        // CUDA block size
-#define N_STEPS 5000         // Number of simulation steps
+#define N_STEPS 2000         // Number of simulation steps
 #define LOGGING_INTERVAL 10    // Logging interval for saving positions
-#define SPEED 0.015f            // Constant speed at which agents move
+#define SPEED 0.22f            // Constant speed at which agents move
 //#define DX WIDTH/N               // Grid spacing
 #define LAMBDA 0.9f             //persistance of the movement
 #define DRIFT_FACTOR 0.01f       //drift factor
 #define SENSING_RANGE 1        //sensing range of the agents
-#define MAX_CONCENTRATION 100.0f //maximum concentration of the chemical
+#define MAX_CONCENTRATION 5.54f //maximum concentration of the chemical
 #define DT 1.0f                //time step
-#define GAMMA 0.0001f             //decay rate of the chemical
-#define DIFFUSION_CONSTANT 0.001f                  //diffusion rate of the chemical
-#define ATTRACTION_STRENGTH 0.111f
-#define ATTRACTION_SCALE 1.5f
-#define ODOR_THRESHOLD 0.1f
+#define GAMMA 0.0000828f             //decay rate of the chemical
+#define DIFFUSION_CONSTANT 0.00223f                  //diffusion rate of the chemical
+#define ATTRACTION_STRENGTH 0.0282f
+#define ATTRACTION_SCALE 1.32f
+#define ODOR_THRESHOLD 1e-6
 #define DEBUG false
-#define SIGMA 0.001f
-#define INITIAL_AREA_NUMBER_OF_CELLS 10 //defines the side length of the square where the agents are initialized in terms of number of cells
+#define SIGMA 0.00027f
+#define INITIAL_AREA_NUMBER_OF_CELLS 40 //defines the side length of the square where the agents are initialized in terms of number of cells
 //pheromone parameters
-#define ATTRACTANT_PHEROMONE_SCALE 1.5f
-#define ATTRACTANT_PHEROMONE_STRENGTH 0.00411f
-#define ATTRACTANT_PHEROMONE_DECAY_RATE 0.001f
-#define ATTRACTANT_PHEROMONE_SECRETION_RATE 0.001f
-#define ATTRACTANT_PHEROMONE_DIFFUSION_RATE 0.0001f
-#define REPULSIVE_PHEROMONE_SCALE 1.5f
-#define REPULSIVE_PHEROMONE_STRENGTH (-0.00000111f)
-#define REPULSIVE_PHEROMONE_DECAY_RATE 0.001f
-#define REPULSIVE_PHEROMONE_SECRETION_RATE 0.00001f
-#define REPULSIVE_PHEROMONE_DIFFUSION_RATE 0.0001f
-#define MAXIMUM_AGENTS_PER_CELL 4
+#define ATTRACTANT_PHEROMONE_SCALE 1.6f
+#define ATTRACTANT_PHEROMONE_STRENGTH 0.000282f
+#define ATTRACTANT_PHEROMONE_DECAY_RATE 0.0027f
+#define ATTRACTANT_PHEROMONE_SECRETION_RATE 0.0035f
+#define ATTRACTANT_PHEROMONE_DIFFUSION_RATE 0.00027f
+#define REPULSIVE_PHEROMONE_SCALE 3.6f
+#define REPULSIVE_PHEROMONE_STRENGTH (-0.0000031f)
+#define REPULSIVE_PHEROMONE_DECAY_RATE 0.0011f
+#define REPULSIVE_PHEROMONE_SECRETION_RATE 0.000022f
+#define MAXIMUM_AGENTS_PER_CELL 400
+#define REPULSIVE_PHEROMONE_DIFFUSION_RATE 0.00038f
 
 __constant__ float DX = WIDTH/N;
+
 
 struct Agent {
     float x, y, angle, speed;  // Position in 2D space
@@ -109,8 +110,8 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
         //agents[id].x = curand_uniform(&states[id]) * WIDTH;
         //agents[id].y = curand_uniform(&states[id]) * HEIGHT;
         //initialise in a random position inside the square centered at WIDTH/4, HEIGHT/4 with side length DX*INITIAL_AREA_NUMBER_OF_CELLS
-        agents[id].x = WIDTH/4 + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
-        agents[id].y = HEIGHT/4 + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
+        agents[id].x = WIDTH/2+10*DX + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
+        agents[id].y = HEIGHT/2+10*DX + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
         agents[id].angle = curand_uniform(&states[id]) * 2 * M_PI;
         agents[id].speed = SPEED;
     }
@@ -130,6 +131,23 @@ __global__ void initGrid(float* grid) {
     }
 }
 
+
+// CUDA kernel to initialize the chemical grid with two squares of chemical placed in the lower left and upper right corners. size 10x10 cells each
+__global__ void initGridWithTwoSquares(float* grid) {
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    int j = threadIdx.y + blockIdx.y * blockDim.y;
+    if (i < N && j < N) {
+        int upper_right_center_x = 3*N/4;
+        int upper_right_center_y = 3*N/4;
+        int lower_left_center_x = N/4;
+        int lower_left_center_y = N/4;
+        if ((i >= upper_right_center_x - 5 && i < upper_right_center_x + 5 && j >= upper_right_center_y - 5 && j < upper_right_center_y + 5) || (i >= lower_left_center_x - 5 && i < lower_left_center_x + 5 && j >= lower_left_center_y - 5 && j < lower_left_center_y + 5)) {
+            grid[i * N + j] = MAX_CONCENTRATION;
+        } else{
+            grid[i * N + j] = 0.0f;
+        }
+    }
+}
 
 
 // CUDA kernel to initialize the pheromone grids
@@ -159,16 +177,19 @@ __global__ void initAgentDensityGrid(float* agent_count_grid, Agent* agents){
 }
 
 // CUDA kernel to update the position of each agent
-__global__ void moveAgents(Agent* agents, curandState* states, float* grid, float*potential, float* agent_count_grid) {
+__global__ void moveAgents(Agent* agents, curandState* states, float* grid, float*potential, float* agent_count_grid, float MAXIMUM_POTENTIAL) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < WORM_COUNT) {
         //find the highest concentration of the chemical in the sensing range
+        // or find the minimum potential in the sensing range
         float max_concentration = 0.0f;
         int max_concentration_x = 0;
         int max_concentration_y = 0;
 
         int agent_x= (int)(agents[id].x / DX);
         int agent_y = (int)(agents[id].y / DX);
+        float sum_of_potentials = 0.0f;
+        int n_neighbors = 0;
         for (int i = -SENSING_RANGE; i <= SENSING_RANGE; ++i) {
             for (int j = -SENSING_RANGE; j <= SENSING_RANGE; ++j) {
                 float concentration = 0.0f;
@@ -180,7 +201,10 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* grid, floa
                 if (yIndex < 0) yIndex += N;
                 if (yIndex >= N) yIndex -= N;
                 if (xIndex >= 0 && xIndex < N && yIndex >= 0 && yIndex < N) {
-                    concentration = grid[xIndex * N + yIndex];
+                    concentration = potential[xIndex * N + yIndex];
+                    //printf("At (%d, %d) concentration: %f\n", xIndex, yIndex, concentration);
+                    sum_of_potentials += concentration;
+                    n_neighbors++;
                 }
 
                 if (concentration > max_concentration) {
@@ -191,29 +215,59 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* grid, floa
                 }
             }
         }
+        //printf("Agent %d, max concentration: %f at (%d, %d)\n", id, max_concentration, max_concentration_x, max_concentration_y);
         float bias = atan2((float)max_concentration_y, (float)max_concentration_x );
+        //printf("Bias: %f\n", bias);
         float random_angle = curand_uniform(&states[id]) * 2.0f * M_PI;
+        //printf("Random angle: %f\n", random_angle);
         float new_direction_x = cosf(random_angle)+(DRIFT_FACTOR * max_concentration*cosf(bias));
+        //printf("New direction x: %f\n", new_direction_x);
         float new_direction_y = sinf(random_angle)+(DRIFT_FACTOR * max_concentration*sinf(bias));
+        //printf("New direction y: %f\n", new_direction_y);
         float fx = LAMBDA * cosf(agents[id].angle) + (1.0f - LAMBDA) * new_direction_x;
+        //printf("fx: %f\n", fx);
         float fy = LAMBDA * sinf(agents[id].angle) + (1.0f - LAMBDA) * new_direction_y;
+        //printf("fy: %f\n", fy);
         float len = sqrt(fx * fx + fy * fy);
+        //printf("len: %f\n", len);
         fx /= len;
+        //printf("fx: %f\n", fx);
         fy /= len;
+        //printf("fy: %f\n", fy);
         float new_angle = atan2(fy, fx);
-        float new_speed_x = SPEED + curand_uniform(&states[id]) * SIGMA;
-        float new_speed_y = SPEED + curand_uniform(&states[id]) * SIGMA;
-        if(max_concentration>ODOR_THRESHOLD){// || sensed_odor<ODOR_THRESHOLD){
+        //printf("New angle: %f\n", new_angle);
+        float random_speed = curand_uniform(&states[id]) * SPEED;
+        float new_speed_x = SPEED;
+        float new_speed_y = SPEED;
+        float sensed_potential = potential[agent_x * N + agent_y];
+        float max_variation = max_concentration - sensed_potential;
+        if(sensed_potential>ODOR_THRESHOLD){// || sensed_odor<ODOR_THRESHOLD){
             float potential_x = gradientX(potential, agent_x, agent_y);
             float potential_y = gradientY(potential, agent_x, agent_y);
+            float magnitude = sqrt(potential_x * potential_x + potential_y * potential_y);
             //printf("Potential x: %f, Potential y: %f\n", potential_x, potential_y);
             //printf("Sensed odor: %f\n", sensed_odor);
-            new_speed_x =  abs(potential_x) + curand_uniform(&states[id]) * SIGMA;
-            new_speed_y = abs(potential_y) + curand_uniform(&states[id]) * SIGMA;
+            //new_speed_x =  abs(potential_x) + curand_uniform(&states[id]) * SIGMA;
+            //new_speed_y = abs(potential_y) + curand_uniform(&states[id]) * SIGMA;
             //printf("new speed x: %f, new speed y: %f\n", new_speed_x, new_speed_y);
 
-        }
+            //new_speed_x /= (1 + max_concentration);
+            //new_speed_y /= (1 + max_concentration);
+            //printf("Magnitude: %f\n", magnitude);
+            //make the speed inversely proportional to the concentration of the chemical
+            //new_speed_x /= (1.0f + magnitude);
+            //new_speed_y /= (1.0f + magnitude);
 
+            //printf("Max variation: %f\n", max_variation);
+            //new_speed_x = ((1-sensed_potential/max_concentration) + random_speed) * SPEED;
+            //new_speed_y = ((1-sensed_potential/max_concentration) + random_speed) * SPEED;
+            //float sensation_speed = (1-sensed_potential/max_concentration + curand_uniform(&states[id]) * SIGMA) * SPEED;
+            //float sensation_speed = 4*0.25/(1-ODOR_THRESHOLD)*(sensed_potential-ODOR_THRESHOLD)*(sensed_potential-1);
+
+            new_speed_x = 4*0.25/(1-ODOR_THRESHOLD)*(potential_x-ODOR_THRESHOLD)*(sensed_potential-1);
+            new_speed_y = 4*0.25/(1-ODOR_THRESHOLD)*(potential_y-ODOR_THRESHOLD)*(sensed_potential-1);
+        }
+        //printf("New speed x: %f, New speed y: %f\n", new_speed_x, new_speed_y);
         float dx = fx * new_speed_x;
         float dy = fy * new_speed_y;
 
@@ -269,6 +323,7 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* grid, floa
             // Increase the count in the new cell
             atomicAdd(&agent_count_grid[new_x * N + new_y], 1);
         }
+
     }
 }
 
@@ -335,9 +390,12 @@ __global__ void updatePotential(float* potential, float* grid, float* attractive
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
         float potential_odor, potential_attractive_pheromone, potential_repulsive_pheromone;
-        potential_odor = ATTRACTION_STRENGTH * log10(ATTRACTION_SCALE + grid[i * N + j]);
-        potential_attractive_pheromone = ATTRACTANT_PHEROMONE_STRENGTH * log10(ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);
-        potential_repulsive_pheromone = REPULSIVE_PHEROMONE_STRENGTH * log10(REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);
+        potential_odor = ATTRACTION_STRENGTH * log10(ATTRACTION_SCALE + grid[i * N + j]);// / (ATTRACTION_SCALE + grid[i * N + j]);
+
+        potential_attractive_pheromone = ATTRACTANT_PHEROMONE_STRENGTH * log10(ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);// / (ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);
+
+        potential_repulsive_pheromone = REPULSIVE_PHEROMONE_STRENGTH * log10(REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);// / (REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);
+
         potential[i * N + j] = potential_odor + potential_attractive_pheromone + potential_repulsive_pheromone;
     }
 }
@@ -411,6 +469,8 @@ void logMatrixToFile(const char* filename, float* matrix, int width, int height,
 int main() {
     Agent* d_agents;
     Agent* h_agents = new Agent[WORM_COUNT];
+    //the following should be the sum of all the maximum values of the potentials. However, we assume the potential of pheromones is always smaller than that of the chemical, so we use that value * 3
+    float MAXIMUM_POTENTIAL =  ATTRACTION_STRENGTH * log10(ATTRACTION_SCALE + MAX_CONCENTRATION);
     curandState* d_states;
     bool broken = false;
     size_t size = WORM_COUNT * sizeof(Agent);
@@ -458,8 +518,6 @@ int main() {
 
 // Initialize the chemical grid concentration
     initGrid<<<gridSize, blockSize>>>(grid);
-
-// Check for errors in the kernel launch
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error in initGrid: %s\n", cudaGetErrorString(err));
@@ -480,6 +538,7 @@ int main() {
     cudaMemcpy(h_attractive_pheromone, attractive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
+    //initialise the potential grid
     updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
@@ -488,25 +547,11 @@ int main() {
     cudaDeviceSynchronize();
     cudaMemcpy(h_potential, potential, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
-
-    //print the grid:
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
-            if (h_grid[i * N + j] > 0) {
-                printf("X ");
-            } else {
-                printf("  ");
-            }
-
-        }
-        printf("\n");
-    }
-
     // Move agents in a loop
     for (int i = 0; i < N_STEPS; ++i) {
         printf("Step %d\n", i);
 
-        moveAgents<<<(WORM_COUNT + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states, grid, potential, agent_count_grid);
+        moveAgents<<<(WORM_COUNT + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states, grid, potential, agent_count_grid, MAXIMUM_POTENTIAL);
         // Check for errors in the kernel launch
         err = cudaGetLastError();
         if (err != cudaSuccess) {
