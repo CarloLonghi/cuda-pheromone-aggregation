@@ -8,8 +8,8 @@ using json = nlohmann::json;
 
 #define N 128                        // Grid size
 #define WORM_COUNT 5                 // Number of agents
-#define WIDTH 20.0f          // Width of the 2D space
-#define HEIGHT 20.0f         // Height of the 2D space
+#define WIDTH 60.0f          // Width of the 2D space
+#define HEIGHT 60.0f         // Height of the 2D space
 #define BLOCK_SIZE 32        // CUDA block size
 #define N_STEPS 3600         // Number of simulation steps
 #define LOGGING_INTERVAL 1    // Logging interval for saving positions
@@ -27,7 +27,7 @@ using json = nlohmann::json;
 #define ODOR_THRESHOLD 1e-6
 #define DEBUG false
 #define SIGMA 0.00027f
-#define INITIAL_AREA_NUMBER_OF_CELLS 40 //defines the side length of the square where the agents are initialized in terms of number of cells
+#define INITIAL_AREA_NUMBER_OF_CELLS 20 //defines the side length of the square where the agents are initialized in terms of number of cells
 //pheromone parameters
 #define ATTRACTANT_PHEROMONE_SCALE 15.0f
 #define ATTRACTANT_PHEROMONE_STRENGTH 0.000282f
@@ -48,6 +48,9 @@ using json = nlohmann::json;
 #define OFF_FOOD_AVERAGE_SPEED 0.179f
 #define OFF_FOOD_SPEED_SIGMA 0.7f
 
+#define LOG_VELOCITIES false
+#define LOG_ANGLES false
+#define LOG_POTENTIAL false
 
 __constant__ float DX = WIDTH/N;
 
@@ -120,10 +123,8 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
         //agents[id].x = curand_uniform(&states[id]) * WIDTH;
         //agents[id].y = curand_uniform(&states[id]) * HEIGHT;
         //initialise in a random position inside the square centered at WIDTH/4, HEIGHT/4 with side length DX*INITIAL_AREA_NUMBER_OF_CELLS
-        agents[id].x = WIDTH/2+10*DX + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
-        agents[id].y = HEIGHT/2+10*DX + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
-        agents[id].x = 0.0f;
-        agents[id].y = 0.0f;
+        agents[id].x = WIDTH/4 + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
+        agents[id].y = HEIGHT/2 + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
         agents[id].angle = curand_uniform(&states[id]) * 2 * M_PI;
         agents[id].speed = SPEED;
         agents[id].state = 0;
@@ -440,42 +441,53 @@ void saveToJSON(const char* filename, Agent* h_agents, int worm_count, const cha
     outFile << log.dump();  // Pretty-print JSON with an indentation of 4 spaces
     outFile.close();
 
-    //same for the angles
-    static json log_angles;
-    static bool initialized_angles = false;
 
-    if (!initialized_angles) {
-        // Log simulation parameters only once
-        log_angles["parameters"] = {{"WIDTH", WIDTH}, {"HEIGHT", HEIGHT}, {"N", worm_count}, {"LOGGING_INTERVAL", LOGGING_INTERVAL}, {"N_STEPS", N_STEPS} };
-        initialized_angles = true;
+    if(LOG_ANGLES) {
+        //same for the angles
+        static json log_angles;
+        static bool initialized_angles = false;
+
+        if (!initialized_angles) {
+            // Log simulation parameters only once
+            log_angles["parameters"] = {{"WIDTH",            WIDTH},
+                                        {"HEIGHT",           HEIGHT},
+                                        {"N", worm_count},
+                                        {"LOGGING_INTERVAL", LOGGING_INTERVAL},
+                                        {"N_STEPS",          N_STEPS}};
+            initialized_angles = true;
+        }
+
+        for (int i = 0; i < worm_count; ++i) {
+            log_angles[std::to_string(i)].push_back({h_agents[i].angle});
+        }
+
+        std::ofstream outFile_angles(angle_filename);
+        outFile_angles << log_angles.dump();  // Pretty-print JSON with an indentation of 4 spaces
+        outFile_angles.close();
     }
-
-    for (int i = 0; i < worm_count; ++i) {
-        log_angles[std::to_string(i)].push_back({ h_agents[i].angle });
-    }
-
-    std::ofstream outFile_angles(angle_filename);
-    outFile_angles << log_angles.dump();  // Pretty-print JSON with an indentation of 4 spaces
-    outFile_angles.close();
-
     //same for velocities
-    static json log_velocities;
-    static bool initialized_velocities = false;
+    if(LOG_VELOCITIES) {
+        static json log_velocities;
+        static bool initialized_velocities = false;
 
-    if (!initialized_velocities) {
-        // Log simulation parameters only once
-        log_velocities["parameters"] = {{"WIDTH", WIDTH}, {"HEIGHT", HEIGHT}, {"N", worm_count}, {"LOGGING_INTERVAL", LOGGING_INTERVAL}, {"N_STEPS", N_STEPS} };
-        initialized_velocities = true;
+        if (!initialized_velocities) {
+            // Log simulation parameters only once
+            log_velocities["parameters"] = {{"WIDTH",            WIDTH},
+                                            {"HEIGHT",           HEIGHT},
+                                            {"N", worm_count},
+                                            {"LOGGING_INTERVAL", LOGGING_INTERVAL},
+                                            {"N_STEPS",          N_STEPS}};
+            initialized_velocities = true;
+        }
+
+        for (int i = 0; i < worm_count; ++i) {
+            log_velocities[std::to_string(i)].push_back({h_agents[i].speed});
+        }
+
+        std::ofstream outFile_velocities(velocity_filename);
+        outFile_velocities << log_velocities.dump();  // Pretty-print JSON with an indentation of 4 spaces
+        outFile_velocities.close();
     }
-
-    for (int i = 0; i < worm_count; ++i) {
-        log_velocities[std::to_string(i)].push_back({ h_agents[i].speed });
-    }
-
-    std::ofstream outFile_velocities(velocity_filename);
-    outFile_velocities << log_velocities.dump();  // Pretty-print JSON with an indentation of 4 spaces
-    outFile_velocities.close();
-
 
 }
 
@@ -541,6 +553,29 @@ void logIntMatrixToFile(const char* filename, int* matrix, int width, int height
     outFile.close();
 }
 
+void savePositionsToJSON(const char* filename, float* positions, int worm_count, int n_steps) {
+    json log;
+
+    // Log simulation parameters
+    log["parameters"] = {{"WIDTH",            WIDTH},
+                         {"HEIGHT",           HEIGHT},
+                         {"N", worm_count},
+                         {"LOGGING_INTERVAL", LOGGING_INTERVAL},
+                         {"N_STEPS",          N_STEPS}};
+
+    // Log positions
+    for (int i = 0; i < worm_count; ++i) {
+        for (int j = 0; j < n_steps; ++j) {
+            log[std::to_string(i)].push_back(
+                    {positions[(j * worm_count + i) * 2], positions[(j * worm_count + i) * 2 + 1]});
+        }
+    }
+
+    std::ofstream outFile(filename);
+    outFile << log.dump(4);  // Pretty-print JSON with an indentation of 4 spaces
+    outFile.close();
+}
+
 int main(int argc, char* argv[]) {
     float attractant_pheromone_strength = ATTRACTANT_PHEROMONE_STRENGTH;
     float repulsive_pheromone_strength = REPULSIVE_PHEROMONE_STRENGTH;
@@ -555,14 +590,14 @@ int main(int argc, char* argv[]) {
         printf("Repulsive pheromone strength: %.10f\n", repulsive_pheromone_strength);
     }
     else {
-        if(argc == 6 && std::isdigit(argv[1][0]) && std::isdigit(argv[2][0]) && std::isdigit(argv[3][0]) && std::isdigit(argv[4][0]) && std::isdigit(argv[5][0])){
+        if(argc == 6 && std::isdigit(argv[1][0]) && std::isdigit(argv[2][0]) && std::isdigit(argv[3][0]) && std::isdigit(argv[4][0])  && std::isdigit(argv[5][0])){
             exp_number = std::stoi(argv[1]);
             printf("Experiment number: %d\n", exp_number);
             worm_count = std::stoi(argv[2]);
             printf("Worm count: %d\n", worm_count);
             attractant_pheromone_strength = std::stof(argv[3]);
             printf("Attractant pheromone strength: %.10f\n", attractant_pheromone_strength);
-            repulsive_pheromone_strength = std::stof(argv[4]);
+            repulsive_pheromone_strength = - std::stof(argv[4]);
             printf("Repulsive pheromone strength: %.10f\n", repulsive_pheromone_strength);
             int using_odor = std::stoi(argv[5]);
             if(using_odor == 0){
@@ -598,7 +633,7 @@ int main(int argc, char* argv[]) {
     float* h_potential = new float[N * N];
     float* potential;
 
-
+    float* positions = new float[worm_count * N_STEPS * 2]; // Matrix to store positions (x, y) for each agent at each timestep
 
     cudaMalloc(&d_agents, size);
     cudaMalloc(&d_states, worm_count * sizeof(curandState));
@@ -611,6 +646,8 @@ int main(int argc, char* argv[]) {
 
     cudaDeviceSynchronize();
     cudaMemcpy(h_agents, d_agents, size, cudaMemcpyDeviceToHost);
+
+
     dim3 gridSize((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (N + BLOCK_SIZE - 1) / BLOCK_SIZE);
     dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE);
 
@@ -672,6 +709,11 @@ int main(int argc, char* argv[]) {
         cudaMemcpy(h_agents, d_agents, size, cudaMemcpyDeviceToHost);
         cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
+        // Store positions in the matrix
+        for (int j = 0; j < worm_count; ++j) {
+            positions[(i * worm_count + j) * 2] = h_agents[j].x;
+            positions[(i * worm_count + j) * 2 + 1] = h_agents[j].y;
+        }
         //update all grids
         updateGrids<<<gridSize, blockSize>>>(grid, attractive_pheromone, repulsive_pheromone, agent_count_grid);
         err = cudaGetLastError();
@@ -712,17 +754,20 @@ int main(int argc, char* argv[]) {
         }
         // Save positions to JSON every LOGGING_INTERVAL steps
         if (i % LOGGING_INTERVAL == 0) {
-            saveToJSON("/home/nema/CLionProjects/untitled/agents_log.json", h_agents, worm_count, "/home/nema/CLionProjects/untitled/agents_angles_log.json", "/home/nema/CLionProjects/untitled/agents_velocities_log.json");
+//saveToJSON("/home/nema/CLionProjects/untitled/agents_log.json", h_agents, worm_count, "/home/nema/CLionProjects/untitled/agents_angles_log.json", "/home/nema/CLionProjects/untitled/agents_velocities_log.json");
             //saveGridToJSON("/home/nema/CLionProjects/untitled/grid_log.json", h_grid);
             //saveGridToJSON("/home/nema/CLionProjects/untitled/agent_count_grid.json", h_agent_count_grid);
             //logIntMatrixToFile("/home/nema/CLionProjects/untitled/logs/agent_count/agents_log_step_", h_agent_count_grid, N, N, i);
             //logMatrixToFile("/home/nema/CLionProjects/untitled/logs/chemical_concentration/chemical_concentration_step_", h_grid, N, N, i);
             //logMatrixToFile("/home/nema/CLionProjects/untitled/logs/attractive_pheromone/attractive_pheromone_step_", h_attractive_pheromone, N, N, i);
             //logMatrixToFile("/home/nema/CLionProjects/untitled/logs/repulsive_pheromone/repulsive_pheromone_step_", h_repulsive_pheromone, N, N, i);
-            logMatrixToFile("/home/nema/CLionProjects/untitled/potential/potential_step_", h_potential, N, N, i);
+            if(LOG_POTENTIAL) {
+                logMatrixToFile("/home/nema/CLionProjects/untitled/potential/potential_step_", h_potential, N, N, i);
+            }
 
         }
     }
+    savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_log.json", positions, worm_count, N_STEPS);
 
     cudaFree(d_agents);
     cudaFree(d_states);
@@ -737,5 +782,6 @@ int main(int argc, char* argv[]) {
     delete[] h_attractive_pheromone;
     delete[] h_repulsive_pheromone;
     delete[] h_agent_count_grid;
+    delete[] positions;
     return 0;
 }

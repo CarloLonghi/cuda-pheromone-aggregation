@@ -4,14 +4,11 @@
 nvcc main.cu -o main
 
 # Define the arrays for W, br, ba, and range for n_exp
-#W_vals=(1 10 100 1000 10000)
-#br_vals=(0 1e-5 1e-3 1e-1 10)
-#ba_vals=(0 -1e-5 -1e-3 -1e-1 -10)
-W_vals=(1 10)
-br_vals=(0)
-ba_vals=(0)
+W_vals=(100 1000 10000)
+br_vals=(0 1e-5 1e-3 1e-1 10)
+ba_vals=(0 1e-5 1e-3 1e-1 10)
 n_exp_start=0
-n_exp_end=20
+n_exp_end=1
 
 # Source and destination directories
 src_logs="/home/nema/CLionProjects/untitled/potential/"
@@ -26,11 +23,11 @@ read add_odor
 # Determine which checkpoint file to use based on input
 if [ "$add_odor" == "y" ]; then
     checkpoint_file="checkpoint_odor.txt"
-    base_dst="/home/nema/cuda_worm_sim/data/odor"
+    base_dst="/home/nema/cuda_worm_sim/data/env_6x6/odor"
     add_odor_bool=1
 else
     checkpoint_file="checkpoint_no_odor.txt"
-    base_dst="/home/nema/cuda_worm_sim/data/no_odor"
+    base_dst="/home/nema/cuda_worm_sim/data/env_6x6/no_odor"
     add_odor_bool=0
 fi
 
@@ -76,10 +73,10 @@ for ((W_idx=last_W_idx; W_idx<${#W_vals[@]}; W_idx++)); do
 
                 # Copy logs folder and individual files
                 echo "Copying logs and data to $dst_logs and other destinations"
-                cp -r "$src_logs" "$dst_logs"
+                #cp -r "$src_logs" "$dst_logs"
                 cp "$src_agents_log" "$dst_agents_log"
-                cp "$src_agents_angles_log" "$dst_agents_angles_log"
-                cp "$src_agents_velocities_log" "$dst_agents_velocities_log"
+                #cp "$src_agents_angles_log" "$dst_agents_angles_log"
+                #cp "$src_agents_velocities_log" "$dst_agents_velocities_log"
 
                 # Save the current progress to the checkpoint file
                 echo "$W_idx $br_idx $ba_idx $n_exp" > $checkpoint_file
