@@ -6,40 +6,45 @@
 
 using json = nlohmann::json;
 
-#define N 128                        // Grid size
-#define WORM_COUNT 5                 // Number of agents
-#define WIDTH 60.0f          // Width of the 2D space
-#define HEIGHT 60.0f         // Height of the 2D space
+#define N 8                        // Grid size
+#define WORM_COUNT 10                 // Number of agents
+#define WIDTH 90.0f          // Width of the 2D space
+#define HEIGHT 90.0f         // Height of the 2D space
 #define BLOCK_SIZE 32        // CUDA block size
-#define N_STEPS 3600         // Number of simulation steps
+#define N_STEPS 6         // Number of simulation steps
 #define LOGGING_INTERVAL 1    // Logging interval for saving positions
 #define SPEED 0.1f            // Constant speed at which agents move
 //#define DX WIDTH/N               // Grid spacing
-#define LAMBDA 0.8f             //persistance of the movement
+#define LAMBDA 0.9f             //persistance of the movement
+#define PERSISTENCE_OFF_FOOD 0.7f
 #define DRIFT_FACTOR 0.01f       //drift factor
 #define SENSING_RANGE 1        //sensing range of the agents
-#define MAX_CONCENTRATION 10.0f //maximum concentration of the chemical
-#define DT 0.1f              //time step
-#define GAMMA 0.001f             //decay rate of the chemical
-#define DIFFUSION_CONSTANT 0.05f                  //diffusion rate of the chemical
+#define MAX_CONCENTRATION 0.0f //maximum concentration of the chemical
+#define DT 1.0f              //time step
+#define GAMMA 0.0001f             //decay rate of the chemical
+#define DIFFUSION_CONSTANT 0.005f                  //diffusion rate of the chemical
 #define ATTRACTION_STRENGTH 0.0282f
 #define ATTRACTION_SCALE 15.0f
 #define ODOR_THRESHOLD 1e-6
 #define DEBUG false
-#define SIGMA 0.00027f
-#define INITIAL_AREA_NUMBER_OF_CELLS 20 //defines the side length of the square where the agents are initialized in terms of number of cells
+#define SIGMA 1e-7 //noise in the perception of the potential
+#define ENVIRONMENTAL_NOISE 1e-8 //noise in the environment
+
+#define ENABLE_RANDOM_INITIAL_POSITIONS true
+#define INITIAL_AREA_NUMBER_OF_CELLS 10 //defines the side length of the square where the agents are initialized in terms of number of cells
+#define TARGET_AREA_SIDE_LENGTH 10 //defines the side length of the square target area in terms of number of cells
 //pheromone parameters
 #define ATTRACTANT_PHEROMONE_SCALE 15.0f
-#define ATTRACTANT_PHEROMONE_STRENGTH 0.000282f
-#define ATTRACTANT_PHEROMONE_DECAY_RATE 0.01f
-#define ATTRACTANT_PHEROMONE_SECRETION_RATE 0.0001f
+#define ATTRACTANT_PHEROMONE_STRENGTH 0//.000282f
+#define ATTRACTANT_PHEROMONE_DECAY_RATE 0.001f
+#define ATTRACTANT_PHEROMONE_SECRETION_RATE 0.00001f
 #define ATTRACTANT_PHEROMONE_DIFFUSION_RATE 0.0001f
 #define REPULSIVE_PHEROMONE_SCALE 15.0f
-#define REPULSIVE_PHEROMONE_STRENGTH (-0.0000031f)
-#define REPULSIVE_PHEROMONE_DECAY_RATE 0.001f
+#define REPULSIVE_PHEROMONE_STRENGTH 0//(-0.0000031f)
+#define REPULSIVE_PHEROMONE_DECAY_RATE 0.0001f
 #define REPULSIVE_PHEROMONE_SECRETION_RATE 0.00001f
-#define MAXIMUM_AGENTS_PER_CELL 400
-#define REPULSIVE_PHEROMONE_DIFFUSION_RATE 0.001f
+#define MAXIMUM_AGENTS_PER_CELL 40
+#define REPULSIVE_PHEROMONE_DIFFUSION_RATE 0.00001f
 #define PIROUETTE_TO_RUN_THRESHOLD 1e-6f
 #define ENABLE_MAXIMUM_NUMBER_OF_AGENTS_PER_CELL false
 
@@ -48,9 +53,13 @@ using json = nlohmann::json;
 #define OFF_FOOD_AVERAGE_SPEED 0.179f
 #define OFF_FOOD_SPEED_SIGMA 0.7f
 
-#define LOG_VELOCITIES false
-#define LOG_ANGLES false
-#define LOG_POTENTIAL false
+#define LOG_VELOCITIES true
+#define LOG_ANGLES true
+#define LOG_POTENTIAL true
+#define LOG_TRAJECTORIES true
+#define LOG_GRID false
+#define LOG_PHEROMONES false
+#define LOG_AGENT_COUNT_GRID false
 
 __constant__ float DX = WIDTH/N;
 
@@ -58,7 +67,8 @@ __constant__ float DX = WIDTH/N;
 struct Agent {
     float x, y, angle, speed, previous_potential;  // Position in 2D space
     int state;  // State of the agent: -1 stopped, 0 moving, 1 pirouette
-
+    int is_agent_in_target_area;
+    int first_timestep_in_target_area, steps_in_target_area;
 };
 
 // Function to compute the gradient in the X direction (partial derivative)
@@ -105,11 +115,11 @@ __device__ float laplacian(float* grid, int i, int j) {
     float laplacian = (left + right + up + down - 4.0f * center) / (DX * DX);
     if (isnan(laplacian) || isinf(laplacian)) {
         printf("Invalid laplacian %f at (%d, %d)\n", laplacian, i, j);
-        printf("Center %f\n", center);
-        printf("Left %f\n", left);
-        printf("Right %f\n", right);
-        printf("Down %f\n", down);
-        printf("Up %f\n", up);
+        //printf("Center %f\n", center);
+        //printf("Left %f\n", left);
+        //printf("Right %f\n", right);
+        //printf("Down %f\n", down);
+        //printf("Up %f\n", up);
     }
     return laplacian;
 }
@@ -120,15 +130,22 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
         curand_init(seed, id, 0, &states[id]);
-        //agents[id].x = curand_uniform(&states[id]) * WIDTH;
-        //agents[id].y = curand_uniform(&states[id]) * HEIGHT;
+        if (ENABLE_RANDOM_INITIAL_POSITIONS) {
+            agents[id].x = curand_uniform(&states[id]) * WIDTH;
+            agents[id].y = curand_uniform(&states[id]) * HEIGHT;
+        } else {
         //initialise in a random position inside the square centered at WIDTH/4, HEIGHT/4 with side length DX*INITIAL_AREA_NUMBER_OF_CELLS
-        agents[id].x = WIDTH/4 + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
-        agents[id].y = HEIGHT/2 + curand_uniform(&states[id]) * DX*INITIAL_AREA_NUMBER_OF_CELLS;
-        agents[id].angle = curand_uniform(&states[id]) * 2 * M_PI;
+            agents[id].x = WIDTH / 4 + curand_uniform(&states[id]) * DX * INITIAL_AREA_NUMBER_OF_CELLS;
+            agents[id].y = HEIGHT / 2 + curand_uniform(&states[id]) * DX * INITIAL_AREA_NUMBER_OF_CELLS;
+        }
+        //generate angle in the range [-pi, pi]
+        agents[id].angle = (2.0f * curand_uniform(&states[id]) - 1.0f) * M_PI;
         agents[id].speed = SPEED;
         agents[id].state = 0;
         agents[id].previous_potential = 0.0f;
+        agents[id].is_agent_in_target_area = 0;
+        agents[id].first_timestep_in_target_area = -1;
+        agents[id].steps_in_target_area = 0;
     }
 }
 
@@ -138,7 +155,7 @@ __global__ void initGrid(float* grid) {
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
         //place 100 units of chemical in the square in the middle of the grid with length 20
-        if (i >= N / 2 - 10 && i < N / 2 + 10 && j >= N / 2 - 10 && j < N / 2 + 10) {
+        if (i >= 3 * N / 4 - TARGET_AREA_SIDE_LENGTH/2 && i < 3 * N / 4 + TARGET_AREA_SIDE_LENGTH/2 && j >= N / 2 - TARGET_AREA_SIDE_LENGTH/2 && j < N / 2 + TARGET_AREA_SIDE_LENGTH/2) {
             grid[i * N + j] = MAX_CONCENTRATION;
         } else{
             grid[i * N + j] = 0.0f;
@@ -170,8 +187,17 @@ __global__ void initAttractiveAndRepulsivePheromoneGrid(float* attractive_pherom
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
-        attractive_pheromone[i * N + j] = ATTRACTANT_PHEROMONE_SECRETION_RATE * ATTRACTANT_PHEROMONE_DECAY_RATE * (float)agent_density_grid[i * N + j] / (DX*DX);
-        repulsive_pheromone[i * N + j] = REPULSIVE_PHEROMONE_SECRETION_RATE * REPULSIVE_PHEROMONE_DECAY_RATE * (float)agent_density_grid[i * N + j]/ (DX*DX);
+        if(agent_density_grid[i * N + j] == 0){
+            attractive_pheromone[i * N + j] = 0.0f;
+            repulsive_pheromone[i * N + j] = 0.0f;
+        }
+        else {
+            attractive_pheromone[i * N + j] = ATTRACTANT_PHEROMONE_SECRETION_RATE * ATTRACTANT_PHEROMONE_DECAY_RATE *
+                                              (float) agent_density_grid[i * N + j] / (DX * DX);
+            repulsive_pheromone[i * N + j] = REPULSIVE_PHEROMONE_SECRETION_RATE * REPULSIVE_PHEROMONE_DECAY_RATE *
+                                             (float) agent_density_grid[i * N + j] / (DX * DX);
+        }
+        //printf("Repulsive pheromone at (%d, %d): %f\n", i, j, repulsive_pheromone[i * N + j]);
     }
 }
 
@@ -185,6 +211,7 @@ __global__ void initAgentDensityGrid(int* agent_count_grid, Agent* agents, int w
             int agent_x = (int)(agents[k].x / DX);
             int agent_y = (int)(agents[k].y / DX);
             if (agent_x == i && agent_y == j) {
+               // printf("Agent at (%d, %d)\n", i, j);
                 agent_count_grid[i * N + j] += 1;
             }
         }
@@ -192,9 +219,10 @@ __global__ void initAgentDensityGrid(int* agent_count_grid, Agent* agents, int w
 }
 
 // CUDA kernel to update the position of each agent
-__global__ void moveAgents(Agent* agents, curandState* states, float* potential, int* agent_count_grid, int worm_count) {
+__global__ void moveAgents(Agent* agents, curandState* states, float* potential, int* agent_count_grid, int worm_count, int timestep) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
+
         //find the highest concentration of the chemical in the sensing range
         // or find the minimum potential in the sensing range
         float max_concentration = 0.0f;
@@ -203,6 +231,8 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
 
         int agent_x= (int)(agents[id].x / DX);
         int agent_y = (int)(agents[id].y / DX);
+        // Print initial positions
+        //printf("Agent %d initial position: (%d, %d)\n", id, agent_x, agent_y);
         float sum_of_potentials = 0.0f;
         int n_neighbors = 0;
         for (int i = -SENSING_RANGE; i <= SENSING_RANGE; ++i) {
@@ -230,6 +260,7 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
                 }
             }
         }
+
         /*
         float bias = atan2((float)max_concentration_y, (float)max_concentration_x );
         float random_angle = curand_uniform(&states[id]) * 2.0f * M_PI;
@@ -243,33 +274,45 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         float new_angle = atan2(fy, fx);
         */
         float sensed_potential = potential[agent_x * N + agent_y];
-
+        //add a small perceptual noise to the potential
+        sensed_potential += (2.0f*curand_uniform(&states[id])-1.0f) * SIGMA;
         if (sensed_potential - agents[id].previous_potential > PIROUETTE_TO_RUN_THRESHOLD){ //starting to move in the "right" direction, then RUN
             agents[id].state = 0;
         }
         else if (sensed_potential - agents[id].previous_potential < 0.0f){ //moving in the wrong direction, then PIROUETTE
             agents[id].state = 1;
         }
-        float fx, fy, new_angle, random_angle = (2.0f*curand_uniform(&states[id])-1.0f) * M_PI;
+        float fx, fy, new_angle, new_direction_x, new_direction_y;
+
+        float random_angle = curand_uniform(&states[id]) * M_PI / 2;
+
         if(agents[id].state == 0){ //if the agent is moving = RUN - LOW TURNING - LEVY FLIGHT
-            float bias = atan2((float)max_concentration_y, (float)max_concentration_x );
-            float new_direction_x = cosf(random_angle)+(DRIFT_FACTOR * max_concentration*cosf(bias));
-            float new_direction_y = sinf(random_angle)+(DRIFT_FACTOR * max_concentration*sinf(bias));
+            //if the max concentration is 0, then choose random only (atan will give unreliable results)
+            if (max_concentration == 0.0f){
+                new_direction_x = cosf(random_angle);
+                new_direction_y = sinf(random_angle);
+            }
+            else {
+                float bias = atan2((float) max_concentration_y, (float) max_concentration_x);
+                new_direction_x = cosf(random_angle) + (DRIFT_FACTOR * max_concentration * cosf(bias));
+                new_direction_y = sinf(random_angle) + (DRIFT_FACTOR * max_concentration * sinf(bias));
+
+            }
             fx = LAMBDA * cosf(agents[id].angle) + (1.0f - LAMBDA) * new_direction_x;
             fy = LAMBDA * sinf(agents[id].angle) + (1.0f - LAMBDA) * new_direction_y;
             new_angle = atan2(fy, fx);
             agents[id].angle = new_angle;
         }
         else{ //BROWNIAN MOTION - HIGH TURNING - PIROUETTE
-            float random_angle2 = (2.0f *curand_uniform(&states[id]) -1.0f)*M_PI ;
-            agents[id].angle += random_angle2;
-            if (agents[id].angle > M_PI) agents[id].angle -=  M_PI;
-            if (agents[id].angle < -M_PI) agents[id].angle +=  M_PI;
+            float random_angle2 =curand_uniform(&states[id]) *M_PI ;
+            agents[id].angle = random_angle2;
             fx = cosf(agents[id].angle);
             fy = sinf(agents[id].angle);
 
         }
 
+        if (agents[id].angle > M_PI) agents[id].angle -=  2 * M_PI;
+        if (agents[id].angle < -M_PI) agents[id].angle +=  2 * M_PI;
 
         float new_speed_x = SPEED;
         float new_speed_y = SPEED;
@@ -301,6 +344,7 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         if (agents[id].y >= HEIGHT) agents[id].y -= HEIGHT;
         int new_x = (int)(agents[id].x / DX);
         int new_y = (int)(agents[id].y / DX);
+        //printf("Agent %d new position: (%d, %d)\n", id, new_x, new_y);
 
         if(ENABLE_MAXIMUM_NUMBER_OF_AGENTS_PER_CELL){
         // Check if the new cell is full
@@ -334,13 +378,27 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
             }
         }
         }
-        // If the agent has moved to a new cell, update the agent_count_grid
+
         if (agent_x != new_x || agent_y != new_y) {
+
             // Decrease the count in the old cell
             atomicAdd(&agent_count_grid[agent_x * N + agent_y], -1);
 
             // Increase the count in the new cell
             atomicAdd(&agent_count_grid[new_x * N + new_y], 1);
+
+        }
+
+        //check if the agent is in the target area
+        if (new_x >= 3* N/4 - TARGET_AREA_SIDE_LENGTH/2 && new_x < 3*N/4 + TARGET_AREA_SIDE_LENGTH/2 && new_y >= N/2 - TARGET_AREA_SIDE_LENGTH/2 && new_y < N/2 + TARGET_AREA_SIDE_LENGTH/2){
+            agents[id].is_agent_in_target_area = 1;
+            agents[id].steps_in_target_area++;
+            if(agents[id].first_timestep_in_target_area == -1){
+                agents[id].first_timestep_in_target_area = timestep;
+            }
+        }
+        else{
+            agents[id].is_agent_in_target_area = 0;
         }
 
     }
@@ -368,15 +426,37 @@ __global__ void updateGrids(float* grid, float* attractive_pheromone, float* rep
 
         //update attractive pheromone
         laplacian_value = laplacian(attractive_pheromone, i, j);
-        float new_attractive_pheromone = attractive_pheromone[i * N + j] + DT * (ATTRACTANT_PHEROMONE_DIFFUSION_RATE * laplacian_value - ATTRACTANT_PHEROMONE_DECAY_RATE * attractive_pheromone[i * N + j] + ATTRACTANT_PHEROMONE_SECRETION_RATE * agent_count_grid[i * N + j] / (DX * DX));
+        float new_attractive_pheromone, laplacian_attractive_pheromone = laplacian(attractive_pheromone, i, j);
+        float new_repulsive_pheromone, laplacian_repulsive_pheromone = laplacian(repulsive_pheromone, i, j);
+        if(agent_count_grid[i * N + j] == 0){
+            new_attractive_pheromone =  attractive_pheromone[i * N + j] + DT * (ATTRACTANT_PHEROMONE_DIFFUSION_RATE * laplacian_attractive_pheromone - ATTRACTANT_PHEROMONE_DECAY_RATE * attractive_pheromone[i * N + j]);
+            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (REPULSIVE_PHEROMONE_DIFFUSION_RATE * laplacian_repulsive_pheromone - REPULSIVE_PHEROMONE_DECAY_RATE * repulsive_pheromone[i * N + j]);
+        }
+        else {
+            new_attractive_pheromone = attractive_pheromone[i * N + j] + DT * (ATTRACTANT_PHEROMONE_DIFFUSION_RATE * laplacian_attractive_pheromone - ATTRACTANT_PHEROMONE_DECAY_RATE * attractive_pheromone[i * N + j] + ATTRACTANT_PHEROMONE_SECRETION_RATE * agent_count_grid[i * N + j] / (DX * DX));
+            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (REPULSIVE_PHEROMONE_DIFFUSION_RATE * laplacian_repulsive_pheromone - REPULSIVE_PHEROMONE_DECAY_RATE * repulsive_pheromone[i * N + j] + REPULSIVE_PHEROMONE_SECRETION_RATE * agent_count_grid[i * N + j] / (DX * DX));
+        }
         if (new_attractive_pheromone < 0) new_attractive_pheromone = 0.0f;
+        if (new_attractive_pheromone > MAX_CONCENTRATION) new_attractive_pheromone = MAX_CONCENTRATION;
         attractive_pheromone[i * N + j] = new_attractive_pheromone;
 
+        if(isnan(new_attractive_pheromone) || isinf(new_attractive_pheromone)){
+            printf("Invalid attractive pheromone %f at (%d, %d)\n", new_attractive_pheromone, i, j);
+            printf("Laplacian value %f\n", laplacian_value);
+            printf("Old attractive pheromone %f\n", attractive_pheromone[i * N + j]);
+        }
+
         //update repulsive pheromone
-        laplacian_value = laplacian(repulsive_pheromone, i, j);
-        float new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (REPULSIVE_PHEROMONE_DIFFUSION_RATE * laplacian_value - REPULSIVE_PHEROMONE_DECAY_RATE * repulsive_pheromone[i * N + j] + REPULSIVE_PHEROMONE_SECRETION_RATE * agent_count_grid[i * N + j] / (DX * DX));
-        if (new_repulsive_pheromone < 0) new_repulsive_pheromone = 0.0f;
+        //printf("Repulsive pheromone at (%d, %d): %f\n", i, j, repulsive_pheromone[i * N + j]);
+
+
         repulsive_pheromone[i * N + j] = new_repulsive_pheromone;
+
+        if(isnan(new_repulsive_pheromone) || isinf(new_repulsive_pheromone)){
+            printf("Invalid repulsive pheromone %f at (%d, %d)\n", new_repulsive_pheromone, i, j);
+            printf("Laplacian value %f\n", laplacian_value);
+            printf("Old repulsive pheromone %f\n", repulsive_pheromone[i * N + j]);
+        }
     }
 }
 
@@ -404,7 +484,7 @@ __global__ void updateGrid(float* grid) {
 }
 
 //CUDA kernel to update the potential matrix
-__global__ void updatePotential(float* potential, float* grid, float* attractive_pheromone, float* repulsive_pheromone, float attractive_pheromone_strength, float repulsive_pheromone_strength, float odor_strength) {
+__global__ void updatePotential(float* potential, float* grid, float* attractive_pheromone, float* repulsive_pheromone, float attractive_pheromone_strength, float repulsive_pheromone_strength, float odor_strength, curandState* states) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
@@ -416,8 +496,13 @@ __global__ void updatePotential(float* potential, float* grid, float* attractive
 
         potential_repulsive_pheromone = repulsive_pheromone_strength * log10(REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);// / (REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);
 
-        potential[i * N + j] = potential_odor + potential_attractive_pheromone + potential_repulsive_pheromone;
 
+        float noise = (2.0f * curand_uniform(&states[i * N + j]) - 1.0f) * ENVIRONMENTAL_NOISE;
+        if(noise>1.0f || noise<-1.0f){
+            printf("Noise: %f\n", noise);
+            noise=0.0f;
+        }
+        potential[i * N + j] = potential_odor + potential_attractive_pheromone + potential_repulsive_pheromone + noise;
 
     }
 }
@@ -553,7 +638,7 @@ void logIntMatrixToFile(const char* filename, int* matrix, int width, int height
     outFile.close();
 }
 
-void savePositionsToJSON(const char* filename, float* positions, int worm_count, int n_steps) {
+void savePositionsToJSON(const char* filename, float* positions, int worm_count, int n_steps, bool one_parameter=false){
     json log;
 
     // Log simulation parameters
@@ -566,8 +651,14 @@ void savePositionsToJSON(const char* filename, float* positions, int worm_count,
     // Log positions
     for (int i = 0; i < worm_count; ++i) {
         for (int j = 0; j < n_steps; ++j) {
-            log[std::to_string(i)].push_back(
-                    {positions[(j * worm_count + i) * 2], positions[(j * worm_count + i) * 2 + 1]});
+            if(!one_parameter) {
+                log[std::to_string(i)].push_back(
+                        {positions[(j * worm_count + i) * 2], positions[(j * worm_count + i) * 2 + 1]});
+            }
+            else {
+                log[std::to_string(i)].push_back(
+                        {positions[j * worm_count + i]});
+            }
         }
     }
 
@@ -575,6 +666,28 @@ void savePositionsToJSON(const char* filename, float* positions, int worm_count,
     outFile << log.dump(4);  // Pretty-print JSON with an indentation of 4 spaces
     outFile.close();
 }
+
+void saveInsideAreaToJSON(const char* filename, Agent* h_agents, int worm_count, int n_steps) {
+    json log;
+
+    // Log simulation parameters
+    log["parameters"] = {{"WIDTH",            WIDTH},
+                         {"HEIGHT",           HEIGHT},
+                         {"N", worm_count},
+                         {"LOGGING_INTERVAL", LOGGING_INTERVAL},
+                         {"N_STEPS",          N_STEPS}};
+    //log last inside_area bool
+    for (int i = 0; i < worm_count; ++i) {
+        //float distance_from_center = sqrt((h_agents[i].x - WIDTH/2)*(h_agents[i].x - WIDTH/2) + (h_agents[i].y - HEIGHT/2)*(h_agents[i].y - HEIGHT/2));
+        float distance_from_odor = sqrt((h_agents[i].x - 3*WIDTH/4)*(h_agents[i].x - 3*WIDTH/4) + (h_agents[i].y - HEIGHT/2)*(h_agents[i].y - HEIGHT/2));
+        log[std::to_string(i)].push_back({distance_from_odor, h_agents[i].first_timestep_in_target_area, h_agents[i].steps_in_target_area});
+    }
+
+    std::ofstream outFile(filename);
+    outFile << log.dump();  // Pretty-print JSON with an indentation of 4 spaces
+    outFile.close();
+}
+
 
 int main(int argc, char* argv[]) {
     float attractant_pheromone_strength = ATTRACTANT_PHEROMONE_STRENGTH;
@@ -634,6 +747,8 @@ int main(int argc, char* argv[]) {
     float* potential;
 
     float* positions = new float[worm_count * N_STEPS * 2]; // Matrix to store positions (x, y) for each agent at each timestep
+    float* angles = new float[worm_count * N_STEPS]; // Matrix to store angles for each agent at each timestep
+    float* velocities = new float[worm_count * N_STEPS]; // Matrix to store velocities for each agent at each timestep
 
     cudaMalloc(&d_agents, size);
     cudaMalloc(&d_states, worm_count * sizeof(curandState));
@@ -659,8 +774,7 @@ int main(int argc, char* argv[]) {
         printf("CUDA error in initAgentDensityGrid: %s\n", cudaGetErrorString(err));
     }
     cudaDeviceSynchronize();
-    cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(float), cudaMemcpyDeviceToHost);
-
+    cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(int), cudaMemcpyDeviceToHost);
 
 // Initialize the chemical grid concentration
     initGrid<<<gridSize, blockSize>>>(grid);
@@ -685,7 +799,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
     //initialise the potential grid
-    updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, odor_strength);
+    updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, odor_strength, d_states);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
@@ -697,7 +811,9 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < N_STEPS; ++i) {
         //printf("Step %d\n", i);
 
-        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states, potential, agent_count_grid, worm_count);
+        //copy the agent count grid to the device
+        cudaMemcpy(agent_count_grid, h_agent_count_grid, N * N * sizeof(int), cudaMemcpyHostToDevice);
+        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states, potential, agent_count_grid, worm_count, i);
         // Check for errors in the kernel launch
         err = cudaGetLastError();
         if (err != cudaSuccess) {
@@ -707,13 +823,23 @@ int main(int argc, char* argv[]) {
 
         // Copy data from device to host
         cudaMemcpy(h_agents, d_agents, size, cudaMemcpyDeviceToHost);
-        cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(int), cudaMemcpyDeviceToHost);
 
-        // Store positions in the matrix
+        // Store positions, velocities and angles in the matrices
         for (int j = 0; j < worm_count; ++j) {
             positions[(i * worm_count + j) * 2] = h_agents[j].x;
             positions[(i * worm_count + j) * 2 + 1] = h_agents[j].y;
+
+            angles[i * worm_count + j] = h_agents[j].angle;
+
+            velocities[i * worm_count + j] = h_agents[j].speed;
         }
+
+        //copy the repulsive pheromone grid to the device
+        cudaMemcpy(attractive_pheromone, h_attractive_pheromone, N * N * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpy(repulsive_pheromone, h_repulsive_pheromone, N * N * sizeof(float), cudaMemcpyHostToDevice);
+        //cudaMemcpy(grid, h_grid, N * N * sizeof(float), cudaMemcpyHostToDevice);
+
         //update all grids
         updateGrids<<<gridSize, blockSize>>>(grid, attractive_pheromone, repulsive_pheromone, agent_count_grid);
         err = cudaGetLastError();
@@ -729,7 +855,7 @@ int main(int argc, char* argv[]) {
 
 
         //update potential
-        updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, odor_strength);
+        updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, odor_strength, d_states);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
@@ -743,6 +869,21 @@ int main(int argc, char* argv[]) {
                 for (int j = 0; j < N; ++j) {
                     if (isnan(h_grid[i * N + j]) || isinf(h_grid[i * N + j])) {
                         printf("Invalid concentration %f at (%d, %d)\n", h_grid[i * N + j], i, j);
+                        broken = true;
+                        break;
+                    }
+                    if (isnan(h_attractive_pheromone[i * N + j]) || isinf(h_attractive_pheromone[i * N + j])) {
+                        printf("Invalid attractive pheromone %f at (%d, %d)\n", h_attractive_pheromone[i * N + j], i, j);
+                        broken = true;
+                        break;
+                    }
+                    if (isnan(h_repulsive_pheromone[i * N + j]) || isinf(h_repulsive_pheromone[i * N + j])) {
+                        printf("Invalid repulsive pheromone %f at (%d, %d)\n", h_repulsive_pheromone[i * N + j], i, j);
+                        broken = true;
+                        break;
+                    }
+                    if (isnan(h_potential[i * N + j]) || isinf(h_potential[i * N + j])) {
+                        printf("Invalid potential %f at (%d, %d)\n", h_potential[i * N + j], i, j);
                         broken = true;
                         break;
                     }
@@ -762,13 +903,36 @@ int main(int argc, char* argv[]) {
             //logMatrixToFile("/home/nema/CLionProjects/untitled/logs/attractive_pheromone/attractive_pheromone_step_", h_attractive_pheromone, N, N, i);
             //logMatrixToFile("/home/nema/CLionProjects/untitled/logs/repulsive_pheromone/repulsive_pheromone_step_", h_repulsive_pheromone, N, N, i);
             if(LOG_POTENTIAL) {
+
                 logMatrixToFile("/home/nema/CLionProjects/untitled/potential/potential_step_", h_potential, N, N, i);
+                //logMatrixToFile("/home/nema/CLionProjects/untitled/potential/repulsive_pheromone_step_", h_repulsive_pheromone, N, N, i);
+                //logMatrixToFile("/home/nema/CLionProjects/untitled/potential/attractive_pheromone_step_", h_attractive_pheromone, N, N, i);
+                //logIntMatrixToFile("/home/nema/CLionProjects/untitled/potential/agent_count_grid_step_", h_agent_count_grid, N, N, i);
+            }
+            if(LOG_AGENT_COUNT_GRID) {
+                logIntMatrixToFile("/home/nema/CLionProjects/untitled/logs/agent_count/agents_log_step_", h_agent_count_grid, N, N, i);
+            }
+            if(LOG_GRID) {
+                logMatrixToFile("/home/nema/CLionProjects/untitled/logs/chemical_concentration/chemical_concentration_step_", h_grid, N, N, i);
+            }
+            if(LOG_PHEROMONES) {
+                logMatrixToFile("/home/nema/CLionProjects/untitled/logs/attractive_pheromone/attractive_pheromone_step_", h_attractive_pheromone, N, N, i);
+                logMatrixToFile("/home/nema/CLionProjects/untitled/logs/repulsive_pheromone/repulsive_pheromone_step_", h_repulsive_pheromone, N, N, i);
             }
 
         }
-    }
-    savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_log.json", positions, worm_count, N_STEPS);
 
+    }
+    if(LOG_TRAJECTORIES) {
+        savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_log.json", positions, worm_count, N_STEPS);
+    }
+    if(LOG_VELOCITIES) {
+        savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_velocities_log.json", velocities, worm_count, N_STEPS, true);
+    }
+    if(LOG_ANGLES) {
+        savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_angles_log.json", angles, worm_count, N_STEPS, true);
+    }
+    saveInsideAreaToJSON("/home/nema/CLionProjects/untitled/inside_area.json", h_agents, worm_count, N_STEPS);
     cudaFree(d_agents);
     cudaFree(d_states);
     cudaFree(grid);
@@ -783,5 +947,7 @@ int main(int argc, char* argv[]) {
     delete[] h_repulsive_pheromone;
     delete[] h_agent_count_grid;
     delete[] positions;
+    delete[] angles;
+    delete[] velocities;
     return 0;
 }
