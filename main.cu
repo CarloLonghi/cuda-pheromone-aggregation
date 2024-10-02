@@ -6,12 +6,12 @@
 
 using json = nlohmann::json;
 
-#define N 8                        // Grid size
+#define N 128                        // Grid size
 #define WORM_COUNT 10                 // Number of agents
 #define WIDTH 90.0f          // Width of the 2D space
 #define HEIGHT 90.0f         // Height of the 2D space
 #define BLOCK_SIZE 32        // CUDA block size
-#define N_STEPS 6         // Number of simulation steps
+#define N_STEPS 500         // Number of simulation steps
 #define LOGGING_INTERVAL 1    // Logging interval for saving positions
 #define SPEED 0.1f            // Constant speed at which agents move
 //#define DX WIDTH/N               // Grid spacing
@@ -408,7 +408,7 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
 __global__ void updateGrids(float* grid, float* attractive_pheromone, float* repulsive_pheromone, int* agent_count_grid){
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if (i < N && j < N) {
+    if (i < N && j < N && i>=0 && j>=0) {
         float laplacian_value = laplacian(grid, i, j);
 
         float new_concentration = grid[i * N + j] + DT * (DIFFUSION_CONSTANT * laplacian_value - GAMMA * grid[i * N + j]);
@@ -727,7 +727,7 @@ int main(int argc, char* argv[]) {
     Agent* h_agents = new Agent[worm_count];
     //the following should be the sum of all the maximum values of the potentials. However, we assume the potential of pheromones is always smaller than that of the chemical, so we use that value * 3
     float MAXIMUM_POTENTIAL =  ATTRACTION_STRENGTH * log10(ATTRACTION_SCALE + MAX_CONCENTRATION);
-    curandState* d_states;
+    curandState* d_states, *d_states_grids;
     bool broken = false;
     size_t size = worm_count * sizeof(Agent);
     //float target_x = WIDTH / 2;
@@ -752,6 +752,7 @@ int main(int argc, char* argv[]) {
 
     cudaMalloc(&d_agents, size);
     cudaMalloc(&d_states, worm_count * sizeof(curandState));
+    cudaMalloc(&d_states_grids, N * N * sizeof(curandState));
     cudaMalloc(&grid, N*N*sizeof(float));
     cudaMalloc(&potential, N*N*sizeof(float));
 
@@ -799,7 +800,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
     //initialise the potential grid
-    updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, odor_strength, d_states);
+    updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, odor_strength, d_states_grids);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
@@ -838,7 +839,7 @@ int main(int argc, char* argv[]) {
         //copy the repulsive pheromone grid to the device
         cudaMemcpy(attractive_pheromone, h_attractive_pheromone, N * N * sizeof(float), cudaMemcpyHostToDevice);
         cudaMemcpy(repulsive_pheromone, h_repulsive_pheromone, N * N * sizeof(float), cudaMemcpyHostToDevice);
-        //cudaMemcpy(grid, h_grid, N * N * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpy(grid, h_grid, N * N * sizeof(float), cudaMemcpyHostToDevice);
 
         //update all grids
         updateGrids<<<gridSize, blockSize>>>(grid, attractive_pheromone, repulsive_pheromone, agent_count_grid);
@@ -855,7 +856,7 @@ int main(int argc, char* argv[]) {
 
 
         //update potential
-        updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, odor_strength, d_states);
+        updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, odor_strength, d_states_grids);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
