@@ -6,8 +6,8 @@
 #define HEIGHT 60.0f
 
 // Simulation parameters
-#define WORM_COUNT 200
-#define N_STEPS 500
+#define WORM_COUNT 20
+#define N_STEPS 1000
 #define LOGGING_INTERVAL 1
 #define DT 1.0f
 #define DEBUG false
@@ -25,17 +25,16 @@
 
 // Agent parameters
 #define SPEED 0.1f
-#define LAMBDA 0.9f //persistence factor
-#define DRIFT_FACTOR 0.01f
 #define SENSING_RANGE 1
 #define ODOR_THRESHOLD 1e-8f
-#define ON_FOOD_AVERAGE_SPEED 0.17f
-#define ON_FOOD_SPEED_SIGMA 0.5f
-#define OFF_FOOD_AVERAGE_SPEED 0.179f
-#define OFF_FOOD_SPEED_SIGMA 0.7f
+#define ON_FOOD_SPEED_SCALE 0.08f// scale = exp(mu) => mu = log(scale)
+#define ON_FOOD_SPEED_SHAPE 0.45f// shape = sigma
+#define OFF_FOOD_SPEED_SCALE 0.09f// scale = exp(mu) => mu = log(scale)
+#define OFF_FOOD_SPEED_SHAPE 0.63f // shape = sigma
 #define PIROUETTE_TO_RUN_THRESHOLD 1e-6f
 #define AUTO_TRANSITION_PROBABILITY_THRESHOLD 0.01f
 #define KAPPA 11.0f
+#define MAX_ALLOWED_SPEED 0.3f
 
 // Odor parameters
 #define TARGET_AREA_SIDE_LENGTH 20

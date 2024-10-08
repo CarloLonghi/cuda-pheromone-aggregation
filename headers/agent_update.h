@@ -167,25 +167,34 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         fx = cosf(agents[id].angle);
         fy = sinf(agents[id].angle);
         //agents[id].angle = fmodf(agents[id].angle, 2.0f * M_PI);
-        float new_speed_x = SPEED;
-        float new_speed_y = SPEED;
 
+        float new_speed = SPEED;
         if(max_concentration>ODOR_THRESHOLD){ //on food - lognorm distribution of speed
-            new_speed_x = curand_log_normal(&states[id], logf(ON_FOOD_AVERAGE_SPEED), ON_FOOD_SPEED_SIGMA);
-            new_speed_y = curand_log_normal(&states[id], logf(ON_FOOD_AVERAGE_SPEED), ON_FOOD_SPEED_SIGMA);
+            /*new_speed_x = curand_log_normal(&states[id], log(ON_FOOD_SPEED_SHAPE), ON_FOOD_SPEED_SCALE);
+            while(new_speed_x>MAX_ALLOWED_SPEED) new_speed_x = curand_log_normal(&states[id], log(ON_FOOD_SPEED_SHAPE), ON_FOOD_SPEED_SCALE);
+            new_speed_y = curand_log_normal(&states[id], log(ON_FOOD_SPEED_SHAPE), ON_FOOD_SPEED_SCALE);
+            while(new_speed_y>MAX_ALLOWED_SPEED) new_speed_y = curand_log_normal(&states[id], log(ON_FOOD_SPEED_SHAPE), ON_FOOD_SPEED_SCALE);
+            printf("New speed: %f, %f\n", new_speed_x, new_speed_y);*/
+            new_speed = curand_log_normal(&states[id], logf(ON_FOOD_SPEED_SCALE), ON_FOOD_SPEED_SHAPE);
+            while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(ON_FOOD_SPEED_SCALE), ON_FOOD_SPEED_SHAPE);
+
         }
         else{ //off food - lognormal distribution of speed
-            new_speed_x = curand_log_normal(&states[id], logf(OFF_FOOD_AVERAGE_SPEED), OFF_FOOD_SPEED_SIGMA);
+            /*new_speed_x = curand_log_normal(&states[id], logf(OFF_FOOD_AVERAGE_SPEED), OFF_FOOD_SPEED_SIGMA);
+            while(new_speed_x>MAX_ALLOWED_SPEED) new_speed_x = curand_log_normal(&states[id], logf(OFF_FOOD_AVERAGE_SPEED), OFF_FOOD_SPEED_SIGMA);
             new_speed_y = curand_log_normal(&states[id], logf(OFF_FOOD_AVERAGE_SPEED), OFF_FOOD_SPEED_SIGMA);
+            while(new_speed_y>MAX_ALLOWED_SPEED) new_speed_y = curand_log_normal(&states[id], logf(OFF_FOOD_AVERAGE_SPEED), OFF_FOOD_SPEED_SIGMA);*/
+            new_speed = curand_log_normal(&states[id], logf(OFF_FOOD_SPEED_SCALE), OFF_FOOD_SPEED_SHAPE);
+            while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(OFF_FOOD_SPEED_SCALE), OFF_FOOD_SPEED_SHAPE);
         }
 
-        float dx = fx * new_speed_x;
-        float dy = fy * new_speed_y;
+        float dx = fx * new_speed;
+        float dy = fy * new_speed;
 
         agents[id].previous_potential = sensed_potential;
         agents[id].x += dx;
         agents[id].y += dy;
-        agents[id].speed = sqrt(dx * dx + dy * dy);
+        agents[id].speed = new_speed;
         // Apply periodic boundary conditions
         if (agents[id].x < 0) agents[id].x += WIDTH;
         if (agents[id].x >= WIDTH) agents[id].x -= WIDTH;
