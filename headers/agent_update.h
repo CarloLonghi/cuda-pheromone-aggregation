@@ -95,12 +95,15 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         }
 
         float auto_transition_probability = curand_uniform(&states[id]);
-        if (sensed_potential - agents[id].previous_potential > PIROUETTE_TO_RUN_THRESHOLD){ //|| auto_transition_probability>=AUTO_TRANSITION_PROBABILITY_THRESHOLD){ //starting to move in the "right" direction, then RUN
+        if (agents[id].cumulative_potential > PIROUETTE_TO_RUN_THRESHOLD){ //|| auto_transition_probability>=AUTO_TRANSITION_PROBABILITY_THRESHOLD){ //starting to move in the "right" direction, then RUN
             agents[id].state = 0;
+            agents[id].cumulative_potential = 0.0f;
         }
         else if (sensed_potential - agents[id].previous_potential < -ODOR_THRESHOLD){ //|| auto_transition_probability<AUTO_TRANSITION_PROBABILITY_THRESHOLD){ //moving in the wrong direction, then PIROUETTE
             agents[id].state = 1;
+            agents[id].cumulative_potential += (sensed_potential - agents[id].previous_potential);
         }
+
         //printf("Agent %d state: %d\n", id, agents[id].state);
         float fx, fy, new_angle, new_direction_x, new_direction_y;
 
@@ -115,15 +118,12 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         if(agents[id].state == 0){ //if the agent is moving = RUN - LOW TURNING - LEVY FLIGHT
             //if the max concentration is 0 (or best direction is 0,0), then choose random only (atan will give unreliable results)
             if (max_concentration< ODOR_THRESHOLD || (max_concentration_x==0 && max_concentration_y==0) ) {
-                new_direction_x = cosf(random_angle);
-                new_direction_y = sinf(random_angle);
-                new_angle = atan2(new_direction_y, new_direction_x);
-                agents[id].angle += ((1.0f-lambda)* new_angle);
+
+                agents[id].angle += ((1.0f-lambda)* random_angle);
             }
             else {
                 //max_concentration_x = -max_concentration_x;
                 //max_concentration_y = -max_concentration_y;
-
                 float norm = sqrt(max_concentration_x * max_concentration_x + max_concentration_y * max_concentration_y);
                 float direction_x = max_concentration_x / norm;
                 float direction_y = max_concentration_y / norm;
@@ -170,22 +170,32 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
 
         float new_speed = SPEED;
         if(max_concentration>ODOR_THRESHOLD){ //on food - lognorm distribution of speed
-            /*new_speed_x = curand_log_normal(&states[id], log(ON_FOOD_SPEED_SHAPE), ON_FOOD_SPEED_SCALE);
-            while(new_speed_x>MAX_ALLOWED_SPEED) new_speed_x = curand_log_normal(&states[id], log(ON_FOOD_SPEED_SHAPE), ON_FOOD_SPEED_SCALE);
-            new_speed_y = curand_log_normal(&states[id], log(ON_FOOD_SPEED_SHAPE), ON_FOOD_SPEED_SCALE);
-            while(new_speed_y>MAX_ALLOWED_SPEED) new_speed_y = curand_log_normal(&states[id], log(ON_FOOD_SPEED_SHAPE), ON_FOOD_SPEED_SCALE);
-            printf("New speed: %f, %f\n", new_speed_x, new_speed_y);*/
-            new_speed = curand_log_normal(&states[id], logf(ON_FOOD_SPEED_SCALE), ON_FOOD_SPEED_SHAPE);
-            while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(ON_FOOD_SPEED_SCALE), ON_FOOD_SPEED_SHAPE);
+            float scale, shape;
+            if(curand_uniform(&states[id])<ON_FOOD_SPEED_SLOW_WEIGHT){
+                scale = ON_FOOD_SPEED_SCALE_SLOW;
+                shape = ON_FOOD_SPEED_SHAPE_SLOW;
+            }
+            else{
+                scale = ON_FOOD_SPEED_SCALE_FAST;
+                shape = ON_FOOD_SPEED_SHAPE_FAST;
+            }
+            new_speed = curand_log_normal(&states[id], logf(scale), shape);
+            while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
 
         }
         else{ //off food - lognormal distribution of speed
-            /*new_speed_x = curand_log_normal(&states[id], logf(OFF_FOOD_AVERAGE_SPEED), OFF_FOOD_SPEED_SIGMA);
-            while(new_speed_x>MAX_ALLOWED_SPEED) new_speed_x = curand_log_normal(&states[id], logf(OFF_FOOD_AVERAGE_SPEED), OFF_FOOD_SPEED_SIGMA);
-            new_speed_y = curand_log_normal(&states[id], logf(OFF_FOOD_AVERAGE_SPEED), OFF_FOOD_SPEED_SIGMA);
-            while(new_speed_y>MAX_ALLOWED_SPEED) new_speed_y = curand_log_normal(&states[id], logf(OFF_FOOD_AVERAGE_SPEED), OFF_FOOD_SPEED_SIGMA);*/
-            new_speed = curand_log_normal(&states[id], logf(OFF_FOOD_SPEED_SCALE), OFF_FOOD_SPEED_SHAPE);
-            while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(OFF_FOOD_SPEED_SCALE), OFF_FOOD_SPEED_SHAPE);
+            float scale, shape;
+            if(curand_uniform(&states[id])<OFF_FOOD_SPEED_SLOW_WEIGHT){
+                scale = OFF_FOOD_SPEED_SCALE_SLOW;
+                shape = OFF_FOOD_SPEED_SHAPE_SLOW;
+            }
+            else{
+                scale = OFF_FOOD_SPEED_SCALE_FAST;
+                shape = OFF_FOOD_SPEED_SHAPE_FAST;
+            }
+            new_speed = curand_log_normal(&states[id], logf(scale), shape);
+            while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
+
         }
 
         float dx = fx * new_speed;

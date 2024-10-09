@@ -8,7 +8,7 @@
 
 
 struct Agent {
-    float x, y, angle, speed, previous_potential;  // Position in 2D space
+    float x, y, angle, speed, previous_potential, cumulative_potential;  // Position in 2D space
     int state;  // State of the agent: -1 stopped, 0 moving, 1 pirouette
     int is_agent_in_target_area;
     int first_timestep_in_target_area, steps_in_target_area;
@@ -32,6 +32,7 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
         agents[id].speed = SPEED;
         agents[id].state = 0;
         agents[id].previous_potential = 0.0f;
+        agents[id].cumulative_potential = 0.0f;
         agents[id].is_agent_in_target_area = 0;
         agents[id].first_timestep_in_target_area = -1;
         agents[id].steps_in_target_area = 0;
