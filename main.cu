@@ -11,18 +11,18 @@
 
 
 int main(int argc, char* argv[]) {
+    // Create CUDA events
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    // Record the start event
+    cudaEventRecord(start, 0);
     float attractant_pheromone_strength = ATTRACTANT_PHEROMONE_STRENGTH, repulsive_pheromone_strength = REPULSIVE_PHEROMONE_STRENGTH, odor_strength = ATTRACTION_STRENGTH, sigma = SIGMA, environmental_noise = ENVIRONMENTAL_NOISE;
     float* grid, * h_grid = new float[N * N], * attractive_pheromone, * repulsive_pheromone, * h_attractive_pheromone = new float[N * N];
     float* h_repulsive_pheromone = new float[N * N], * h_potential = new float[N * N], * potential;
     int worm_count = WORM_COUNT, exp_number = 0, * agent_count_grid, * h_agent_count_grid = new int[N * N];;
-    Agent* d_agents, *h_agents = new Agent[worm_count];;
-    curandState* d_states, *d_states_grids;
-    bool broken = false;
-    size_t size = worm_count * sizeof(Agent);
 
-    auto* positions = new float[worm_count * N_STEPS * 2]; // Matrix to store positions (x, y) for each agent at each timestep
-    auto* angles = new float[worm_count * N_STEPS]; // Matrix to store angles for each agent at each timestep
-    auto* velocities = new float[worm_count * N_STEPS]; // Matrix to store velocities for each agent at each timestep
 
     printf("Found %d arguments\n", argc-1);
     switch (argc-1) {
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
                 printf("Worm count: %d\n", worm_count);
                 attractant_pheromone_strength = std::stof(argv[3]);
                 printf("Attractant pheromone strength: %.10f\n", attractant_pheromone_strength);
-                repulsive_pheromone_strength = std::stof(argv[4]);
+                repulsive_pheromone_strength = -std::stof(argv[4]);
                 printf("Repulsive pheromone strength: %.10f\n", repulsive_pheromone_strength);
                 int using_odor = std::stoi(argv[5]);
                 if(using_odor == 0){
@@ -60,7 +60,14 @@ int main(int argc, char* argv[]) {
             printf("No input arguments provided.\n");
             break;
     }
+    Agent* d_agents, *h_agents = new Agent[worm_count];
+    curandState* d_states, *d_states_grids;
+    bool broken = false;
+    size_t size = worm_count * sizeof(Agent);
 
+    auto* positions = new float[worm_count * N_STEPS * 2]; // Matrix to store positions (x, y) for each agent at each timestep
+    auto* angles = new float[worm_count * N_STEPS]; // Matrix to store angles for each agent at each timestep
+    auto* velocities = new float[worm_count * N_STEPS]; // Matrix to store velocities for each agent at each timestep
     cudaMalloc(&d_agents, size);
     cudaMalloc(&d_states, worm_count * sizeof(curandState));
     cudaMalloc(&d_states_grids, N * N * sizeof(curandState));
@@ -88,7 +95,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(int), cudaMemcpyDeviceToHost);
 
 // Initialize the chemical grid concentration
-    initGrid<<<gridSize, blockSize>>>(grid);
+    initGrid<<<gridSize, blockSize>>>(grid, d_states_grids);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error in initGrid: %s\n", cudaGetErrorString(err));
@@ -221,7 +228,11 @@ int main(int argc, char* argv[]) {
         }
 
     }
-    if(LOG_TRAJECTORIES) {
+    if(LOG_GENERIC_TARGET_DATA) {
+        saveAllDataToJSON("/home/nema/CLionProjects/untitled/agents_all_data.json", positions, velocities, angles, h_agents ,worm_count, N_STEPS);
+    }
+
+    /*if(LOG_TRAJECTORIES) {
         savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_log.json", positions, worm_count, N_STEPS);
     }
     if(LOG_VELOCITIES) {
@@ -229,8 +240,8 @@ int main(int argc, char* argv[]) {
     }
     if(LOG_ANGLES) {
         savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_angles_log.json", angles, worm_count, N_STEPS, true);
-    }
-    saveInsideAreaToJSON("/home/nema/CLionProjects/untitled/inside_area.json", h_agents, worm_count, N_STEPS);
+    } //
+    saveInsideAreaToJSON("/home/nema/CLionProjects/untitled/inside_area.json", h_agents, worm_count, N_STEPS);*/
     cudaFree(d_agents);
     cudaFree(d_states);
     cudaFree(grid);
@@ -247,5 +258,25 @@ int main(int argc, char* argv[]) {
     delete[] positions;
     delete[] angles;
     delete[] velocities;
+
+
+    // Record the stop event
+    cudaEventRecord(stop, 0);
+
+    // Synchronize the events
+    cudaEventSynchronize(stop);
+
+    // Calculate the elapsed time
+    float elapsedTime;
+    cudaEventElapsedTime(&elapsedTime, start, stop);
+
+    // Print the elapsed time
+    std::cout << "Elapsed time: " << elapsedTime << " ms" << std::endl;
+
+    // Clean up
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
+
+
     return 0;
 }

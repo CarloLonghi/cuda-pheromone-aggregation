@@ -12,7 +12,7 @@ __global__ void updateGrids(float* grid, float* attractive_pheromone, float* rep
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N && i>=0 && j>=0) {
-        float laplacian_value = laplacian(grid, i, j);
+        float laplacian_value = fourth_order_laplacian(grid, i, j); //laplacian(grid, i, j);
 
         float new_concentration = grid[i * N + j] + DT * (DIFFUSION_CONSTANT * laplacian_value - GAMMA * grid[i * N + j]);
         if (new_concentration < 0) new_concentration = 0.0f;
@@ -28,9 +28,9 @@ __global__ void updateGrids(float* grid, float* attractive_pheromone, float* rep
         grid[i * N + j] = new_concentration;
 
         //update attractive pheromone
-        laplacian_value = laplacian(attractive_pheromone, i, j);
-        float new_attractive_pheromone, laplacian_attractive_pheromone = laplacian(attractive_pheromone, i, j);
-        float new_repulsive_pheromone, laplacian_repulsive_pheromone = laplacian(repulsive_pheromone, i, j);
+        //laplacian_value = fourth_order_laplacian(attractive_pheromone, i, j);
+        float new_attractive_pheromone, laplacian_attractive_pheromone = fourth_order_laplacian(attractive_pheromone, i, j);
+        float new_repulsive_pheromone, laplacian_repulsive_pheromone = fourth_order_laplacian(repulsive_pheromone, i, j);
         if(agent_count_grid[i * N + j] == 0){
             new_attractive_pheromone =  attractive_pheromone[i * N + j] + DT * (ATTRACTANT_PHEROMONE_DIFFUSION_RATE * laplacian_attractive_pheromone - ATTRACTANT_PHEROMONE_DECAY_RATE * attractive_pheromone[i * N + j]);
             new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (REPULSIVE_PHEROMONE_DIFFUSION_RATE * laplacian_repulsive_pheromone - REPULSIVE_PHEROMONE_DECAY_RATE * repulsive_pheromone[i * N + j]);

@@ -55,4 +55,25 @@ __device__ float laplacian(float* grid, int i, int j) {
     return laplacian;
 }
 
+// function to compute the 4th order laplacian
+__device__ float fourth_order_laplacian(float* input, int i, int j){
+    int im2 = (i - 2 + N) % N;
+    int im1 = (i - 1 + N) % N;
+    int ip1 = (i + 1) % N;
+    int ip2 = (i + 2) % N;
+
+    int jm2 = (j - 2 + N) % N;
+    int jm1 = (j - 1 + N) % N;
+    int jp1 = (j + 1) % N;
+    int jp2 = (j + 2) % N;
+
+    float laplacianX = (-input[im2 * N + j] + 16 * input[im1 * N + j] - 30 * input[i * N + j]
+                        + 16 * input[ip1 * N + j] - input[ip2 * N + j]) / (12 * DX * DX);
+
+    float laplacianY = (-input[i * N + jm2] + 16 * input[i * N + jm1] - 30 * input[i * N + j]
+                        + 16 * input[i * N + jp1] - input[i * N + jp2]) /  (12 * DX * DX);
+
+    return laplacianX + laplacianY;
+}
+
 #endif

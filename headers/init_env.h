@@ -24,8 +24,8 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
             agents[id].y = curand_uniform(&states[id]) * HEIGHT;
         } else {
             //initialise in a random position inside the square centered at WIDTH/4, HEIGHT/4 with side length DX*INITIAL_AREA_NUMBER_OF_CELLS
-            agents[id].x = WIDTH / 4 + curand_uniform(&states[id]) * DX * INITIAL_AREA_NUMBER_OF_CELLS;
-            agents[id].y = HEIGHT / 2 + curand_uniform(&states[id]) * DX * INITIAL_AREA_NUMBER_OF_CELLS;
+           agents[id].x = WIDTH / 4 - INITIAL_AREA_NUMBER_OF_CELLS/2 * DX + curand_uniform(&states[id]) * INITIAL_AREA_NUMBER_OF_CELLS * DX;
+           agents[id].y = HEIGHT / 2 - INITIAL_AREA_NUMBER_OF_CELLS/2  * DX + curand_uniform(&states[id]) * INITIAL_AREA_NUMBER_OF_CELLS * DX;
         }
         //generate angle in the range [-pi, pi]
         agents[id].angle =(2.0f * curand_uniform(&states[id]) - 1.0f) * M_PI;
@@ -40,13 +40,14 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
 }
 
 // CUDA kernel to initialize the chemical grid concentration
-__global__ void initGrid(float* grid) {
+__global__ void initGrid(float* grid, curandState* states) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
         //place 100 units of chemical in the square in the middle of the grid with length 20
         if (i >= 3 * N / 4 - TARGET_AREA_SIDE_LENGTH/2 && i < 3 * N / 4 + TARGET_AREA_SIDE_LENGTH/2 && j >= N / 2 - TARGET_AREA_SIDE_LENGTH/2 && j < N / 2 + TARGET_AREA_SIDE_LENGTH/2) {
-            grid[i * N + j] = MAX_CONCENTRATION;
+        //if (i >=N / 2 - TARGET_AREA_SIDE_LENGTH/2 && i <  N / 2 + TARGET_AREA_SIDE_LENGTH/2 && j >= N / 2 - TARGET_AREA_SIDE_LENGTH/2 && j < N / 2 + TARGET_AREA_SIDE_LENGTH/2) {
+            grid[i * N + j] = MAX_CONCENTRATION * (1.0f + curand_normal(&states[i*N+j]));
         } else{
             grid[i * N + j] = 0.0f;
         }

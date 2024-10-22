@@ -39,7 +39,13 @@ __device__ float sample_from_von_mises(float mu, float kappa, curandState* state
             // Step 5: Generate final angle sample
             float u3 = abs(curand_uniform(state));
             float theta = (u3 < 0.5f) ? acos(f) : -acos(f);
-            return mu + theta;  // Return the sample from von Mises
+            float result = mu + theta;  // Return the sample from von Mises
+            if (result > M_PI) {
+                result -= 2.0f * M_PI;
+            } else if (result < -M_PI) {
+                result += 2.0f * M_PI;
+            }
+            return result;
         }
     }
 }
@@ -132,20 +138,22 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
 
                 //printf("Bias: %f\n", bias);
                 float current_angle = agents[id].angle;
-                if(bias-current_angle>=0){
+                if(bias-current_angle>0){
                     bias = M_PI / 4;
-                } else {
+                } else if(bias-current_angle<0){
                     bias = -M_PI / 4;
+                } else{
+                    bias = 0.0f;
                 }
                 //make bias modulo pi/2
                 //bias = fmodf(bias, 2*M_PI);
                 float k = KAPPA;// * pow(sensed_potential / max_concentration, 2);
                 new_angle = sample_from_von_mises(bias, k, &states[id]);
                 //printf("New angle: %f\n", new_angle);
-                new_direction_x = cosf(new_angle);
-                new_direction_y = sinf(new_angle);
+                //new_direction_x = cosf(new_angle);
+                //new_direction_y = sinf(new_angle);
                 //lambda = pow(sensed_potential / max_concentration, 2);
-                lambda = 0.0f;
+                //lambda = 0.0f;
                 //lambda = ((agents[id].previous_potential - sensed_potential) / max_concentration);
                 //lambda = 1.0f-abs(new_angle)/(M_PI);
                 //lambda=0.0f;
