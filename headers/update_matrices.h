@@ -12,21 +12,27 @@ __global__ void updateGrids(float* grid, float* attractive_pheromone, float* rep
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N && i>=0 && j>=0) {
-        float laplacian_value = fourth_order_laplacian(grid, i, j); //laplacian(grid, i, j);
-
-        float new_concentration = grid[i * N + j] + DT * (DIFFUSION_CONSTANT * laplacian_value - GAMMA * grid[i * N + j]);
-        if (new_concentration < 0) new_concentration = 0.0f;
-        if (new_concentration > MAX_CONCENTRATION) new_concentration = MAX_CONCENTRATION;
-        //check if the grid is a valid float number
-        if (isnan(new_concentration) || isinf(new_concentration)) {
-            printf("Invalid concentration %f at (%d, %d)\n", new_concentration, i, j);
-            printf("Laplacian value %f\n", laplacian_value);
-            printf("Old concentration %f\n", grid[i * N + j]);
-
+        //if in the target area, set the concentration to the maximum value
+        if(i>=3*N/4-TARGET_AREA_SIDE_LENGTH/2 && i<3*N/4+TARGET_AREA_SIDE_LENGTH/2 && j>=N/2-TARGET_AREA_SIDE_LENGTH/2 && j<N/2+TARGET_AREA_SIDE_LENGTH/2){
+            grid[i * N + j] = MAX_CONCENTRATION;
         }
+        else {
+            float laplacian_value = fourth_order_laplacian(grid, i, j); //laplacian(grid, i, j);
 
-        grid[i * N + j] = new_concentration;
+            float new_concentration =
+                    grid[i * N + j] + DT * (DIFFUSION_CONSTANT * laplacian_value - GAMMA * grid[i * N + j]);
+            if (new_concentration < 0) new_concentration = 0.0f;
+            if (new_concentration > MAX_CONCENTRATION) new_concentration = MAX_CONCENTRATION;
+            //check if the grid is a valid float number
+            if (isnan(new_concentration) || isinf(new_concentration)) {
+                printf("Invalid concentration %f at (%d, %d)\n", new_concentration, i, j);
+                printf("Laplacian value %f\n", laplacian_value);
+                printf("Old concentration %f\n", grid[i * N + j]);
 
+            }
+
+            grid[i * N + j] = new_concentration;
+        }
         //update attractive pheromone
         //laplacian_value = fourth_order_laplacian(attractive_pheromone, i, j);
         float new_attractive_pheromone, laplacian_attractive_pheromone = fourth_order_laplacian(attractive_pheromone, i, j);
@@ -45,7 +51,7 @@ __global__ void updateGrids(float* grid, float* attractive_pheromone, float* rep
 
         if(isnan(new_attractive_pheromone) || isinf(new_attractive_pheromone)){
             printf("Invalid attractive pheromone %f at (%d, %d)\n", new_attractive_pheromone, i, j);
-            printf("Laplacian value %f\n", laplacian_value);
+            printf("Laplacian value %f\n", laplacian_attractive_pheromone);
             printf("Old attractive pheromone %f\n", attractive_pheromone[i * N + j]);
         }
 
@@ -57,7 +63,7 @@ __global__ void updateGrids(float* grid, float* attractive_pheromone, float* rep
 
         if(isnan(new_repulsive_pheromone) || isinf(new_repulsive_pheromone)){
             printf("Invalid repulsive pheromone %f at (%d, %d)\n", new_repulsive_pheromone, i, j);
-            printf("Laplacian value %f\n", laplacian_value);
+            printf("Laplacian value %f\n", laplacian_repulsive_pheromone);
             printf("Old repulsive pheromone %f\n", repulsive_pheromone[i * N + j]);
         }
     }
