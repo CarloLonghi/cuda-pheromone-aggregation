@@ -8,6 +8,8 @@
 #include <random>
 #include <limits>
 #include <cmath>
+#include "gaussian_odour.h"
+#include "numeric_functions.h"
 // Function to sample from a von Mises distribution
 __device__ float sample_from_von_mises(float mu, float kappa, curandState* state) {
     // Handle kappa = 0 (uniform distribution)
@@ -50,16 +52,35 @@ __device__ float sample_from_von_mises(float mu, float kappa, curandState* state
     }
 }
 
+__device__ int select_next_state(float* probabilities, curandState* local_state, int num_states) {
+    // Generate a random value between 0 and 1
+    float random_val = curand_uniform(local_state);
+
+    // Cumulative probability tracking
+    float cumulative_prob = 0.0f;
+
+    // Iterate through probabilities to select state
+    for (int i = 0; i < num_states; i++) {
+        cumulative_prob += probabilities[i];
+        // If random value is less than cumulative probability, select this state
+        if (random_val <= cumulative_prob) {
+            return i;
+        }
+    }
+    printf("Error: No state selected\n");
+    // Fallback to last state if no state is selected (should rarely happen)
+    return num_states - 1;
+}
+
 // CUDA kernel to update the position of each agent
-__global__ void moveAgents(Agent* agents, curandState* states, float* potential, int* agent_count_grid, int worm_count, int timestep, float sigma) {
+__global__ void moveAgents(Agent* agents, curandState* states, ExplorationState * d_explorationStates,  /*float* potential, int* agent_count_grid,*/ int worm_count, int timestep, float sigma) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
 
-        int max_concentration_x = 0;
-        int max_concentration_y = 0;
-        int agent_x = (int) (agents[id].x / DX);
-        int agent_y = (int) (agents[id].y / DY);
-        float sensed_potential = potential[agent_x * N + agent_y];
+        float max_concentration_x = 0.0f;
+        float max_concentration_y = 0.0f;
+        float sensed_potential = computeDensityAtPoint(agents[id].x, agents[id].y, timestep);//potential[agent_x * N + agent_y];
+        sensed_potential = ATTRACTION_STRENGTH * logf(sensed_potential + ATTRACTION_SCALE);
         //add a small perceptual noise to the potential
         if(sigma!=0.0f){
             float perceptual_noise = curand_normal(&states[id]) * sigma;
@@ -67,36 +88,24 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
             if(perceptual_noise<-sigma) perceptual_noise = (-sigma);
             sensed_potential += perceptual_noise;
         }
+
         float max_concentration = sensed_potential;
         //printf("Sensed potential: %f\n", sensed_potential);
-        for (int i = -SENSING_RANGE; i <= SENSING_RANGE; ++i) {
-            for (int j = -SENSING_RANGE; j <= SENSING_RANGE; ++j) {
-                float concentration = 0.0f;
-                int xIndex = agent_x + i;
-                int yIndex = agent_y + j;
-                //apply periodic boundary conditions
-                if (xIndex < 0) xIndex += N;
-                if (xIndex >= N) xIndex -= N;
-                if (yIndex < 0) yIndex += N;
-                if (yIndex >= N) yIndex -= N;
-                if (xIndex >= 0 && xIndex < N && yIndex >= 0 && yIndex < N) {
-                    concentration = potential[xIndex * N + yIndex];
-                    //printf("At (%d, %d) concentration: %f\n", xIndex, yIndex, concentration);
-                    /*if (sigma != 0.0f) {
-                        float perceptual_noise = curand_normal(&states[id]) * sigma;
-                        if (perceptual_noise > sigma) perceptual_noise = sigma;
-                        if (perceptual_noise < -sigma) perceptual_noise = (-sigma);
-                        concentration += perceptual_noise;
-                    }*/
-                    if (concentration > max_concentration) {
-                        max_concentration = concentration;
-                        max_concentration_x = i;
-                        max_concentration_y = j;
-                        //printf("Max concentration: %f in direction %d,%d\n", max_concentration, max_concentration_x, max_concentration_y);
-                    }
-                    //printf("At (%d, %d) concentration: %f\n", xIndex, yIndex, concentration);
-                }
+        for (int i = 0; i < 32; ++i) {
+            float angle = curand_uniform(&states[id]) * 2 * M_PI;
+            float sample_x = agents[id].x + SENSING_RADIUS * cosf(angle);
+            float sample_y = agents[id].y + SENSING_RADIUS * sinf(angle);
+            float concentration = computeDensityAtPoint(sample_x, sample_y, timestep);
+            // Add perceptual noise if sigma is not zero
+            if (sigma != 0.0f) {
+                concentration += curand_normal(&states[id]) * sigma;
+            }
+            concentration = ATTRACTION_STRENGTH * logf(concentration + ATTRACTION_SCALE);
 
+            if (concentration > max_concentration) {
+                max_concentration = concentration;
+                max_concentration_x = cosf(angle);
+                max_concentration_y = sinf(angle);
             }
         }
 
@@ -110,102 +119,60 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
             agents[id].cumulative_potential += (sensed_potential - agents[id].previous_potential);
         }
 
-        //printf("Agent %d state: %d\n", id, agents[id].state);
-        float fx, fy, new_angle, new_direction_x, new_direction_y;
+        float fx, fy, new_angle;
+        float mu, kappa, scale, shape;
+        int sub_state = agents[id].substate;
+        int base_index = id * N_STATES;
+        ExplorationState* explorationState = &d_explorationStates[base_index + sub_state];
+        float* probabilities = explorationState->probabilities;
+        mu = explorationState->angle_mu;    //for now, I ignore the exploitation state
+        kappa = explorationState->angle_kappa;
+        scale = explorationState->speed_scale;
+        shape = explorationState->speed_spread;
+        float random_angle = sample_from_von_mises(mu, kappa, states);//wrapped_cauchy(0.0, 0.6, &states[id]);//curand_normal(&states[id]) * M_PI/4;////
 
-        float random_angle = curand_normal(&states[id]) * M_PI/4;
-        while(random_angle > M_PI || random_angle < -M_PI){
-            random_angle = curand_normal(&states[id]) * M_PI/4;
-        }
-        float lambda=0.0f;
-        float random_brownian_angle = (2.0f * curand_uniform(&states[id]) - 1.0f) * M_PI;
-        // no need to check if the angle is between -pi and pi; done in the python script
+        float lambda=0.0f; //@TODO: try to make it a function of the potential (and re-add the potential)
 
-        if(agents[id].state == 0){ //if the agent is moving = RUN - LOW TURNING - LEVY FLIGHT
+        if(agents[id].state == 0){ //if the agent is moving = RUN - LOW TURNING - EXPLOIT
             //if the max concentration is 0 (or best direction is 0,0), then choose random only (atan will give unreliable results)
             if (max_concentration< ODOR_THRESHOLD || (max_concentration_x==0 && max_concentration_y==0) ) {
 
                 agents[id].angle += ((1.0f-lambda)* random_angle);
             }
             else {
-                //max_concentration_x = -max_concentration_x;
-                //max_concentration_y = -max_concentration_y;
                 float norm = sqrt(max_concentration_x * max_concentration_x + max_concentration_y * max_concentration_y);
                 float direction_x = max_concentration_x / norm;
                 float direction_y = max_concentration_y / norm;
-                //printf("Max concentration: %f in direction %f,%f\n", max_concentration, direction_x, direction_y);
                 float bias = atan2(direction_y, direction_x);
 
-                //printf("Bias: %f\n", bias);
                 float current_angle = agents[id].angle;
-                if(bias-current_angle>0){
+                if(bias-current_angle>=0){
                     bias = M_PI / 4;
-                } else if(bias-current_angle<0){
-                    bias = -M_PI / 4;
                 } else{
-                    bias = 0.0f;
+                    bias = -M_PI / 4;
                 }
-                //make bias modulo pi/2
-                //bias = fmodf(bias, 2*M_PI);
+
                 float k = KAPPA;// * pow(sensed_potential / max_concentration, 2);
                 new_angle = sample_from_von_mises(bias, k, &states[id]);
-                //printf("New angle: %f\n", new_angle);
-                //new_direction_x = cosf(new_angle);
-                //new_direction_y = sinf(new_angle);
-                //lambda = pow(sensed_potential / max_concentration, 2);
-                //lambda = 0.0f;
-                //lambda = ((agents[id].previous_potential - sensed_potential) / max_concentration);
-                //lambda = 1.0f-abs(new_angle)/(M_PI);
-                //lambda=0.0f;
-                //printf("Lambda: %f\n", lambda);
+
                 agents[id].angle += new_angle;
             }
 
         }
-        else{ //BROWNIAN MOTION - HIGH TURNING - PIROUETTE
+        else{ //BROWNIAN MOTION - HIGH TURNING - EXPLORE
             agents[id].angle += random_angle;
 
         }
 
         if(agents[id].angle>2 * M_PI || agents[id].angle<-2 * M_PI){
-            //printf("Angle: %f PORCODIOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n", agents[id].angle);
             agents[id].angle = fmodf(agents[id].angle, 2*M_PI);
         }
 
         fx = cosf(agents[id].angle);
         fy = sinf(agents[id].angle);
-        //agents[id].angle = fmodf(agents[id].angle, 2.0f * M_PI);
 
-        float new_speed = SPEED;
-        if(max_concentration>ODOR_THRESHOLD){ //on food - lognorm distribution of speed
-            float scale, shape;
-            if(curand_uniform(&states[id])<ON_FOOD_SPEED_SLOW_WEIGHT){
-                scale = ON_FOOD_SPEED_SCALE_SLOW;
-                shape = ON_FOOD_SPEED_SHAPE_SLOW;
-            }
-            else{
-                scale = ON_FOOD_SPEED_SCALE_FAST;
-                shape = ON_FOOD_SPEED_SHAPE_FAST;
-            }
-            new_speed = curand_log_normal(&states[id], logf(scale), shape);
-            while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
-
-        }
-        else{ //off food - lognormal distribution of speed
-            float scale, shape;
-            if(curand_uniform(&states[id])<OFF_FOOD_SPEED_SLOW_WEIGHT){
-                scale = OFF_FOOD_SPEED_SCALE_SLOW;
-                shape = OFF_FOOD_SPEED_SHAPE_SLOW;
-            }
-            else{
-                scale = OFF_FOOD_SPEED_SCALE_FAST;
-                shape = OFF_FOOD_SPEED_SHAPE_FAST;
-            }
-            new_speed = curand_log_normal(&states[id], logf(scale), shape);
-            while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
-
-        }
-
+        float new_speed = curand_log_normal(&states[id], logf(scale), shape);
+        while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
         float dx = fx * new_speed;
         float dy = fy * new_speed;
 
@@ -221,48 +188,18 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         int new_x = (int)(agents[id].x / DX);
         int new_y = (int)(agents[id].y / DY);
 
-        if(ENABLE_MAXIMUM_NUMBER_OF_AGENTS_PER_CELL){
-            // Check if the new cell is full
-            if (agent_count_grid[new_x * N + new_y] >= MAXIMUM_AGENTS_PER_CELL) {
-                // Create an array of indices representing the neighboring cells
-                int indices[] = {0, 1, 2, 3};
-                // Shuffle the array of indices
-                for (int k = 3; k > 0; --k) {
-                    int l = curand(&states[id]) % (k + 1);
-                    int tmp = indices[k];
-                    indices[k] = indices[l];
-                    indices[l] = tmp;
-                }
-                // Find a non-full neighboring cell
-                int dx[] = {-1, 1, 0, 0};
-                int dy[] = {0, 0, -1, 1};
-                for (int k = 0; k < MAXIMUM_AGENTS_PER_CELL; ++k) {
-                    int nx = new_x + dx[indices[k]];
-                    int ny = new_y + dy[indices[k]];
-                    // Apply periodic boundary conditions
-                    if (nx < 0) nx += N;
-                    if (nx >= N) nx -= N;
-                    if (ny < 0) ny += N;
-                    if (ny >= N) ny -= N;
-                    // If the neighboring cell is not full, move the agent to this cell
-                    if (agent_count_grid[nx * N + ny] < MAXIMUM_AGENTS_PER_CELL) {
-                        new_x = nx;
-                        new_y = ny;
-                        break;
-                    }
-                }
-            }
-        }
 
-        if (agent_x != new_x || agent_y != new_y) {
+        //printf("Current substate: %d\n", agents[id].substate);
+        /*
+        for (int i = 0; i < N_STATES; ++i) {
+            printf("Probabilities from current state: %f\n", (agents[id].explorationStates[sub_state]).probabilities[i]);
+            printf("...vs cuda probs %f\n", probabilities[i]);
+        }*/
 
-            // Decrease the count in the old cell
-            atomicAdd(&agent_count_grid[agent_x * N + agent_y], -1);
+        agents[id].substate = select_next_state(probabilities, &states[id], N_STATES);
+        agents[id].previous_substate = sub_state;
 
-            // Increase the count in the new cell
-            atomicAdd(&agent_count_grid[new_x * N + new_y], 1);
 
-        }
 
         //check if the agent is in the target area
         if (new_x >= 3* N/4 - TARGET_AREA_SIDE_LENGTH/2 && new_x < 3*N/4 + TARGET_AREA_SIDE_LENGTH/2 && new_y >= N/2 - TARGET_AREA_SIDE_LENGTH/2 && new_y < N/2 + TARGET_AREA_SIDE_LENGTH/2){

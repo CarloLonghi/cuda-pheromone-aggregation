@@ -5,6 +5,27 @@
 #ifndef UNTITLED_INIT_ENV_H
 #define UNTITLED_INIT_ENV_H
 #include <cuda_runtime.h>
+#include <random>
+
+
+struct ExplorationState{
+    ExplorationState() :
+            id(-1),  // Initialize to an invalid state
+            speed_scale(0.0f),
+            speed_spread(0.0f),
+            angle_mu(0.0f),
+            angle_kappa(0.0f)
+    {
+        // Explicitly zero out probabilities
+        for(int i = 0; i < N_STATES; i++) {
+            probabilities[i] = 0.0f;
+        }
+    }
+    int id, timesteps_in_state;
+    float speed_scale, speed_spread;
+    float angle_mu, angle_kappa;
+    float probabilities[N_STATES];
+};
 
 
 struct Agent {
@@ -12,7 +33,162 @@ struct Agent {
     int state;  // State of the agent: -1 stopped, 0 moving, 1 pirouette
     int is_agent_in_target_area;
     int first_timestep_in_target_area, steps_in_target_area;
+    int substate, previous_substate;
+    bool is_exploring;
 };
+
+float sample_from_exponential(float lambda){
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::exponential_distribution<> d(lambda);
+    float sample = d(gen);
+    while(sample>1.0f){
+        sample = d(gen);
+    }
+    return sample;
+}
+
+void set_probabilities(ExplorationState* state, int timestep){
+    if (state == nullptr) {
+        std::cerr << "Error: Null state pointer" << std::endl;
+        return;
+    }
+
+    // Ensure id is set before using it
+    if (state->id < 0 || state->id >= N_STATES) {
+        std::cerr << "Error: Invalid state ID" << std::endl;
+        return;
+    }
+
+    float negative_correlation =     0.1f;
+    float positive_correlation =     0.9f;
+    float non_correlated =           0.5f;
+    float pirouette_probability =   fmaxf((-0.002f *((float) timestep) + 2.5f)/(2.0f*60.0f), 0.25f/(2.0f*60.0f));     //2.5 pirouettes per 2 minutes
+    float omega_probability =       1.25f/(2.0f*60.0f);                                           //1.25 omega turn per 2 minutes
+    float reverse_probability =     fmaxf((-0.001f *((float) timestep)+ 1.6f)/(2.0f*60.0f), 0.5f/(2.0f*60.0f));    //1.5 reversals per 2 minutes
+    float pause_probability =       0.4f/(2.0f*60.0f);                                              //0.4 pauses per 2 minutes
+    float loop_probability =        0.25f/(2.0f*60.0f);                                             //0.25 loops per 2 minutes
+    float arc_probability =         0.75f/(2.0f*60.0f);                                             //0.75 arcs per 2 minutes
+    float line_probability =        fmaxf((-0.001f*((float) timestep)+ 2.5f)/(2.0f*60.0f), 0.5f/(2.0f*60.0f));    //2.5 lines per 2 minutes
+
+    switch(state->id) {
+        case 0: {
+            state->probabilities[0] = sample_from_exponential(1.0f/80.0f);
+            state->probabilities[3] = negative_correlation * pirouette_probability;
+            state->probabilities[4] = positive_correlation * omega_probability;
+            state->probabilities[5] = non_correlated * reverse_probability;
+            state->probabilities[6] = non_correlated * pause_probability;
+            break;
+        }
+        case 1: {
+            state->probabilities[1] = sample_from_exponential(1.0f/50.0f);
+            state->probabilities[3] = non_correlated * pirouette_probability;
+            state->probabilities[4] = positive_correlation * omega_probability;
+            state->probabilities[5] = negative_correlation * reverse_probability;
+            state->probabilities[6] = non_correlated * pause_probability;
+            break;
+        }
+        case 2: {
+            state->probabilities[2] = sample_from_exponential(1.0f/30.0f);
+            state->probabilities[3] = non_correlated * pirouette_probability;
+            state->probabilities[4] = negative_correlation * omega_probability;
+            state->probabilities[5] = non_correlated * reverse_probability;
+            state->probabilities[6] = non_correlated * pause_probability;
+            break;
+        }
+        default: {
+            state->probabilities[0] = non_correlated * loop_probability;
+            state->probabilities[1] = non_correlated * arc_probability;
+            state->probabilities[2] = non_correlated * line_probability;
+            break;
+        }
+    }
+
+    // Normalize probabilities
+    float total_prob = 0.0f;
+    for (int j = 0; j < N_STATES; j++) {
+        //check for negative values, set to 0
+        if(state->probabilities[j] < 0){
+            state->probabilities[j] = 0.0f;
+            printf("Negative probability from state %d to state %d at time step %d\n", state->id, j, timestep);
+        }
+        total_prob += state->probabilities[j];
+    }
+
+    if (total_prob > 0.0f) {
+        for (int j = 0; j < N_STATES; j++) {
+            state->probabilities[j] /= total_prob;
+        }
+    }
+}
+
+void initProbabilities(ExplorationState* states) {
+    printf("Initializing probabilities\n");
+    for (int i = 0; i < WORM_COUNT; i++) {
+
+        for (int j = 0; j < N_STATES; j++) {
+
+            // Explicitly initialize each exploration state
+            states[i*N_STATES + j] = ExplorationState();
+            states[i*N_STATES + j].id = j;
+
+            if(j<3){ //crawling states
+                states[i*N_STATES + j].speed_scale = OFF_FOOD_SPEED_SCALE_FAST;
+                states[i*N_STATES + j].speed_spread = OFF_FOOD_SPEED_SHAPE_FAST;
+
+            }else{ //turning states
+                states[i*N_STATES + j].speed_scale = OFF_FOOD_SPEED_SCALE_SLOW;
+                states[i*N_STATES + j].speed_spread = OFF_FOOD_SPEED_SHAPE_SLOW;
+            }
+
+            switch(i){
+                case 0:
+                    states[i*N_STATES + j].angle_mu = M_PI/12;
+                    states[i*N_STATES + j].angle_kappa = 5.0f;
+                    break;
+                case 1:
+                    states[i*N_STATES + j].angle_mu = M_PI/12;
+                    states[i*N_STATES + j].angle_kappa = 5.0f;
+                    break;
+                case 2:
+                    states[i*N_STATES + j].angle_mu = 0;
+                    states[i*N_STATES + j].angle_kappa = 5.0f;
+                    break;
+                case 3:
+                    states[i*N_STATES + j].angle_mu = M_PI / 2;
+                    states[i*N_STATES + j].angle_kappa = 2.0f;
+                    break;
+                case 4:
+                    states[i*N_STATES + j].angle_mu = 0.0f;
+                    states[i*N_STATES + j].angle_kappa = 0.5f;
+                    break;
+                case 5:
+                    states[i*N_STATES + j].angle_mu = 0.0f;
+                    states[i*N_STATES + j].angle_kappa = 1.0f;
+                    break;
+                case 6:
+                    states[i*N_STATES + j].angle_mu = 0.0f;
+                    states[i*N_STATES + j].angle_kappa = 5.0f;
+                    break;
+            }
+        }
+
+        // Set probabilities for each state after initialization
+        for (int j = 0; j < N_STATES; j++) {
+            set_probabilities(&states[i*N_STATES + j], 0);
+        }
+    }
+
+}
+
+void updateProbabilities(ExplorationState* states, int timestep){
+    for (int i = 0; i < WORM_COUNT; i++) {
+        for (int j = 0; j < N_STATES; j++) {
+            set_probabilities(&states[i*N_STATES + j], timestep);
+        }
+    }
+}
+
 
 // CUDA kernel to initialize the position of each agent
 __global__ void initAgents(Agent* agents, curandState* states, unsigned long seed, int worm_count) {
@@ -30,12 +206,16 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
         //generate angle in the range [-pi, pi]
         agents[id].angle =(2.0f * curand_uniform(&states[id]) - 1.0f) * M_PI;
         agents[id].speed = SPEED;
-        agents[id].state = 0;
+        agents[id].state = 1;
         agents[id].previous_potential = 0.0f;
         agents[id].cumulative_potential = 0.0f;
         agents[id].is_agent_in_target_area = 0;
         agents[id].first_timestep_in_target_area = -1;
         agents[id].steps_in_target_area = 0;
+        agents[id].is_exploring = true;
+        agents[id].substate = 0;
+        agents[id].previous_substate = 0;
+
     }
 }
 
@@ -45,8 +225,22 @@ __global__ void initGrid(float* grid, curandState* states) {
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
         //place 100 units of chemical in the square in the middle of the grid with length 20
-        if (i >= 3 * N / 4 - TARGET_AREA_SIDE_LENGTH/2 && i < 3 * N / 4 + TARGET_AREA_SIDE_LENGTH/2 && j >= N / 2 - TARGET_AREA_SIDE_LENGTH/2 && j < N / 2 + TARGET_AREA_SIDE_LENGTH/2) {
+        if (i >= 3 * N / 4 -  TARGET_AREA_SIDE_LENGTH/2 && i < 3 * N / 4 + TARGET_AREA_SIDE_LENGTH/2 && j >= N / 2 - TARGET_AREA_SIDE_LENGTH/2 && j < N / 2 + TARGET_AREA_SIDE_LENGTH/2) {
         //if (i >=N / 2 - TARGET_AREA_SIDE_LENGTH/2 && i <  N / 2 + TARGET_AREA_SIDE_LENGTH/2 && j >= N / 2 - TARGET_AREA_SIDE_LENGTH/2 && j < N / 2 + TARGET_AREA_SIDE_LENGTH/2) {
+            grid[i * N + j] = MAX_CONCENTRATION * (1.0f + curand_normal(&states[i*N+j]));
+        } else{
+            grid[i * N + j] = 0.0f;
+        }
+    }
+}
+
+// CUDA kernel to initialize the chemical grid concentration in an approximated circle of radius TARGET_AREA_SIDE_LENGTH/2
+__global__ void initGridWithCircle(float* grid, curandState* states) {
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    int j = threadIdx.y + blockIdx.y * blockDim.y;
+    if (i < N && j < N) {
+        //place 100 units of chemical in the circle in the middle of the grid with radius 20
+        if ((i - 3 * N / 4) * (i - 3 * N / 4) + (j - N / 2) * (j - N / 2) <= (TARGET_AREA_SIDE_LENGTH / 2) * (TARGET_AREA_SIDE_LENGTH / 2)) {
             grid[i * N + j] = MAX_CONCENTRATION * (1.0f + curand_normal(&states[i*N+j]));
         } else{
             grid[i * N + j] = 0.0f;

@@ -188,7 +188,7 @@ void saveInsideAreaToJSON(const char* filename, Agent* h_agents, int worm_count,
     outFile.close();
 }
 
-void saveAllDataToJSON(const char* filename, float* positions, float* velocities, float* angles, Agent* agents, int worm_count, int n_steps) {
+void saveAllDataToJSON(const char* filename, float* positions, float* velocities, float* angles, Agent* agents, int worm_count, int n_steps, int* sub_states) {
     nlohmann::json json_data;
     if(LOG_POSITIONS){
     json_data["positions"] = nlohmann::json::array();
@@ -199,12 +199,44 @@ void saveAllDataToJSON(const char* filename, float* positions, float* velocities
     if(LOG_ANGLES){
     json_data["angles"] = nlohmann::json::array();
     }
+    json_data["sub_states"] = nlohmann::json::array();
     json_data["inside_area"] = nlohmann::json::array();
     json_data["parameters"] = {{"WIDTH",            WIDTH},
                                {"HEIGHT",           HEIGHT},
                                {"N", worm_count},
                                {"LOGGING_INTERVAL", LOGGING_INTERVAL},
-                               {"N_STEPS",          N_STEPS}};
+                               {"N_STEPS",          N_STEPS},
+                               {"SENSING_RADIUS",   SENSING_RADIUS},
+                               {"SPEED",            SPEED},
+                               {"SENSING_RANGE",    SENSING_RANGE},
+                               {"ODOR_THRESHOLD",   ODOR_THRESHOLD},
+                               {"ON_FOOD_SPEED_SCALE", ON_FOOD_SPEED_SCALE},
+                               {"ON_FOOD_SPEED_SHAPE", ON_FOOD_SPEED_SHAPE},
+                               {"OFF_FOOD_SPEED_SCALE_SLOW", OFF_FOOD_SPEED_SCALE_SLOW},
+                               {"OFF_FOOD_SPEED_SHAPE_SLOW", OFF_FOOD_SPEED_SHAPE_SLOW},
+                               {"OFF_FOOD_SPEED_SLOW_WEIGHT", OFF_FOOD_SPEED_SLOW_WEIGHT},
+                               {"OFF_FOOD_SPEED_SCALE_FAST", OFF_FOOD_SPEED_SCALE_FAST},
+                               {"OFF_FOOD_SPEED_SHAPE_FAST", OFF_FOOD_SPEED_SHAPE_FAST},
+                               {"ON_FOOD_SPEED_SCALE_SLOW", ON_FOOD_SPEED_SCALE_SLOW},
+                               {"ON_FOOD_SPEED_SHAPE_SLOW", ON_FOOD_SPEED_SHAPE_SLOW},
+                               {"ON_FOOD_SPEED_SLOW_WEIGHT", ON_FOOD_SPEED_SLOW_WEIGHT},
+                               {"ON_FOOD_SPEED_SCALE_FAST", ON_FOOD_SPEED_SCALE_FAST},
+                               {"ON_FOOD_SPEED_SHAPE_FAST", ON_FOOD_SPEED_SHAPE_FAST},
+                               {"PIROUETTE_TO_RUN_THRESHOLD", PIROUETTE_TO_RUN_THRESHOLD},
+                               {"AUTO_TRANSITION_PROBABILITY_THRESHOLD", AUTO_TRANSITION_PROBABILITY_THRESHOLD},
+                               {"KAPPA", KAPPA},
+                               {"MAX_ALLOWED_SPEED", MAX_ALLOWED_SPEED},
+                               {"MU_X", MU_X},
+                               {"MU_Y", MU_Y},
+                               {"A", A},
+                               {"SIGMA_X", SIGMA_X},
+                               {"SIGMA_Y", SIGMA_Y},
+                               {"TARGET_AREA_SIDE_LENGTH", TARGET_AREA_SIDE_LENGTH},
+                               {"MAX_CONCENTRATION", MAX_CONCENTRATION},
+                               {"GAMMA", GAMMA},
+                               {"DIFFUSION_CONSTANT", DIFFUSION_CONSTANT},
+                               {"ATTRACTION_STRENGTH", ATTRACTION_STRENGTH},
+                               {"ATTRACTION_SCALE", ATTRACTION_SCALE}};
     for (int i = 0; i < worm_count; ++i) {
         nlohmann::json agent_data;
         if(LOG_POSITIONS){
@@ -216,6 +248,7 @@ void saveAllDataToJSON(const char* filename, float* positions, float* velocities
         if(LOG_ANGLES){
         agent_data["angles"] = nlohmann::json::array();
         }
+        agent_data["sub_states"] = nlohmann::json::array();
         if(LOG_POSITIONS || LOG_VELOCITIES || LOG_ANGLES) {
             for (int j = 0; j < n_steps; ++j) {
                 if (LOG_POSITIONS) {
@@ -228,6 +261,7 @@ void saveAllDataToJSON(const char* filename, float* positions, float* velocities
                 if (LOG_ANGLES) {
                     agent_data["angles"].push_back(angles[j * worm_count + i]);
                 }
+                agent_data["sub_states"].push_back(sub_states[j * worm_count + i]);
             }
         }
         if(LOG_POSITIONS){
@@ -239,6 +273,7 @@ void saveAllDataToJSON(const char* filename, float* positions, float* velocities
         if(LOG_ANGLES){
         json_data["angles"].push_back(agent_data["angles"]);
         }
+        json_data["sub_states"].push_back(agent_data["sub_states"]);
         float distance_from_odor = sqrt((agents[i].x - 3*WIDTH/4)*(agents[i].x - 3*WIDTH/4) + (agents[i].y - HEIGHT/2)*(agents[i].y - HEIGHT/2));
         json_data["inside_area"].push_back({distance_from_odor, agents[i].first_timestep_in_target_area, agents[i].steps_in_target_area, agents[i].is_agent_in_target_area});
     }

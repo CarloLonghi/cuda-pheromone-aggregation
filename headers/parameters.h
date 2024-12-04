@@ -4,30 +4,34 @@
 #define N 256
 #define WIDTH 60.0f
 #define HEIGHT 60.0f
-
+#define SEED 1234
 // Simulation parameters
-#define WORM_COUNT 1000
-#define N_STEPS 3600
+#define WORM_COUNT 52
+#define N_STEPS 1700
 #define LOGGING_INTERVAL 1
 #define DT 1.0f
 #define DEBUG false
 #define ENABLE_RANDOM_INITIAL_POSITIONS false
-#define INITIAL_AREA_NUMBER_OF_CELLS 80
-#define ENABLE_MAXIMUM_NUMBER_OF_AGENTS_PER_CELL false
+#define INITIAL_AREA_NUMBER_OF_CELLS 40
+#define ENABLE_MAXIMUM_NUMBER_OF_AGENTS_PER_CELL true
 #define MAXIMUM_AGENTS_PER_CELL 40
-#define LOG_POTENTIAL false
+#define LOG_POTENTIAL true
 #define LOG_GRID false
 #define LOG_PHEROMONES false
 #define LOG_AGENT_COUNT_GRID false
 #define LOG_GENERIC_TARGET_DATA true
-#define LOG_POSITIONS false
-#define LOG_ANGLES false
-#define LOG_VELOCITIES false
+#define LOG_POSITIONS true
+#define LOG_ANGLES true
+#define LOG_VELOCITIES true
 
 // Agent parameters
+
+#define N_STATES 7
+
+#define SENSING_RADIUS 0.01f
 #define SPEED 0.1f
 #define SENSING_RANGE 1
-#define ODOR_THRESHOLD 1e-8f
+#define ODOR_THRESHOLD 1e-4f
 #define ON_FOOD_SPEED_SCALE 0.09f// scale = exp(mu) => mu = log(scale)
 #define ON_FOOD_SPEED_SHAPE 0.49f// shape = sigma = 0.5 these values match the tracking data with a KS test 73% of the time < 0.05 and a p-value > 0.05 33% of the time
 
@@ -43,17 +47,22 @@
 #define ON_FOOD_SPEED_SCALE_FAST 0.08978393019531566f// scale = exp(mu) => mu = log(scale)
 #define ON_FOOD_SPEED_SHAPE_FAST 0.4672251563729966f // shape = sigma
 
-#define PIROUETTE_TO_RUN_THRESHOLD 1e-5f
-#define AUTO_TRANSITION_PROBABILITY_THRESHOLD 0.01f
-#define KAPPA 25.0f 
+#define PIROUETTE_TO_RUN_THRESHOLD 1e-4f
+#define AUTO_TRANSITION_PROBABILITY_THRESHOLD 0.15f
+#define KAPPA 7.5f
 #define MAX_ALLOWED_SPEED 0.3f
 
 // Odor parameters
-#define TARGET_AREA_SIDE_LENGTH 80
-#define MAX_CONCENTRATION 10.0f
-#define GAMMA 0.001f
-#define DIFFUSION_CONSTANT 0.009f
-#define ATTRACTION_STRENGTH 0.282f
+#define MU_X 45.0f      // Mean x of the Gaussian
+#define MU_Y 40.0f      // Mean y of the Gaussian
+#define A 0.5f         // Amplitude of the Gaussian
+#define SIGMA_X 10.0f   // Standard deviation in x direction
+#define SIGMA_Y 10.0f   // Standard deviation in y direction
+#define TARGET_AREA_SIDE_LENGTH 40
+#define MAX_CONCENTRATION 0.0f
+#define GAMMA 0.0001f
+#define DIFFUSION_CONSTANT 0.005f //more than 0.01, it explodes
+#define ATTRACTION_STRENGTH 0.0//282f
 #define ATTRACTION_SCALE 1.0f
 
 // Pheromone parameters
@@ -69,7 +78,7 @@
 #define REPULSIVE_PHEROMONE_DIFFUSION_RATE 0.00001f
 
 // Noise parameters
-#define SIGMA 0.0f
+#define SIGMA 1e-8f
 #define ENVIRONMENTAL_NOISE 0.0f
 
 // CUDA parameters

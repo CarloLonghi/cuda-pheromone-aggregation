@@ -2,6 +2,22 @@
 #define UNTITLED_NUMERIC_FUNCTIONS_H
 #include <cuda_runtime.h>
 
+//function to sample from a wrapped cauchy distribution
+__device__ float wrapped_cauchy(float mu, float sigma, curandState* state){
+    float u = curand_uniform(state);
+    float theta = mu + sigma * tan(M_PI * (u - 0.5f));
+
+    //wrap the angle between -pi and pi
+    if(theta > M_PI){
+        theta -= 2 * M_PI;
+    }
+    if(theta <= -M_PI){
+        theta += 2 * M_PI;
+    }
+    return theta;
+}
+
+
 // Function to compute the gradient in the X direction (partial derivative)
 __device__ float gradientX(float* grid, int i, int j) {
     // Periodic boundary conditions
