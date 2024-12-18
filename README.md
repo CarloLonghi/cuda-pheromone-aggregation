@@ -15,20 +15,20 @@ Currently, the search behavior of C. *elegans* is implemented as per [Salvador e
 
 All the stimuli are grouped into a potential, representing the perceptual stimuli acting on a single agent at a given location, similarly to [Avery et al., 2021](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1009231), where they only use the potentials relative to the attractive and repulsive pheromones, together with a "squeezing" potential. The sum of potentials is referred to as "potential" from now on for the sake of brevity.
 
-##Structure
+## Structure
 This project is a work in progress, thus discrepancies between the following description and the actual code may arise.
 
-###Environment
+### Environment
 A square environment with periodic boundary conditions.
 
-###Data structures
+### Data structures
 Currently, only 2 data structures (structs) are used:
 -`Agent`: represents a 2D point in space with `x` and `y` coordinates, the current absolute bearing `angle` (between -pi and +pi), the current velocity `speed`, the previously sensed potential `previous_potential`, the cumulative sum of potentials in the previous steps where the agent was in the "pirouette" state ([Tanimoto et al., 2017](https://elifesciences.org/articles/21629)) `cumulative_potential`, its current state `state` (0=run, 1=pirouette), its current sub-state id `sub_state`, its previous sub-state `previous_substate` and some data relative to chemotactic experiments, namely the number of timesteps in the target area and the first time it entered the target area.
 -`ExplorationState`: represents the sub-state of an agent with an `id` (0=loop, 1=arc, 2=line, 3=pirouette, 4=omega, 5=reversal, 6=pause), parameters relative to the speed log normal distribution of an agent in this sub-state (`speed_scale`, `speed_spread`), the von mises angle distribution (`angle_mu`, `angle_kappa`), the parameters of the lognormal distribution to find the number of time steps to spend within a sub-state (`duration_mu`, `duration_sigma`), the number of timesteps the agent has spent in the sub-state, the actual duration that has been drawn from the lognormal, the maximum allowed duration and the sign of the angle picked (since the distribution is lognormal, it is always positive, thus this sign gives a 50-50 chance of picking a negative angle, effectively allowing the agents to turn both left and right), a list of transition `probabilities` from this sub-state to the others, including itself. Self-loops are allowed only on crawl states.
 
 The rest are static arrays, such as the array of Agents and the grids of odor/pheromone concentration.
 
-###Code logic
+### Code logic
 
 The `main.cu` contains the initialization, main loop and logging of the simulation. The initialization is done by either reading the parameters through `argv` or by reading a `.json` file. If you wish to use default parameters, the initialization should be done by calling `initProbabilities(h_explorationStates);` (instead of `initProbabilitiesWithParams`). The main loop is composed of moving the agents, updating the probabilities of the finite state machine they use to explore and logging their positions, speed, angle and state. Next, the grids relative to the chemicals are updated, if present, and logged as well. Finally, the logged data is saved to a `agents_all_data.json` file. In the following, I describe the headers.
 
@@ -48,7 +48,7 @@ The `main.cu` contains the initialization, main loop and logging of the simulati
 `update_matrices.h`: functions that update the grids of chemical odor and pheromones, together with the grid of potentials.
 
 
-###Parameters
+### Parameters
 
 - `N`	: quantization of the environment for the finite difference scheme; higher than 256 doesn't work well, needs optimisation of the block size of CUDA
 - `WIDTH`	: width of the environment in mm
@@ -93,7 +93,7 @@ The `main.cu` contains the initialization, main loop and logging of the simulati
 - `ENVIRONMENTAL_NOISE`: standard deviation of the white environmental noise
 - `BLOCK_SIZE`: size of a CUDA block
 
-###Visualization
+### Visualization
 
 The simulator does not support real-time simulation, it only writes the history of "what happened" to a json. We provide a simple example Python implementation of a video renderer for the simulator, which allows only Gaussian odor, and a few functions to animate 1 grid (useful for visualizing the potential) and multiple grids (useful to debug different grids). The reason why there is not real-time visualization is two-fold: on one hand, the complexity of it, on the other the little improvement it would give in terms of time saving. 
 
