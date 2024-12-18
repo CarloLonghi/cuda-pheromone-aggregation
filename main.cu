@@ -15,6 +15,7 @@ __global__ void initialize_rng(curandState* states, unsigned long seed) {
     curand_init(seed + id, id, 0, &states[id]); // Unique seed for each thread
 }
 
+
 int main(int argc, char* argv[]) {
     // Create CUDA events
     cudaEvent_t start, stop;
@@ -27,10 +28,15 @@ int main(int argc, char* argv[]) {
     //float* grid, * h_grid = new float[N * N], * attractive_pheromone, * repulsive_pheromone, * h_attractive_pheromone = new float[N * N];
     //float* h_repulsive_pheromone = new float[N * N], * h_potential = new float[N * N], * potential;
     int worm_count = WORM_COUNT, exp_number = 0;//, * agent_count_grid, * h_agent_count_grid = new int[N * N];;
-
-
-    printf("Found %d arguments\n", argc-1);
+    int worm_idx = 0;
+    //printf("Found %d arguments\n", argc-1);
     switch (argc-1) {
+        case 1:
+            if(std::isdigit(argv[1][0])){
+                worm_idx = std::stoi(argv[1]);
+                printf("Worm idx: %d\n", worm_idx);
+            }
+            break;
         case 2:
             if(std::isdigit(argv[1][0]) && std::isdigit(argv[2][0])){
                 /*attractant_pheromone_strength = std::stof(argv[1]);
@@ -62,15 +68,24 @@ int main(int argc, char* argv[]) {
             }
             break;
         case 0:
-            printf("No input arguments provided.\n");
+            //printf("No input arguments provided.\n");
             break;
     }
+    Parameters params = Parameters();
+    const char *filename = "/home/nema/CLionProjects/untitled/specific_simulation_params.json";
+
+    loadOptimisedParametersSingleAgent(&params, filename, worm_idx); //loads optimal mus and kappas; next load only scales, sigmas and times
+    //loadParameters(&params, filename, false);
+    //loadOptimisedParameters13Agents(&params, filename);
+    //loadBatchSingleAgentParameters(&params, filename, 0);
+    const char* target_json = "/home/nema/CLionProjects/untitled/agents_all_data.json";
+    const char* filename1 = "/home/nema/CLionProjects/untitled/simulation_params.json";// "/home/nema/CLionProjects/untitled/specific_simulation_params_after_speed.json";//
+    loadSpeedParameters(&params, filename1);
     Agent* d_agents, *h_agents = new Agent[worm_count];
     curandState* d_states, *d_states_grids;
-    bool broken = false;
+    //bool broken = false;
     size_t size = worm_count * sizeof(Agent);
     ExplorationState* d_explorationStates, *h_explorationStates = new ExplorationState[worm_count * N_STATES];
-
     auto* positions = new float[worm_count * N_STEPS * 2]; // Matrix to store positions (x, y) for each agent at each timestep
     auto* angles = new float[worm_count * N_STEPS]; // Matrix to store angles for each agent at each timestep
     auto* velocities = new float[worm_count * N_STEPS]; // Matrix to store velocities for each agent at each timestep
@@ -84,25 +99,49 @@ int main(int argc, char* argv[]) {
     initialize_rng<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_states, SEED);
     // Initialize agent positions and random states
     initAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states, time(NULL), worm_count);
-    printf("Initializing agents\n");
+    //printf("Initializing agents\n");
 
     cudaDeviceSynchronize();
     cudaMemcpy(h_agents, d_agents, size, cudaMemcpyDeviceToHost);
-
     //initAgentsProbabilities(h_agents);
-    initProbabilities(h_explorationStates);
+    //initProbabilities(h_explorationStates);
+    int initialisation = initProbabilitiesWithParams(h_explorationStates, &params);
+    if(initialisation != 0) {
+        printf("Failed! Aborting...\n");
+        //fill only sub_states (int) and velocities (float) with 0s and use it as stub for angles and positions when initialisation fails
+        for(int i = 0; i < worm_count; i++) {
+            for(int j = 0; j < N_STEPS; j++) {
+                velocities[i * N_STEPS + j] = 0;
+                sub_states[i * N_STEPS + j] = 0;
+            }
+        }
+        //log it
+        saveAllDataToJSON(target_json, velocities, velocities, velocities, h_agents, worm_count, N_STEPS, sub_states);
+        //free everything
+        cudaFree(d_agents);
+        cudaFree(d_states);
+        cudaFree(d_explorationStates);
+
+        delete[] positions;
+        delete[] angles;
+        delete[] velocities;
+        delete[] sub_states;
+        return 1;
+    }
     cudaMemcpy(d_explorationStates, h_explorationStates, worm_count * N_STATES * sizeof(ExplorationState), cudaMemcpyHostToDevice);
     cudaDeviceSynchronize();
-    dim3 gridSize((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (N + BLOCK_SIZE - 1) / BLOCK_SIZE);
-    dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE);
+    //dim3 gridSize((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (N + BLOCK_SIZE - 1) / BLOCK_SIZE);
+    //dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE);
 
     //initialize the agent count grid
     //cudaMalloc(&agent_count_grid, N*N*sizeof(int));
     //initAgentDensityGrid<<<gridSize, blockSize>>>(agent_count_grid, d_agents, worm_count);
+
     /*cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error in initAgentDensityGrid: %s\n", cudaGetErrorString(err));
     }
+
     cudaDeviceSynchronize();
     cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(int), cudaMemcpyDeviceToHost);
 */
@@ -140,8 +179,9 @@ int main(int argc, char* argv[]) {
 */
 
     for (int i = 0; i < N_STEPS; ++i) {
+        //printf("Step %d\n", i);
         /*
-       printf("Step %d\n", i);
+
        //pretty print transition probability matrix for the first agent
 
        for(int j=0; j<N_STATES; j++){
@@ -261,7 +301,7 @@ int main(int argc, char* argv[]) {
 
     }
     if(LOG_GENERIC_TARGET_DATA) {
-        saveAllDataToJSON("/home/nema/CLionProjects/untitled/agents_all_data.json", positions, velocities, angles, h_agents ,worm_count, N_STEPS, sub_states);
+        saveAllDataToJSON(target_json, positions, velocities, angles, h_agents ,worm_count, N_STEPS, sub_states);
     }
 
     /*if(LOG_TRAJECTORIES) {
@@ -291,7 +331,7 @@ int main(int argc, char* argv[]) {
     delete[] positions;
     delete[] angles;
     delete[] velocities;
-
+    delete[] sub_states;
 
     // Record the stop event
     cudaEventRecord(stop, 0);

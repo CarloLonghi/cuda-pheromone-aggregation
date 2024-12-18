@@ -1,13 +1,14 @@
 // config.h
 
 // Environmental variables
+#define OPTIMISING true
 #define N 256
 #define WIDTH 60.0f
 #define HEIGHT 60.0f
 #define SEED 1234
 // Simulation parameters
-#define WORM_COUNT 52
-#define N_STEPS 1700
+#define WORM_COUNT 1
+#define N_STEPS 2000
 #define LOGGING_INTERVAL 1
 #define DT 1.0f
 #define DEBUG false
@@ -46,6 +47,13 @@
 #define ON_FOOD_SPEED_SLOW_WEIGHT 0.059245291380037125f
 #define ON_FOOD_SPEED_SCALE_FAST 0.08978393019531566f// scale = exp(mu) => mu = log(scale)
 #define ON_FOOD_SPEED_SHAPE_FAST 0.4672251563729966f // shape = sigma
+
+#define LOOP_TIME_MU 4.38f//0.903089987f//
+#define LOOP_TIME_SIGMA 0.81f
+#define ARC_TIME_MU 3.89f//0.698970004//3.89f
+#define ARC_TIME_SIGMA 0.81f
+#define LINE_TIME_MU 3.00f//0.301029996f//3.00f
+#define LINE_TIME_SIGMA 0.81f
 
 #define PIROUETTE_TO_RUN_THRESHOLD 1e-4f
 #define AUTO_TRANSITION_PROBABILITY_THRESHOLD 0.15f

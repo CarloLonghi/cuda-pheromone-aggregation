@@ -1,10 +1,4 @@
-/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/nema/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -G Ninja -S /home/nema/CLionProjects/untitled -B /home/nema/CLionProjects/untitled/cmake-build-debug
--- The CUDA compiler identification is NVIDIA 12.3.52
--- Detecting CUDA compiler ABI info
--- Detecting CUDA compiler ABI info - done
--- Check for working CUDA compiler: /usr/local/cuda-12.3/bin/nvcc - skipped
--- Detecting CUDA compile features
--- Detecting CUDA compile features - done
--- Configuring done (2.8s)
+/opt/clion-2024.3.1/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/opt/clion-2024.3.1/bin/ninja/linux/x64/ninja -DCMAKE_C_COMPILER=/home/linuxbrew/.linuxbrew/opt/gcc@11/bin/gcc-11 -DCMAKE_CXX_COMPILER=/home/linuxbrew/.linuxbrew/opt/gcc@11/bin/gcc-11 -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.3/bin/nvcc -DCMAKE_CUDA_FLAGS=--compiler-bindir=/home/linuxbrew/.linuxbrew/opt/gcc@11/bin/gcc-11 -G Ninja -S /home/nema/CLionProjects/untitled -B /home/nema/CLionProjects/untitled/cmake-build-debug
+-- Configuring done (0.0s)
 -- Generating done (0.0s)
 -- Build files have been written to: /home/nema/CLionProjects/untitled/cmake-build-debug

@@ -15,5 +15,6 @@ add_executable(untitled main.cu
 
 set_target_properties(untitled PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
+target_link_libraries(untitled stdc++)
 
 target_link_libraries(untitled m)

@@ -5,6 +5,7 @@
 #ifndef UNTITLED_LOGGING_H
 #define UNTITLED_LOGGING_H
 #include <cuda_runtime.h>
+
 using json = nlohmann::json;
 
 // Function to save the positions of agents in a JSON file

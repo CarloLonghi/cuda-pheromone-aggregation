@@ -13,7 +13,7 @@
 // Function to sample from a von Mises distribution
 __device__ float sample_from_von_mises(float mu, float kappa, curandState* state) {
     // Handle kappa = 0 (uniform distribution)
-    if (kappa < std::numeric_limits<float>::epsilon()) {
+    if (kappa < 1e-6) {
         return mu + (2.0f * M_PI * curand_uniform(state)) - M_PI; // Random uniform sample
     }
 
@@ -125,11 +125,11 @@ __global__ void moveAgents(Agent* agents, curandState* states, ExplorationState 
         int base_index = id * N_STATES;
         ExplorationState* explorationState = &d_explorationStates[base_index + sub_state];
         float* probabilities = explorationState->probabilities;
-        mu = explorationState->angle_mu;    //for now, I ignore the exploitation state
+        mu = explorationState->angle_mu;    // this can be negative, set below, 50% chance
         kappa = explorationState->angle_kappa;
         scale = explorationState->speed_scale;
         shape = explorationState->speed_spread;
-        float random_angle = sample_from_von_mises(mu, kappa, states);//wrapped_cauchy(0.0, 0.6, &states[id]);//curand_normal(&states[id]) * M_PI/4;////
+        float random_angle = (float)explorationState->angle_mu_sign * sample_from_von_mises(mu, kappa, states);//wrapped_cauchy(0.0, 0.6, &states[id]);//curand_normal(&states[id]) * M_PI/4;////
 
         float lambda=0.0f; //@TODO: try to make it a function of the potential (and re-add the potential)
 
@@ -173,6 +173,10 @@ __global__ void moveAgents(Agent* agents, curandState* states, ExplorationState 
 
         float new_speed = curand_log_normal(&states[id], logf(scale), shape);
         while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
+        //printf("New Speed: %f with scale %f and shape %f\n", new_speed, scale, shape);
+        if (sub_state==5){ //reversals
+            new_speed = - new_speed;
+        }
         float dx = fx * new_speed;
         float dy = fy * new_speed;
 
@@ -189,18 +193,49 @@ __global__ void moveAgents(Agent* agents, curandState* states, ExplorationState 
         int new_y = (int)(agents[id].y / DY);
 
 
-        //printf("Current substate: %d\n", agents[id].substate);
-        /*
-        for (int i = 0; i < N_STATES; ++i) {
-            printf("Probabilities from current state: %f\n", (agents[id].explorationStates[sub_state]).probabilities[i]);
-            printf("...vs cuda probs %f\n", probabilities[i]);
-        }*/
+        //printf("Current substate: %d, max duration %d id again (just to be sure) %d\n", agents[id].substate, explorationState->max_duration, explorationState->id);
 
-        agents[id].substate = select_next_state(probabilities, &states[id], N_STATES);
+        if(explorationState->duration>0){
+            explorationState->duration--;
+        }
+        if(explorationState->duration<=0){
+            agents[id].substate = select_next_state(probabilities, &states[id], N_STATES);
+            //printf("switching to state %d\n", agents[id].substate);
+            explorationState = &d_explorationStates[base_index + agents[id].substate];
+            if(agents[id].substate<3) {
+                if(explorationState->max_duration>=0) {
+                    int duration = (int) curand_log_normal(&states[id], explorationState->duration_mu,
+                                                           explorationState->duration_sigma);
+                    //printf("New Duration: %d mean %f std %f max bound %d\n", duration, explorationState->duration_mu,
+                           //explorationState->duration_sigma, explorationState->max_duration);
+                    while (duration <= 0 || duration > explorationState->max_duration) {
+                        duration = (int) curand_log_normal(&states[id], explorationState->duration_mu,
+                                                           explorationState->duration_sigma);
+                        //printf("Refusing New Duration %d with Bound %d\n", duration, explorationState->max_duration);
+                    }
+                    explorationState->duration = duration;
+                }
+                else{
+                    explorationState->duration = 0;
+                    printf("Duration lower than 0\n");
+                }
+            }
+            else{
+                explorationState->duration = 0;
+            }
+
+        }
+        //IF the new substate is different from the previous one, then choose sign for the angle mu and augments timesteps in this substate, otherwise set to 0
+        if(agents[id].substate != agents[id].previous_substate){
+            if(curand_uniform(&states[id])>0.5){
+                explorationState->angle_mu_sign *= -1;
+            }
+            explorationState->timesteps_in_state++;
+        } else {
+            explorationState->timesteps_in_state = 0;
+        }
+
         agents[id].previous_substate = sub_state;
-
-
-
         //check if the agent is in the target area
         if (new_x >= 3* N/4 - TARGET_AREA_SIDE_LENGTH/2 && new_x < 3*N/4 + TARGET_AREA_SIDE_LENGTH/2 && new_y >= N/2 - TARGET_AREA_SIDE_LENGTH/2 && new_y < N/2 + TARGET_AREA_SIDE_LENGTH/2){
             agents[id].is_agent_in_target_area = 1;
