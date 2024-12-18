@@ -1,9 +1,10 @@
 # Table of contents:
-1. [Introduction](#pres)
-2. [Installation](#inst)
-3. [CLion Integration](#clion)
+1. [Introduction](#introduction)
+2. [Installation](#installation)
+3. [CLion Integration](#clion-integration)
  
-# Massive Multi-Agent Worm Simulator (MMA-WORMSIM){#pres}
+# Introduction
+## Massive Multi-Agent Worm Simulator (MMA-WORMSIM)
 
 The following project is an implementation of an agent-based simulator of C. *elegans*, part of the [BABOTs project](www.babots.eu). In light of the project's aim at instilling collective behaviors within the worms, the simulator is tailored to allow a large number of agents in parallel interacting with a number of stimuli. For this reason, we seek the simplest possible representation of a worm, e.g. a 2D point moving in space, while still validating their movement to match reality. In particular, we aim at developing the following behaviors/interactions:
 
@@ -103,7 +104,7 @@ The `main.cu` contains the initialization, main loop and logging of the simulati
 The simulator does not support real-time simulation, it only writes the history of "what happened" to a json. We provide a simple example Python implementation of a video renderer for the simulator, which allows only Gaussian odor, and a few functions to animate 1 grid (useful for visualizing the potential) and multiple grids (useful to debug different grids). The reason why there is not real-time visualization is two-fold: on one hand, the complexity of it, on the other the little improvement it would give in terms of time saving. 
 
 
-# Installation{#inst}
+# Installation
 
 The following guide is written for Nobara 40, similar steps are to be executed on other Linux distros. I do not grant support for Windows/MacOS.
 
@@ -162,7 +163,7 @@ Once the environment is configured, compile the CUDA simulator by navigating to 
 nvcc main.cu -o main -lm -lstdc++ --expt-relaxed-constexpr
 ```
 
-# CLion Setup{#clion}
+# CLion Integration
 In the following `cuda_dir` refers to the NVCC from CUDA Toolkit v12.3 insallation directory, which on most Linux distributions is installed in , while `gcc_dir` refers to the directory where GCC v11.4 is installed. On most Linux systems, the former is something like `/usr/local/cuda-12.3/bin/nvcc`, while the latter, if installed through Homebrew looks like `/home/linuxbrew/.linuxbrew/opt/gcc@11/bin/`.
 If you are using CLion, you can build and run the project by accessing `Settings > Build, Execution, Deployment > Toolchains` and setting the "C Compiler" and "C++ Compiler" to the binaries of the respective compilers, which are in the `gcc_dir` and named `gcc-11` and `g++11` respectivly. Then, go to `Settings > Build, Execution, Deployment > CMake` and add the following CMake options: `-DCMAKE_CUDA_COMPILER=cuda_dir  -DCMAKE_CUDA_FLAGS="--compiler-bindir=gcc_dir/gcc-11"`. Now you should be able to build and execute the project.
 
