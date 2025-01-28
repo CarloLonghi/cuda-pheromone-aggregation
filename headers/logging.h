@@ -189,7 +189,7 @@ void saveInsideAreaToJSON(const char* filename, Agent* h_agents, int worm_count,
     outFile.close();
 }
 
-void saveAllDataToJSON(const char* filename, float* positions, float* velocities, float* angles, Agent* agents, int worm_count, int n_steps, int* sub_states) {
+void saveAllDataToJSON(const char* filename, float* positions, float* velocities, float* angles, Agent* agents, int worm_count, int n_steps) {
     nlohmann::json json_data;
     if(LOG_POSITIONS){
     json_data["positions"] = nlohmann::json::array();
@@ -200,7 +200,6 @@ void saveAllDataToJSON(const char* filename, float* positions, float* velocities
     if(LOG_ANGLES){
     json_data["angles"] = nlohmann::json::array();
     }
-    json_data["sub_states"] = nlohmann::json::array();
     json_data["inside_area"] = nlohmann::json::array();
     json_data["parameters"] = {{"WIDTH",            WIDTH},
                                {"HEIGHT",           HEIGHT},
@@ -249,7 +248,6 @@ void saveAllDataToJSON(const char* filename, float* positions, float* velocities
         if(LOG_ANGLES){
         agent_data["angles"] = nlohmann::json::array();
         }
-        agent_data["sub_states"] = nlohmann::json::array();
         if(LOG_POSITIONS || LOG_VELOCITIES || LOG_ANGLES) {
             for (int j = 0; j < n_steps; ++j) {
                 if (LOG_POSITIONS) {
@@ -262,7 +260,6 @@ void saveAllDataToJSON(const char* filename, float* positions, float* velocities
                 if (LOG_ANGLES) {
                     agent_data["angles"].push_back(angles[j * worm_count + i]);
                 }
-                agent_data["sub_states"].push_back(sub_states[j * worm_count + i]);
             }
         }
         if(LOG_POSITIONS){
@@ -274,7 +271,6 @@ void saveAllDataToJSON(const char* filename, float* positions, float* velocities
         if(LOG_ANGLES){
         json_data["angles"].push_back(agent_data["angles"]);
         }
-        json_data["sub_states"].push_back(agent_data["sub_states"]);
         float distance_from_odor = sqrt((agents[i].x - 3*WIDTH/4)*(agents[i].x - 3*WIDTH/4) + (agents[i].y - HEIGHT/2)*(agents[i].y - HEIGHT/2));
         json_data["inside_area"].push_back({distance_from_odor, agents[i].first_timestep_in_target_area, agents[i].steps_in_target_area, agents[i].is_agent_in_target_area});
     }

@@ -8,31 +8,22 @@
 #include "numeric_functions.h"
 
 //CUDA kernel to update all the grids (except the potential and the agent count grid)
-__global__ void updateGrids(float* grid, float* attractive_pheromone, float* repulsive_pheromone, int* agent_count_grid){
+__global__ void updateGrids(float* grid, float* attractive_pheromone, float* repulsive_pheromone, int* agent_count_grid, 
+                            int worm_count, Agent* agents){
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N && i>=0 && j>=0) {
-        //if in the target area, set the concentration to the maximum value
-        if(i>=3*N/4-TARGET_AREA_SIDE_LENGTH/2 && i<3*N/4+TARGET_AREA_SIDE_LENGTH/2 && j>=N/2-TARGET_AREA_SIDE_LENGTH/2 && j<N/2+TARGET_AREA_SIDE_LENGTH/2){
-            grid[i * N + j] = MAX_CONCENTRATION;
-        }
-        else {
-            float laplacian_value = fourth_order_laplacian(grid, i, j); //laplacian(grid, i, j);
-
-            float new_concentration =
-                    grid[i * N + j] + DT * (DIFFUSION_CONSTANT * laplacian_value - GAMMA * grid[i * N + j]);
-            if (new_concentration < 0) new_concentration = 0.0f;
-            if (new_concentration > MAX_CONCENTRATION) new_concentration = MAX_CONCENTRATION;
-            //check if the grid is a valid float number
-            if (isnan(new_concentration) || isinf(new_concentration)) {
-                printf("Invalid concentration %f at (%d, %d)\n", new_concentration, i, j);
-                printf("Laplacian value %f\n", laplacian_value);
-                printf("Old concentration %f\n", grid[i * N + j]);
-
+        // update agent_count_grid
+        agent_count_grid[i * N + j] = 0;
+        for (int k = 0; k < worm_count; ++k) {
+            int agent_x = (int)(agents[k].x / DX);
+            int agent_y = (int)(agents[k].y / DY);
+            if (agent_x == i && agent_y == j) {
+                // printf("Agent at (%d, %d)\n", i, j);
+                agent_count_grid[i * N + j] += 1;
             }
-
-            grid[i * N + j] = new_concentration;
         }
+
         //update attractive pheromone
         //laplacian_value = fourth_order_laplacian(attractive_pheromone, i, j);
         float new_attractive_pheromone, laplacian_attractive_pheromone = fourth_order_laplacian(attractive_pheromone, i, j);
@@ -58,7 +49,8 @@ __global__ void updateGrids(float* grid, float* attractive_pheromone, float* rep
         //update repulsive pheromone
         //printf("Repulsive pheromone at (%d, %d): %f\n", i, j, repulsive_pheromone[i * N + j]);
 
-
+        if (new_repulsive_pheromone < 0) new_repulsive_pheromone = 0.0f;
+        if (new_repulsive_pheromone > MAX_CONCENTRATION) new_repulsive_pheromone = MAX_CONCENTRATION;
         repulsive_pheromone[i * N + j] = new_repulsive_pheromone;
 
         if(isnan(new_repulsive_pheromone) || isinf(new_repulsive_pheromone)){
@@ -93,13 +85,11 @@ __global__ void updateGrid(float* grid) {
 }
 
 //CUDA kernel to update the potential matrix
-__global__ void updatePotential(float* potential, float* grid, float* attractive_pheromone, float* repulsive_pheromone, float attractive_pheromone_strength, float repulsive_pheromone_strength, float odor_strength, curandState* states, float environmental_noise) {
+__global__ void updatePotential(float* potential, float* grid, float* attractive_pheromone, float* repulsive_pheromone, float attractive_pheromone_strength, float repulsive_pheromone_strength, curandState* states, float environmental_noise) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
-        float potential_odor=0.0f, potential_attractive_pheromone=0.0f, potential_repulsive_pheromone = 0.0f;
-        potential_odor = odor_strength * log10(ATTRACTION_SCALE + grid[i * N + j]);// / (ATTRACTION_SCALE + grid[i * N + j]);
-
+        float potential_attractive_pheromone=0.0f, potential_repulsive_pheromone = 0.0f;
         //
         potential_attractive_pheromone = attractive_pheromone_strength * log10(ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);// / (ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);
 
@@ -109,7 +99,7 @@ __global__ void updatePotential(float* potential, float* grid, float* attractive
         float noise = curand_normal(&states[i * N + j]) * environmental_noise;
         if(noise>environmental_noise) noise = environmental_noise;
         if(noise<-environmental_noise) noise = -environmental_noise;
-        potential[i * N + j] = potential_odor + potential_attractive_pheromone + potential_repulsive_pheromone + noise;
+        potential[i * N + j] = potential_attractive_pheromone + potential_repulsive_pheromone + noise;
 
     }
 }

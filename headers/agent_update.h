@@ -73,13 +73,14 @@ __device__ int select_next_state(float* probabilities, curandState* local_state,
 }
 
 // CUDA kernel to update the position of each agent
-__global__ void moveAgents(Agent* agents, curandState* states, ExplorationState * d_explorationStates,  /*float* potential, int* agent_count_grid,*/ int worm_count, int timestep, float sigma) {
+__global__ void moveAgents(Agent* agents, curandState* states,  float* potential, /*int* agent_count_grid,*/ int worm_count, int timestep, float sigma) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
 
-        float max_concentration_x = 0.0f;
-        float max_concentration_y = 0.0f;
-        float sensed_potential = computeDensityAtPoint(agents[id].x, agents[id].y, timestep);//potential[agent_x * N + agent_y];
+        float max_concentration_x = 0.0;
+        float max_concentration_y = 0.0;
+        int agent_x = (int)(agents[id].x / DX), agent_y = (int)(agents[id].y / DX);
+        float sensed_potential = potential[agent_x * N + agent_y];//potential[agent_x * N + agent_y];
         sensed_potential = ATTRACTION_STRENGTH * logf(sensed_potential + ATTRACTION_SCALE);
         //add a small perceptual noise to the potential
         if(sigma!=0.0f){
@@ -93,9 +94,9 @@ __global__ void moveAgents(Agent* agents, curandState* states, ExplorationState 
         //printf("Sensed potential: %f\n", sensed_potential);
         for (int i = 0; i < 32; ++i) {
             float angle = curand_uniform(&states[id]) * 2 * M_PI;
-            float sample_x = agents[id].x + SENSING_RADIUS * cosf(angle);
-            float sample_y = agents[id].y + SENSING_RADIUS * sinf(angle);
-            float concentration = computeDensityAtPoint(sample_x, sample_y, timestep);
+            int sample_x = (int)((agents[id].x + SENSING_RADIUS * cosf(angle))/DX);
+            int sample_y = (int)((agents[id].y + SENSING_RADIUS * sinf(angle))/DY);
+            float concentration = potential[sample_x * N + sample_y];
             // Add perceptual noise if sigma is not zero
             if (sigma != 0.0f) {
                 concentration += curand_normal(&states[id]) * sigma;
@@ -109,61 +110,36 @@ __global__ void moveAgents(Agent* agents, curandState* states, ExplorationState 
             }
         }
 
-        float auto_transition_probability = curand_uniform(&states[id]);
-        if (agents[id].cumulative_potential > PIROUETTE_TO_RUN_THRESHOLD){ //|| auto_transition_probability>=AUTO_TRANSITION_PROBABILITY_THRESHOLD){ //starting to move in the "right" direction, then RUN
-            agents[id].state = 0;
-            agents[id].cumulative_potential = 0.0f;
-        }
-        else if (sensed_potential - agents[id].previous_potential < -ODOR_THRESHOLD){ //|| auto_transition_probability<AUTO_TRANSITION_PROBABILITY_THRESHOLD){ //moving in the wrong direction, then PIROUETTE
-            agents[id].state = 1;
-            agents[id].cumulative_potential += (sensed_potential - agents[id].previous_potential);
-        }
-
         float fx, fy, new_angle;
-        float mu, kappa, scale, shape;
-        int sub_state = agents[id].substate;
-        int base_index = id * N_STATES;
-        ExplorationState* explorationState = &d_explorationStates[base_index + sub_state];
-        float* probabilities = explorationState->probabilities;
-        mu = explorationState->angle_mu;    // this can be negative, set below, 50% chance
-        kappa = explorationState->angle_kappa;
-        scale = explorationState->speed_scale;
-        shape = explorationState->speed_spread;
-        float random_angle = (float)explorationState->angle_mu_sign * sample_from_von_mises(mu, kappa, states);//wrapped_cauchy(0.0, 0.6, &states[id]);//curand_normal(&states[id]) * M_PI/4;////
+        float mu, kappa;
+        mu = 0;    // this can be negative, set below, 50% chance
+        kappa = 4;
+        // scale = explorationState->speed_scale;
+        // shape = explorationState->speed_spread;
+        float random_angle = curand_normal(&states[id]) * M_PI/4;//sample_from_von_mises(mu, kappa, &states[id]);//wrapped_cauchy(0.0, 0.6, &states[id]);////
 
-        float lambda=0.0f; //@TODO: try to make it a function of the potential (and re-add the potential)
-
-        if(agents[id].state == 0){ //if the agent is moving = RUN - LOW TURNING - EXPLOIT
-            //if the max concentration is 0 (or best direction is 0,0), then choose random only (atan will give unreliable results)
-            if (max_concentration< ODOR_THRESHOLD || (max_concentration_x==0 && max_concentration_y==0) ) {
-
-                agents[id].angle += ((1.0f-lambda)* random_angle);
-            }
-            else {
-                float norm = sqrt(max_concentration_x * max_concentration_x + max_concentration_y * max_concentration_y);
-                float direction_x = max_concentration_x / norm;
-                float direction_y = max_concentration_y / norm;
-                float bias = atan2(direction_y, direction_x);
-
-                float current_angle = agents[id].angle;
-                if(bias-current_angle>=0){
-                    bias = M_PI / 4;
-                } else{
-                    bias = -M_PI / 4;
-                }
-
-                float k = KAPPA;// * pow(sensed_potential / max_concentration, 2);
-                new_angle = sample_from_von_mises(bias, k, &states[id]);
-
-                agents[id].angle += new_angle;
-            }
-
-        }
-        else{ //BROWNIAN MOTION - HIGH TURNING - EXPLORE
+        if (max_concentration< ODOR_THRESHOLD || (max_concentration_x==0 && max_concentration_y==0) ) {
+            // Brownian Motion
             agents[id].angle += random_angle;
-
         }
+        else{
+            float norm = sqrt(max_concentration_x * max_concentration_x + max_concentration_y * max_concentration_y);
+            float direction_x = max_concentration_x / norm;
+            float direction_y = max_concentration_y / norm;
+            float bias = atan2(direction_y, direction_x);
 
+            float current_angle = agents[id].angle;
+            if(bias-current_angle>=0){
+                bias = M_PI / 4;
+            } else{
+                bias = -M_PI / 4;
+            }
+            
+            float k = KAPPA;
+            new_angle = sample_from_von_mises(bias, k, &states[id]);
+            agents[id].angle += new_angle;
+        }
+        
         if(agents[id].angle>2 * M_PI || agents[id].angle<-2 * M_PI){
             agents[id].angle = fmodf(agents[id].angle, 2*M_PI);
         }
@@ -171,12 +147,10 @@ __global__ void moveAgents(Agent* agents, curandState* states, ExplorationState 
         fx = cosf(agents[id].angle);
         fy = sinf(agents[id].angle);
 
-        float new_speed = curand_log_normal(&states[id], logf(scale), shape);
-        while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
+        float new_speed = SPEED;
+        //float new_speed = curand_log_normal(&states[id], logf(scale), shape);
+        //while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
         //printf("New Speed: %f with scale %f and shape %f\n", new_speed, scale, shape);
-        if (sub_state==5){ //reversals
-            new_speed = - new_speed;
-        }
         float dx = fx * new_speed;
         float dy = fy * new_speed;
 
@@ -189,65 +163,6 @@ __global__ void moveAgents(Agent* agents, curandState* states, ExplorationState 
         if (agents[id].x >= WIDTH) agents[id].x -= WIDTH;
         if (agents[id].y < 0) agents[id].y += HEIGHT;
         if (agents[id].y >= HEIGHT) agents[id].y -= HEIGHT;
-        int new_x = (int)(agents[id].x / DX);
-        int new_y = (int)(agents[id].y / DY);
-
-
-        //printf("Current substate: %d, max duration %d id again (just to be sure) %d\n", agents[id].substate, explorationState->max_duration, explorationState->id);
-
-        if(explorationState->duration>0){
-            explorationState->duration--;
-        }
-        if(explorationState->duration<=0){
-            agents[id].substate = select_next_state(probabilities, &states[id], N_STATES);
-            //printf("switching to state %d\n", agents[id].substate);
-            explorationState = &d_explorationStates[base_index + agents[id].substate];
-            if(agents[id].substate<3) {
-                if(explorationState->max_duration>=0) {
-                    int duration = (int) curand_log_normal(&states[id], explorationState->duration_mu,
-                                                           explorationState->duration_sigma);
-                    //printf("New Duration: %d mean %f std %f max bound %d\n", duration, explorationState->duration_mu,
-                           //explorationState->duration_sigma, explorationState->max_duration);
-                    while (duration <= 0 || duration > explorationState->max_duration) {
-                        duration = (int) curand_log_normal(&states[id], explorationState->duration_mu,
-                                                           explorationState->duration_sigma);
-                        //printf("Refusing New Duration %d with Bound %d\n", duration, explorationState->max_duration);
-                    }
-                    explorationState->duration = duration;
-                }
-                else{
-                    explorationState->duration = 0;
-                    printf("Duration lower than 0\n");
-                }
-            }
-            else{
-                explorationState->duration = 0;
-            }
-
-        }
-        //IF the new substate is different from the previous one, then choose sign for the angle mu and augments timesteps in this substate, otherwise set to 0
-        if(agents[id].substate != agents[id].previous_substate){
-            if(curand_uniform(&states[id])>0.5){
-                explorationState->angle_mu_sign *= -1;
-            }
-            explorationState->timesteps_in_state++;
-        } else {
-            explorationState->timesteps_in_state = 0;
-        }
-
-        agents[id].previous_substate = sub_state;
-        //check if the agent is in the target area
-        if (new_x >= 3* N/4 - TARGET_AREA_SIDE_LENGTH/2 && new_x < 3*N/4 + TARGET_AREA_SIDE_LENGTH/2 && new_y >= N/2 - TARGET_AREA_SIDE_LENGTH/2 && new_y < N/2 + TARGET_AREA_SIDE_LENGTH/2){
-            agents[id].is_agent_in_target_area = 1;
-            agents[id].steps_in_target_area++;
-            if(agents[id].first_timestep_in_target_area == -1){
-                agents[id].first_timestep_in_target_area = timestep;
-            }
-        }
-        else{
-            agents[id].is_agent_in_target_area = 0;
-        }
-
     }
 }
 #endif //UNTITLED_AGENT_UPDATE_H
