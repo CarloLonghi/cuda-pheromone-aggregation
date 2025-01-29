@@ -9,6 +9,39 @@
 #include "headers/update_matrices.h"
 #include "headers/logging.h"
 #include "headers/gaussian_odour.h"
+#include <stdbool.h>
+
+// Function to perform DFS traversal
+void dfs(bool adjMatrix[MAX_WORMS][MAX_WORMS], bool visited[MAX_WORMS], int node, int cluster[], int *size) {
+    visited[node] = true;
+    cluster[(*size)++] = node;
+    
+    for (int i = 0; i < MAX_WORMS; i++) {
+        if (adjMatrix[node][i] && !visited[i]) {
+            dfs(adjMatrix, visited, i, cluster, size);
+        }
+    }
+}
+
+// Function to find and print clusters
+int findClusters(bool adjMatrix[MAX_WORMS][MAX_WORMS]) {
+    bool visited[MAX_WORMS] = {false};
+    int biggest_size = 0;
+    
+    for (int i = 0; i < MAX_WORMS; i++) {
+        if (!visited[i]) {
+            int cluster[MAX_WORMS]; // Temporary storage for cluster elements
+            int size = 0;
+            
+            dfs(adjMatrix, visited, i, cluster, &size);
+
+            if (size > biggest_size){
+                biggest_size = size;
+            }
+        }
+    }
+    return biggest_size;
+}
 
 __global__ void initialize_rng(curandState* states, unsigned long seed) {
     int id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -31,50 +64,11 @@ int main(int argc, char* argv[]) {
     int worm_idx = 0;
     //printf("Found %d arguments\n", argc-1);
 
-    attractant_pheromone_strength = std::stof(argv[1]);
-    repulsive_pheromone_strength = std::stof(argv[2]);
+    if (argc - 1 == 2){
+        attractant_pheromone_strength = std::stof(argv[1]);
+        repulsive_pheromone_strength = std::stof(argv[2]);
+    }
 
-    // switch (argc-1) {
-    //     case 1:
-    //         if(std::isdigit(argv[1][0])){
-    //             worm_idx = std::stoi(argv[1]);
-    //             printf("Worm idx: %d\n", worm_idx);
-    //         }
-    //         break;
-    //     case 2:
-    //         if(std::isdigit(argv[1][0]) && std::isdigit(argv[2][0])){
-    //             /*attractant_pheromone_strength = std::stof(argv[1]);
-    //             printf("Attractant pheromone strength: %.10f\n", attractant_pheromone_strength);
-    //             repulsive_pheromone_strength = std::stof(argv[2]);
-    //             printf("Repulsive pheromone strength: %.10f\n", repulsive_pheromone_strength);*/
-    //             sigma = std::stof(argv[1]);
-    //             printf("Sigma: %.10f\n", sigma);
-    //             environmental_noise = std::stof(argv[2]);
-    //             printf("Environmental noise: %.10f\n", environmental_noise);
-    //         }
-    //         break;
-
-    //     case 5:
-    //         if(std::isdigit(argv[1][0]) && std::isdigit(argv[2][0]) && std::isdigit(argv[3][0]) && std::isdigit(argv[4][0])  && std::isdigit(argv[5][0])){
-    //             exp_number = std::stoi(argv[1]);
-    //             printf("Experiment number: %d\n", exp_number);
-    //             worm_count = std::stoi(argv[2]);
-    //             printf("Worm count: %d\n", worm_count);
-    //             attractant_pheromone_strength = std::stof(argv[3]);
-    //             printf("Attractant pheromone strength: %.10f\n", attractant_pheromone_strength);
-    //             repulsive_pheromone_strength = -std::stof(argv[4]);
-    //             printf("Repulsive pheromone strength: %.10f\n", repulsive_pheromone_strength);
-    //             int using_odor = std::stoi(argv[5]);
-    //             if(using_odor == 0){
-    //                 odor_strength = 0.0f;
-    //             }
-    //             printf("Odor strength: %f\n", odor_strength);
-    //         }
-    //         break;
-    //     case 0:
-    //         //printf("No input arguments provided.\n");
-    //         break;
-    // }
     Parameters params = Parameters();
     const char *filename = "/home/carlo/babots/cuda_agent_based_sim/json/specific_simulation_params.json";
 
@@ -298,6 +292,38 @@ int main(int argc, char* argv[]) {
         saveAllDataToJSON(target_json, positions, velocities, angles, h_agents ,worm_count, N_STEPS);
     }
 
+    // track clusters
+    int cluster_sizes[N_STEPS] = {0};
+    float dist = 0, diff_x = 0, diff_y = 0;
+    for (int i = 0; i < N_STEPS; ++i){
+        bool adjacency_matrix[MAX_WORMS][MAX_WORMS] = {false};
+        for (int j = 0; j < worm_count; ++j){
+            for (int k = 0; k < worm_count; ++k){
+                diff_x = (positions[(i * worm_count + j) * 2] - positions[(i * worm_count + k) * 2]);
+                diff_y = (positions[(i * worm_count + j) * 2 + 1] - positions[(i * worm_count + k) * 2 + 1]);
+                dist = sqrt(diff_x * diff_x + diff_y * diff_y);
+                if (dist <= 1){
+                    // adjacency_matrix[(i * worm_count + j) * worm_count + k] = true;
+                    adjacency_matrix[j][k] = true;
+                }
+                else{
+                    // adjacency_matrix[(i * worm_count + j) * worm_count + k] = false;
+                    adjacency_matrix[j][k] = false;
+                }
+            }
+        }        
+        cluster_sizes[i] = findClusters(adjacency_matrix);
+    }
+
+    int biggest_size = 0;
+    for (int i = 0; i < N_STEPS; ++i){
+        if (cluster_sizes[i] > biggest_size){
+            biggest_size = cluster_sizes[i];
+        }
+    }
+
+    std::cout << biggest_size << std::endl;
+
     /*if(LOG_TRAJECTORIES) {
         savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_log.json", positions, worm_count, N_STEPS);
     }
@@ -336,7 +362,7 @@ int main(int argc, char* argv[]) {
     cudaEventElapsedTime(&elapsedTime, start, stop);
 
     // Print the elapsed time
-    std::cout << "Elapsed time: " << elapsedTime << " ms" << std::endl;
+    //std::cout << "Elapsed time: " << elapsedTime << " ms" << std::endl;
 
     // Clean up
     cudaEventDestroy(start);
