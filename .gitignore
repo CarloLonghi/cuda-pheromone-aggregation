@@ -4,3 +4,4 @@ build/
 .vscode
 *.mp4
 .*gif
+results/
