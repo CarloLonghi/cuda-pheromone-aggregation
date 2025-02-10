@@ -24,7 +24,7 @@ void dfs(bool adjMatrix[MAX_WORMS][MAX_WORMS], bool visited[MAX_WORMS], int node
 }
 
 // Function to find and print clusters
-int findClusters(bool adjMatrix[MAX_WORMS][MAX_WORMS]) {
+int find_clusters(bool adjMatrix[MAX_WORMS][MAX_WORMS]) {
     bool visited[MAX_WORMS] = {false};
     int biggest_size = 0;
     
@@ -43,6 +43,33 @@ int findClusters(bool adjMatrix[MAX_WORMS][MAX_WORMS]) {
     return biggest_size;
 }
 
+int get_adjacency_matrix(bool adjacency_matrix[MAX_WORMS][MAX_WORMS], int worm_count, float* positions, int t, float r){
+    float diff_x, diff_y, dist = 0;
+    for (int j = 0; j < worm_count; ++j){
+        for (int k = 0; k < worm_count; ++k){
+            diff_x = (positions[(t * worm_count + j) * 2] - positions[(t * worm_count + k) * 2]);
+            diff_y = (positions[(t * worm_count + j) * 2 + 1] - positions[(t * worm_count + k) * 2 + 1]);
+            dist = sqrt(diff_x * diff_x + diff_y * diff_y);
+            if (dist <= r){
+                adjacency_matrix[j][k] = true;
+            }
+            else{
+                adjacency_matrix[j][k] = false;
+            }
+        }
+    }
+    return 0;
+}
+
+int reset_matrix(bool adjacency_matrix[MAX_WORMS][MAX_WORMS]){
+    for (int i = 0; i < MAX_WORMS; ++i){
+        for (int j = 0; j < MAX_WORMS; ++j){
+            adjacency_matrix[i][j] = false;
+        }
+    }
+    return 0;
+}
+
 __global__ void initialize_rng(curandState* states, unsigned long seed) {
     int id = blockIdx.x * blockDim.x + threadIdx.x;
     curand_init(seed + id, id, 0, &states[id]); // Unique seed for each thread
@@ -57,39 +84,40 @@ int main(int argc, char* argv[]) {
 
     // Record the start event
     cudaEventRecord(start, 0);
-    float attractant_pheromone_strength = ATTRACTANT_PHEROMONE_STRENGTH, repulsive_pheromone_strength = REPULSIVE_PHEROMONE_STRENGTH, odor_strength = ATTRACTION_STRENGTH, sigma = SIGMA, environmental_noise = ENVIRONMENTAL_NOISE;
-    float* grid, * h_grid = new float[N * N], * attractive_pheromone, * repulsive_pheromone, * h_attractive_pheromone = new float[N * N];
+    float attractant_pheromone_strength = ATTRACTANT_PHEROMONE_STRENGTH, repulsive_pheromone_strength = REPULSIVE_PHEROMONE_STRENGTH, sigma = SIGMA, environmental_noise = ENVIRONMENTAL_NOISE;
+    float attractant_pheromone_diffusion_rate = ATTRACTANT_PHEROMONE_DIFFUSION_RATE, attractant_pheromone_decay_rate = ATTRACTANT_PHEROMONE_DECAY_RATE, attractant_pheromone_secretion_rate = ATTRACTANT_PHEROMONE_SECRETION_RATE;
+    float repulsive_pheromone_diffusion_rate = REPULSIVE_PHEROMONE_DIFFUSION_RATE, repulsive_pheromone_decay_rate = REPULSIVE_PHEROMONE_DECAY_RATE, repulsive_pheromone_secretion_rate = REPULSIVE_PHEROMONE_SECRETION_RATE;
+    float* attractive_pheromone, * repulsive_pheromone, * h_attractive_pheromone = new float[N * N];
     float* h_repulsive_pheromone = new float[N * N], * h_potential = new float[N * N], * potential;
-    int worm_count = WORM_COUNT, exp_number = 0, * agent_count_grid, * h_agent_count_grid = new int[N * N];;
-    int worm_idx = 0;
+    int worm_count = WORM_COUNT, * agent_count_grid, * h_agent_count_grid = new int[N * N];;
     //printf("Found %d arguments\n", argc-1);
+    int log_worms_data = 0;
 
-    if (argc - 1 == 2){
+    if (argc - 1 == 9){
         attractant_pheromone_strength = std::stof(argv[1]);
-        repulsive_pheromone_strength = std::stof(argv[2]);
+        attractant_pheromone_secretion_rate = std::stof(argv[2]);
+        attractant_pheromone_decay_rate = std::stof(argv[3]);        
+        attractant_pheromone_diffusion_rate = std::stof(argv[4]);
+        repulsive_pheromone_strength = std::stof(argv[5]);
+        repulsive_pheromone_secretion_rate = std::stof(argv[6]);
+        repulsive_pheromone_decay_rate = std::stof(argv[7]);
+        repulsive_pheromone_diffusion_rate = std::stof(argv[8]);
+        log_worms_data = std::stoi(argv[9]);
+    }
+    else{
+        std::cout << "The number of parameters is incorrect, it should be 8 but is " << argc - 1 << std::endl;
+        return 1;
     }
 
-    Parameters params = Parameters();
-    const char *filename = "/home/carlo/babots/cuda_agent_based_sim/json/specific_simulation_params.json";
-
-    // loadOptimisedParametersSingleAgent(&params, filename, worm_idx); //loads optimal mus and kappas; next load only scales, sigmas and times
-    //loadParameters(&params, filename, false);
-    //loadOptimisedParameters13Agents(&params, filename);
-    //loadBatchSingleAgentParameters(&params, filename, 0);
     const char* target_json = "/home/carlo/babots/cuda_agent_based_sim/json/agents_all_data.json";
-    // const char* filename1 = "/home/carlo/babots/cuda_agent_based_sim/json/simulation_params.json";// "/home/nema/CLionProjects/untitled/specific_simulation_params_after_speed.json";//
-    // loadSpeedParameters(&params, filename1);
     Agent* d_agents, *h_agents = new Agent[worm_count];
     curandState* d_states, *d_states_grids;
     bool broken = false;
     size_t size = worm_count * sizeof(Agent);
     auto* positions = new float[worm_count * N_STEPS * 2]; // Matrix to store positions (x, y) for each agent at each timestep
-    auto* angles = new float[worm_count * N_STEPS]; // Matrix to store angles for each agent at each timestep
-    auto* velocities = new float[worm_count * N_STEPS]; // Matrix to store velocities for each agent at each timestep
     cudaMalloc(&d_agents, size);
     cudaMalloc(&d_states, worm_count * sizeof(curandState));
     cudaMalloc(&d_states_grids, N * N * sizeof(curandState));
-    cudaMalloc(&grid, N*N*sizeof(float));
     cudaMalloc(&potential, N*N*sizeof(float));
     initialize_rng<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_states, SEED);
     // Initialize agent positions and random states
@@ -98,30 +126,6 @@ int main(int argc, char* argv[]) {
 
     cudaDeviceSynchronize();
     cudaMemcpy(h_agents, d_agents, size, cudaMemcpyDeviceToHost);
-    //initAgentsProbabilities(h_agents);
-    // int initialisation = initProbabilitiesWithParams(h_explorationStates, &params);
-    // if(initialisation != 0) {
-    //     printf("Failed! Aborting...\n");
-    //     //fill only sub_states (int) and velocities (float) with 0s and use it as stub for angles and positions when initialisation fails
-    //     for(int i = 0; i < worm_count; i++) {
-    //         for(int j = 0; j < N_STEPS; j++) {
-    //             velocities[i * N_STEPS + j] = 0;
-    //             sub_states[i * N_STEPS + j] = 0;
-    //         }
-    //     }
-    //     //log it
-    //     saveAllDataToJSON(target_json, velocities, velocities, velocities, h_agents, worm_count, N_STEPS, sub_states);
-    //     //free everything
-    //     cudaFree(d_agents);
-    //     cudaFree(d_states);
-    //     cudaFree(d_explorationStates);
-
-    //     delete[] positions;
-    //     delete[] angles;
-    //     delete[] velocities;
-    //     delete[] sub_states;
-    //     return 1;
-    // }
     cudaDeviceSynchronize();
     dim3 gridSize((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (N + BLOCK_SIZE - 1) / BLOCK_SIZE);
     dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE);
@@ -138,16 +142,7 @@ int main(int argc, char* argv[]) {
     cudaDeviceSynchronize();
     cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(int), cudaMemcpyDeviceToHost);
 
-// Initialize the chemical grid concentration
-
-    initGridWithCircle<<<gridSize, blockSize>>>(grid, d_states_grids);
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("CUDA error in initGrid: %s\n", cudaGetErrorString(err));
-    }
-
     cudaDeviceSynchronize();
-    cudaMemcpy(h_grid, grid, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
     //initialize the pheromone grids
     cudaMalloc(&attractive_pheromone, N*N*sizeof(float));
@@ -162,7 +157,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
     //initialise the potential grid
-    updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, d_states_grids, environmental_noise);
+    updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, d_states_grids, environmental_noise);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
@@ -172,23 +167,6 @@ int main(int argc, char* argv[]) {
 
 
     for (int i = 0; i < N_STEPS; ++i) {
-        //printf("Step %d\n", i);
-        /*
-
-       //pretty print transition probability matrix for the first agent
-
-       for(int j=0; j<N_STATES; j++){
-           ExplorationState state = h_explorationStates[j];
-           for(int k=0; k<N_STATES; k++){
-               printf("%.10f ", state.probabilities[k]);
-           }
-           printf("\n");
-       }
-       printf("\n");*/
-
-        //copy the agent count grid to the device
-        //cudaMemcpy(agent_count_grid, h_agent_count_grid, N * N * sizeof(int), cudaMemcpyHostToDevice);
-
         moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma);
         // Check for errors in the kernel launch
         cudaError_t err = cudaGetLastError();
@@ -201,36 +179,31 @@ int main(int argc, char* argv[]) {
         cudaMemcpy(h_agents, d_agents, size, cudaMemcpyDeviceToHost);
         //cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(int), cudaMemcpyDeviceToHost);
 
-        // Store positions, velocities and angles in the matrices
+        // Store positions
         for (int j = 0; j < worm_count; ++j) {
             positions[(i * worm_count + j) * 2] = h_agents[j].x;
             positions[(i * worm_count + j) * 2 + 1] = h_agents[j].y;
-
-            angles[i * worm_count + j] = h_agents[j].angle;
-
-            velocities[i * worm_count + j] = h_agents[j].speed;
         }
 
-        //updateAgentsProbabilities(h_agents, i);
         //copy the repulsive pheromone grid to the device
         cudaMemcpy(attractive_pheromone, h_attractive_pheromone, N * N * sizeof(float), cudaMemcpyHostToDevice);
         cudaMemcpy(repulsive_pheromone, h_repulsive_pheromone, N * N * sizeof(float), cudaMemcpyHostToDevice);
-        cudaMemcpy(grid, h_grid, N * N * sizeof(float), cudaMemcpyHostToDevice);
 
         //update all grids
-        updateGrids<<<gridSize, blockSize>>>(grid, attractive_pheromone, repulsive_pheromone, agent_count_grid, worm_count, d_agents);
+        updateGrids<<<gridSize, blockSize>>>(attractive_pheromone, repulsive_pheromone, agent_count_grid, worm_count, d_agents,
+        attractant_pheromone_diffusion_rate, attractant_pheromone_decay_rate, attractant_pheromone_secretion_rate,
+        repulsive_pheromone_diffusion_rate, repulsive_pheromone_decay_rate, repulsive_pheromone_secretion_rate);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("CUDA error in updateGrids: %s\n", cudaGetErrorString(err));
         }
         cudaDeviceSynchronize();
         // copy data from device to host
-        cudaMemcpy(h_grid, grid, N * N * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(h_attractive_pheromone, attractive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
         //update potential
-        updatePotential<<<gridSize, blockSize>>>(potential, grid, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, d_states_grids, environmental_noise);
+        updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, d_states_grids, environmental_noise);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
@@ -242,11 +215,6 @@ int main(int argc, char* argv[]) {
         if (DEBUG){
             for (int i = 0; i < N; ++i) {
                 for (int j = 0; j < N; ++j) {
-                    if (isnan(h_grid[i * N + j]) || isinf(h_grid[i * N + j])) {
-                        printf("Invalid concentration %f at (%d, %d)\n", h_grid[i * N + j], i, j);
-                        broken = true;
-                        break;
-                    }
                     if (isnan(h_attractive_pheromone[i * N + j]) || isinf(h_attractive_pheromone[i * N + j])) {
                         printf("Invalid attractive pheromone %f at (%d, %d)\n", h_attractive_pheromone[i * N + j], i, j);
                         broken = true;
@@ -276,10 +244,7 @@ int main(int argc, char* argv[]) {
             if(LOG_AGENT_COUNT_GRID) {
                 logIntMatrixToFile("/home/carlo/babots/cuda_agent_based_sim/logs/agent_count/agents_log_step_", h_agent_count_grid, N, N, i);
             }
-            if(LOG_GRID) {
-                logMatrixToFile("/home/carlo/babots/cuda_agent_based_sim/logs/chemical_concentration/chemical_concentration_step_", h_grid, N, N, i);
-            }
-            if(LOG_PHEROMONES) {
+            if(log_worms_data) {
                 logMatrixToFile("/home/carlo/babots/cuda_agent_based_sim/logs/attractive_pheromone/attractive_pheromone_step_", h_attractive_pheromone, N, N, i);
                 logMatrixToFile("/home/carlo/babots/cuda_agent_based_sim/logs/repulsive_pheromone/repulsive_pheromone_step_", h_repulsive_pheromone, N, N, i);
             }
@@ -288,31 +253,17 @@ int main(int argc, char* argv[]) {
          
 
     }
-    if(LOG_GENERIC_TARGET_DATA) {
-        saveAllDataToJSON(target_json, positions, velocities, angles, h_agents ,worm_count, N_STEPS);
+    if(log_worms_data == 1) {
+        saveAllDataToJSON(target_json, positions, h_agents ,worm_count, N_STEPS);
     }
 
     // track clusters
     int cluster_sizes[N_STEPS] = {0};
-    float dist = 0, diff_x = 0, diff_y = 0;
+    bool adjacency_matrix[MAX_WORMS][MAX_WORMS] = {false};
     for (int i = 0; i < N_STEPS; ++i){
-        bool adjacency_matrix[MAX_WORMS][MAX_WORMS] = {false};
-        for (int j = 0; j < worm_count; ++j){
-            for (int k = 0; k < worm_count; ++k){
-                diff_x = (positions[(i * worm_count + j) * 2] - positions[(i * worm_count + k) * 2]);
-                diff_y = (positions[(i * worm_count + j) * 2 + 1] - positions[(i * worm_count + k) * 2 + 1]);
-                dist = sqrt(diff_x * diff_x + diff_y * diff_y);
-                if (dist <= 1){
-                    // adjacency_matrix[(i * worm_count + j) * worm_count + k] = true;
-                    adjacency_matrix[j][k] = true;
-                }
-                else{
-                    // adjacency_matrix[(i * worm_count + j) * worm_count + k] = false;
-                    adjacency_matrix[j][k] = false;
-                }
-            }
-        }        
-        cluster_sizes[i] = findClusters(adjacency_matrix);
+        reset_matrix(adjacency_matrix);
+        get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, 1);
+        cluster_sizes[i] = find_clusters(adjacency_matrix);
     }
 
     int biggest_size = 0;
@@ -322,34 +273,47 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::cout << biggest_size << std::endl;
+    // compute mean squared displacement
+    float mean_squared_disp, diff_x, diff_y, sq_dist = 0;
+    for (int i = 0; i < worm_count; ++i){
+        diff_x = (positions[((N_STEPS - 1) * worm_count + i) * 2] - positions[i * 2]);
+        diff_y = (positions[((N_STEPS - 1) * worm_count + i) * 2 + 1] - positions[i * 2 + 1]);
+        sq_dist = diff_x * diff_x + diff_y * diff_y;
+        mean_squared_disp += (sq_dist - mean_squared_disp) / (i + 1);
+    }
 
-    /*if(LOG_TRAJECTORIES) {
-        savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_log.json", positions, worm_count, N_STEPS);
+    // compute worm density
+    float worm_density = 0;
+    int neighbor_count = 0;
+    for (int i = 0; i < N_STEPS; ++i){
+        reset_matrix(adjacency_matrix);
+        get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, 5);
+        neighbor_count = 0;
+        for (int j = 0; j < worm_count; ++j){
+            for (int k = 0; k < worm_count; ++k){
+                if (adjacency_matrix[j][k] == true){
+                    neighbor_count += 1;
+                }
+            }
+        }
+        worm_density += neighbor_count / worm_count;
     }
-    if(LOG_VELOCITIES) {
-        savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_velocities_log.json", velocities, worm_count, N_STEPS, true);
-    }
-    if(LOG_ANGLES) {
-        savePositionsToJSON("/home/nema/CLionProjects/untitled/agents_angles_log.json", angles, worm_count, N_STEPS, true);
-    } //
-    saveInsideAreaToJSON("/home/nema/CLionProjects/untitled/inside_area.json", h_agents, worm_count, N_STEPS);*/
+    worm_density /= N_STEPS;
+
+    std::cout << biggest_size << " " << mean_squared_disp << " " << worm_density << std::endl;
+
     cudaFree(d_agents);
     cudaFree(d_states);
-    cudaFree(grid);
     cudaFree(potential);
     cudaFree(attractive_pheromone);
     cudaFree(repulsive_pheromone);
-    cudaFree(agent_count_grid);
+    cudaFree(agent_count_grid);  
     delete[] h_agents;
-    delete[] h_grid;
     delete[] h_potential;
     delete[] h_attractive_pheromone;
     delete[] h_repulsive_pheromone;
     delete[] h_agent_count_grid;
     delete[] positions;
-    delete[] angles;
-    delete[] velocities;
 
     // Record the stop event
     cudaEventRecord(stop, 0);

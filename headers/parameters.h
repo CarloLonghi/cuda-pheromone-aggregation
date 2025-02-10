@@ -8,6 +8,7 @@
 #define SEED 1234
 // Simulation parameters
 #define WORM_COUNT 100
+#define MAX_WORMS 100
 #define N_STEPS 2000
 #define LOGGING_INTERVAL 1
 #define DT 1.0f
@@ -21,7 +22,7 @@
 #define LOG_PHEROMONES false
 #define LOG_AGENT_COUNT_GRID false
 #define LOG_GENERIC_TARGET_DATA false
-#define LOG_POSITIONS false
+#define LOG_POSITIONS true
 #define LOG_ANGLES false
 #define LOG_VELOCITIES false
 

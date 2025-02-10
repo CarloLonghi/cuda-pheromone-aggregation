@@ -8,8 +8,10 @@
 #include "numeric_functions.h"
 
 //CUDA kernel to update all the grids (except the potential and the agent count grid)
-__global__ void updateGrids(float* grid, float* attractive_pheromone, float* repulsive_pheromone, int* agent_count_grid, 
-                            int worm_count, Agent* agents){
+__global__ void updateGrids(float* attractive_pheromone, float* repulsive_pheromone, int* agent_count_grid, 
+                            int worm_count, Agent* agents, float attractant_pheromone_diffusion_rate, float attractant_pheromone_decay_rate,
+                            float attractant_pheromone_secretion_rate, float repulsive_pheromone_diffusion_rate,
+                            float repulsive_pheromone_decay_rate, float repulsive_pheromone_secretion_rate){
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N && i>=0 && j>=0) {
@@ -29,12 +31,12 @@ __global__ void updateGrids(float* grid, float* attractive_pheromone, float* rep
         float new_attractive_pheromone, laplacian_attractive_pheromone = fourth_order_laplacian(attractive_pheromone, i, j);
         float new_repulsive_pheromone, laplacian_repulsive_pheromone = fourth_order_laplacian(repulsive_pheromone, i, j);
         if(agent_count_grid[i * N + j] == 0){
-            new_attractive_pheromone =  attractive_pheromone[i * N + j] + DT * (ATTRACTANT_PHEROMONE_DIFFUSION_RATE * laplacian_attractive_pheromone - ATTRACTANT_PHEROMONE_DECAY_RATE * attractive_pheromone[i * N + j]);
-            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (REPULSIVE_PHEROMONE_DIFFUSION_RATE * laplacian_repulsive_pheromone - REPULSIVE_PHEROMONE_DECAY_RATE * repulsive_pheromone[i * N + j]);
+            new_attractive_pheromone =  attractive_pheromone[i * N + j] + DT * (attractant_pheromone_diffusion_rate * laplacian_attractive_pheromone - attractant_pheromone_decay_rate * attractive_pheromone[i * N + j]);
+            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (repulsive_pheromone_diffusion_rate * laplacian_repulsive_pheromone - repulsive_pheromone_decay_rate * repulsive_pheromone[i * N + j]);
         }
         else {
-            new_attractive_pheromone = attractive_pheromone[i * N + j] + DT * (ATTRACTANT_PHEROMONE_DIFFUSION_RATE * laplacian_attractive_pheromone - ATTRACTANT_PHEROMONE_DECAY_RATE * attractive_pheromone[i * N + j] + ATTRACTANT_PHEROMONE_SECRETION_RATE * agent_count_grid[i * N + j] / (DX * DX));
-            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (REPULSIVE_PHEROMONE_DIFFUSION_RATE * laplacian_repulsive_pheromone - REPULSIVE_PHEROMONE_DECAY_RATE * repulsive_pheromone[i * N + j] + REPULSIVE_PHEROMONE_SECRETION_RATE * agent_count_grid[i * N + j] / (DX * DX));
+            new_attractive_pheromone = attractive_pheromone[i * N + j] + DT * (attractant_pheromone_diffusion_rate * laplacian_attractive_pheromone - attractant_pheromone_decay_rate * attractive_pheromone[i * N + j] + attractant_pheromone_secretion_rate * agent_count_grid[i * N + j] / (DX * DX));
+            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (repulsive_pheromone_diffusion_rate * laplacian_repulsive_pheromone - repulsive_pheromone_decay_rate * repulsive_pheromone[i * N + j] + repulsive_pheromone_secretion_rate * agent_count_grid[i * N + j] / (DX * DX));
         }
         if (new_attractive_pheromone < 0) new_attractive_pheromone = 0.0f;
         if (new_attractive_pheromone > MAX_CONCENTRATION) new_attractive_pheromone = MAX_CONCENTRATION;
@@ -85,7 +87,7 @@ __global__ void updateGrid(float* grid) {
 }
 
 //CUDA kernel to update the potential matrix
-__global__ void updatePotential(float* potential, float* grid, float* attractive_pheromone, float* repulsive_pheromone, float attractive_pheromone_strength, float repulsive_pheromone_strength, curandState* states, float environmental_noise) {
+__global__ void updatePotential(float* potential, float* attractive_pheromone, float* repulsive_pheromone, float attractive_pheromone_strength, float repulsive_pheromone_strength, curandState* states, float environmental_noise) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {

@@ -116,7 +116,8 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         kappa = 4;
         // scale = explorationState->speed_scale;
         // shape = explorationState->speed_spread;
-        float random_angle = curand_normal(&states[id]) * M_PI/4;//sample_from_von_mises(mu, kappa, &states[id]);//wrapped_cauchy(0.0, 0.6, &states[id]);////
+        //float random_angle = curand_normal(&states[id]) * M_PI/4;//sample_from_von_mises(mu, kappa, &states[id]);//wrapped_cauchy(0.0, 0.6, &states[id]);////
+        float random_angle = sample_from_von_mises(mu, kappa, &states[id]);
 
         if (max_concentration< ODOR_THRESHOLD || (max_concentration_x==0 && max_concentration_y==0) ) {
             // Brownian Motion

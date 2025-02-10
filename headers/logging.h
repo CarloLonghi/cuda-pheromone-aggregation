@@ -177,28 +177,16 @@ void saveInsideAreaToJSON(const char* filename, Agent* h_agents, int worm_count,
                          {"N", worm_count},
                          {"LOGGING_INTERVAL", LOGGING_INTERVAL},
                          {"N_STEPS",          N_STEPS}};
-    //log last inside_area bool
-    for (int i = 0; i < worm_count; ++i) {
-        //float distance_from_center = sqrt((h_agents[i].x - WIDTH/2)*(h_agents[i].x - WIDTH/2) + (h_agents[i].y - HEIGHT/2)*(h_agents[i].y - HEIGHT/2));
-        float distance_from_odor = sqrt((h_agents[i].x - 3*WIDTH/4)*(h_agents[i].x - 3*WIDTH/4) + (h_agents[i].y - HEIGHT/2)*(h_agents[i].y - HEIGHT/2));
-        log[std::to_string(i)].push_back({distance_from_odor, h_agents[i].first_timestep_in_target_area, h_agents[i].steps_in_target_area});
-    }
 
     std::ofstream outFile(filename);
     outFile << log.dump();  // Pretty-print JSON with an indentation of 4 spaces
     outFile.close();
 }
 
-void saveAllDataToJSON(const char* filename, float* positions, float* velocities, float* angles, Agent* agents, int worm_count, int n_steps) {
+void saveAllDataToJSON(const char* filename, float* positions, Agent* agents, int worm_count, int n_steps) {
     nlohmann::json json_data;
     if(LOG_POSITIONS){
     json_data["positions"] = nlohmann::json::array();
-    }
-    if(LOG_VELOCITIES){
-    json_data["velocities"] = nlohmann::json::array();
-    }
-    if(LOG_ANGLES){
-    json_data["angles"] = nlohmann::json::array();
     }
     json_data["inside_area"] = nlohmann::json::array();
     json_data["parameters"] = {{"WIDTH",            WIDTH},
@@ -242,37 +230,15 @@ void saveAllDataToJSON(const char* filename, float* positions, float* velocities
         if(LOG_POSITIONS){
         agent_data["positions"] = nlohmann::json::array();
         }
-        if(LOG_VELOCITIES){
-        agent_data["velocities"] = nlohmann::json::array();
-        }
-        if(LOG_ANGLES){
-        agent_data["angles"] = nlohmann::json::array();
-        }
-        if(LOG_POSITIONS || LOG_VELOCITIES || LOG_ANGLES) {
+        if(LOG_POSITIONS) {
             for (int j = 0; j < n_steps; ++j) {
-                if (LOG_POSITIONS) {
-                    agent_data["positions"].push_back(
-                            {positions[(j * worm_count + i) * 2], positions[(j * worm_count + i) * 2 + 1]});
-                }
-                if (LOG_VELOCITIES) {
-                    agent_data["velocities"].push_back(velocities[j * worm_count + i]);
-                }
-                if (LOG_ANGLES) {
-                    agent_data["angles"].push_back(angles[j * worm_count + i]);
-                }
+                agent_data["positions"].push_back(
+                    {positions[(j * worm_count + i) * 2], positions[(j * worm_count + i) * 2 + 1]});
             }
         }
         if(LOG_POSITIONS){
         json_data["positions"].push_back(agent_data["positions"]);
         }
-        if(LOG_VELOCITIES){
-        json_data["velocities"].push_back(agent_data["velocities"]);
-        }
-        if(LOG_ANGLES){
-        json_data["angles"].push_back(agent_data["angles"]);
-        }
-        float distance_from_odor = sqrt((agents[i].x - 3*WIDTH/4)*(agents[i].x - 3*WIDTH/4) + (agents[i].y - HEIGHT/2)*(agents[i].y - HEIGHT/2));
-        json_data["inside_area"].push_back({distance_from_odor, agents[i].first_timestep_in_target_area, agents[i].steps_in_target_area, agents[i].is_agent_in_target_area});
     }
 
     std::ofstream file(filename);
