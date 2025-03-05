@@ -7,6 +7,7 @@
 #include <cuda_runtime.h>
 #include <random>
 #include "../include/json.hpp"
+#include <cmath>
 using json = nlohmann::json;
 
 
@@ -320,8 +321,8 @@ __global__ void initAgentDensityGrid(int* agent_count_grid, Agent* agents, int w
     if (i < N && j < N) {
         agent_count_grid[i * N + j] = 0;
         for (int k = 0; k < worm_count; ++k) {
-            int agent_x = (int)(agents[k].x / DX);
-            int agent_y = (int)(agents[k].y / DY);
+            int agent_x = (int)round(agents[k].x / DX);
+            int agent_y = (int)round(agents[k].y / DY);
             if (agent_x == i && agent_y == j) {
                 // printf("Agent at (%d, %d)\n", i, j);
                 agent_count_grid[i * N + j] += 1;

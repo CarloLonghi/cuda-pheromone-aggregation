@@ -79,9 +79,9 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
 
         float max_concentration_x = 0.0;
         float max_concentration_y = 0.0;
-        int agent_x = (int)(agents[id].x / DX), agent_y = (int)(agents[id].y / DX);
+        int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DX);
         float sensed_potential = potential[agent_x * N + agent_y];//potential[agent_x * N + agent_y];
-        sensed_potential = ATTRACTION_STRENGTH * logf(sensed_potential + ATTRACTION_SCALE);
+        //sensed_potential = ATTRACTION_STRENGTH * logf(sensed_potential + ATTRACTION_SCALE);
         //add a small perceptual noise to the potential
         if(sigma!=0.0f){
             float perceptual_noise = curand_normal(&states[id]) * sigma;
@@ -94,16 +94,16 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         //printf("Sensed potential: %f\n", sensed_potential);
         for (int i = 0; i < 32; ++i) {
             float angle = curand_uniform(&states[id]) * 2 * M_PI;
-            int sample_x = (int)((agents[id].x + SENSING_RADIUS * cosf(angle))/DX);
-            int sample_y = (int)((agents[id].y + SENSING_RADIUS * sinf(angle))/DY);
+            int sample_x = (int)round((agents[id].x + SENSING_RADIUS * cosf(angle))/DX);
+            int sample_y = (int)round((agents[id].y + SENSING_RADIUS * sinf(angle))/DY);
             float concentration = potential[sample_x * N + sample_y];
             // Add perceptual noise if sigma is not zero
             if (sigma != 0.0f) {
                 concentration += curand_normal(&states[id]) * sigma;
             }
-            concentration = ATTRACTION_STRENGTH * logf(concentration + ATTRACTION_SCALE);
+            //concentration = ATTRACTION_STRENGTH * logf(concentration + ATTRACTION_SCALE);
 
-            if (concentration > max_concentration) {
+            if (abs(concentration) > abs(max_concentration)) {
                 max_concentration = concentration;
                 max_concentration_x = cosf(angle);
                 max_concentration_y = sinf(angle);
@@ -111,17 +111,17 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         }
 
         float fx, fy, new_angle;
-        float mu, kappa;
-        mu = 0;    // this can be negative, set below, 50% chance
-        kappa = 4;
+        // float mu, kappa;
+        // mu = curand_uniform(&states[id]) * 2 * M_PI;
+        // kappa = 7;
         // scale = explorationState->speed_scale;
         // shape = explorationState->speed_spread;
         //float random_angle = curand_normal(&states[id]) * M_PI/4;//sample_from_von_mises(mu, kappa, &states[id]);//wrapped_cauchy(0.0, 0.6, &states[id]);////
-        float random_angle = sample_from_von_mises(mu, kappa, &states[id]);
 
-        if (max_concentration< ODOR_THRESHOLD || (max_concentration_x==0 && max_concentration_y==0) ) {
+        if (abs(max_concentration)<ODOR_THRESHOLD || (max_concentration_x==0 && max_concentration_y==0) ) {
             // Brownian Motion
-            agents[id].angle += random_angle;
+            float random_angle = sample_from_von_mises(agents[id].angle, KAPPA, &states[id]);
+            agents[id].angle = random_angle;
         }
         else{
             float norm = sqrt(max_concentration_x * max_concentration_x + max_concentration_y * max_concentration_y);
@@ -131,14 +131,23 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
 
             float current_angle = agents[id].angle;
             if(bias-current_angle>=0){
-                bias = M_PI / 4;
+                if(bias-current_angle>=M_PI){
+                    bias = -M_PI / 4;
+                }
+                else{
+                    bias = M_PI / 4;
+                }
             } else{
-                bias = -M_PI / 4;
+                if(bias-current_angle<-M_PI){
+                    bias = M_PI / 4;
+                }
+                else{
+                    bias = -M_PI / 4;
+                }
             }
             
-            float k = KAPPA;
-            new_angle = sample_from_von_mises(bias, k, &states[id]);
-            agents[id].angle += new_angle;
+            new_angle = sample_from_von_mises(current_angle + bias, KAPPA, &states[id]);
+            agents[id].angle = new_angle;
         }
         
         if(agents[id].angle>2 * M_PI || agents[id].angle<-2 * M_PI){
@@ -160,8 +169,12 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         agents[id].y += dy;
         agents[id].speed = new_speed;
         // Apply periodic boundary conditions
-        if (agents[id].x < 0) agents[id].x += WIDTH;
-        if (agents[id].x >= WIDTH) agents[id].x -= WIDTH;
+        if (agents[id].x < 0) {
+            agents[id].x += WIDTH;
+        }
+        if (agents[id].x >= WIDTH) {
+            agents[id].x -= WIDTH;
+        }
         if (agents[id].y < 0) agents[id].y += HEIGHT;
         if (agents[id].y >= HEIGHT) agents[id].y -= HEIGHT;
     }

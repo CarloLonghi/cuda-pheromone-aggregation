@@ -6,6 +6,7 @@
 #define UNTITLED_UPDATE_MATRICES_H
 #include <cuda_runtime.h>
 #include "numeric_functions.h"
+#include <cmath>
 
 //CUDA kernel to update all the grids (except the potential and the agent count grid)
 __global__ void updateGrids(float* attractive_pheromone, float* repulsive_pheromone, int* agent_count_grid, int* agent_count_grid3, 
@@ -18,8 +19,8 @@ __global__ void updateGrids(float* attractive_pheromone, float* repulsive_pherom
         // update agent_count_grid
         agent_count_grid[i * N + j] = 0;
         for (int k = 0; k < worm_count; ++k) {
-            int agent_x = (int)(agents[k].x / DX);
-            int agent_y = (int)(agents[k].y / DY);
+            int agent_x = (int)round(agents[k].x / DX);
+            int agent_y = (int)round(agents[k].y / DY);
             if (agent_x == i && agent_y == j) {
                 // printf("Agent at (%d, %d)\n", i, j);
                 agent_count_grid[i * N + j] += 1;
@@ -93,9 +94,9 @@ __global__ void updatePotential(float* potential, float* attractive_pheromone, f
     if (i < N && j < N) {
         float potential_attractive_pheromone=0.0f, potential_repulsive_pheromone = 0.0f;
         //
-        potential_attractive_pheromone = attractive_pheromone_strength * log10(ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);// / (ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);
+        potential_attractive_pheromone = attractive_pheromone_strength * attractive_pheromone[i * N + j];// / (ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);
 
-        potential_repulsive_pheromone = repulsive_pheromone_strength * log10(REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);// / (REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);
+        potential_repulsive_pheromone = -repulsive_pheromone_strength * repulsive_pheromone[i * N + j];// / (REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);
 
 
         float noise = curand_normal(&states[i * N + j]) * environmental_noise;
