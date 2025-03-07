@@ -73,7 +73,8 @@ __device__ int select_next_state(float* probabilities, curandState* local_state,
 }
 
 // CUDA kernel to update the position of each agent
-__global__ void moveAgents(Agent* agents, curandState* states,  float* potential, /*int* agent_count_grid,*/ int worm_count, int timestep, float sigma) {
+__global__ void moveAgents(Agent* agents, curandState* states,  float* potential, /*int* agent_count_grid,*/ int worm_count, int timestep,
+     float sigma, float attractive_pheromone_strength) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
 
@@ -118,10 +119,11 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         // shape = explorationState->speed_spread;
         //float random_angle = curand_normal(&states[id]) * M_PI/4;//sample_from_von_mises(mu, kappa, &states[id]);//wrapped_cauchy(0.0, 0.6, &states[id]);////
 
+        float random_angle = sample_from_von_mises(agents[id].angle, KAPPA, &states[id]);
+
         if (abs(max_concentration)<ODOR_THRESHOLD || (max_concentration_x==0 && max_concentration_y==0) ) {
             // Brownian Motion
-            float random_angle = sample_from_von_mises(agents[id].angle, KAPPA, &states[id]);
-            agents[id].angle = random_angle;
+            new_angle = random_angle;
         }
         else{
             float norm = sqrt(max_concentration_x * max_concentration_x + max_concentration_y * max_concentration_y);
@@ -129,33 +131,22 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
             float direction_y = max_concentration_y / norm;
             float bias = atan2(direction_y, direction_x);
 
-            float current_angle = agents[id].angle;
-            if(bias-current_angle>=0){
-                if(bias-current_angle>=M_PI){
-                    bias = -M_PI / 4;
-                }
-                else{
-                    bias = M_PI / 4;
-                }
-            } else{
-                if(bias-current_angle<-M_PI){
-                    bias = M_PI / 4;
-                }
-                else{
-                    bias = -M_PI / 4;
-                }
-            }
-            
-            new_angle = sample_from_von_mises(current_angle + bias, KAPPA, &states[id]);
-            agents[id].angle = new_angle;
-        }
-        
-        if(agents[id].angle>2 * M_PI || agents[id].angle<-2 * M_PI){
-            agents[id].angle = fmodf(agents[id].angle, 2*M_PI);
+            new_angle = bias;
         }
 
-        fx = cosf(agents[id].angle);
-        fy = sinf(agents[id].angle);
+        float r_dx, r_dy, a_dx, a_dy;
+        r_dx = cosf(random_angle);
+        r_dy = sinf(random_angle);
+        a_dx = cosf(new_angle);
+        a_dy = sinf(new_angle);
+
+        fx = attractive_pheromone_strength * a_dx + (1 - attractive_pheromone_strength) * r_dx;
+        fy = attractive_pheromone_strength * a_dy + (1 - attractive_pheromone_strength) * r_dy;
+        float norm = sqrt(fx * fx + fy * fy);
+        fx = fx / norm;
+        fy = fy / norm;        
+
+        agents[id].angle = atan2(fy, fx);
 
         float new_speed = SPEED;
         //float new_speed = curand_log_normal(&states[id], logf(scale), shape);
@@ -169,12 +160,8 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         agents[id].y += dy;
         agents[id].speed = new_speed;
         // Apply periodic boundary conditions
-        if (agents[id].x < 0) {
-            agents[id].x += WIDTH;
-        }
-        if (agents[id].x >= WIDTH) {
-            agents[id].x -= WIDTH;
-        }
+        if (agents[id].x < 0) agents[id].x += WIDTH;
+        if (agents[id].x >= WIDTH) agents[id].x -= WIDTH;
         if (agents[id].y < 0) agents[id].y += HEIGHT;
         if (agents[id].y >= HEIGHT) agents[id].y -= HEIGHT;
     }

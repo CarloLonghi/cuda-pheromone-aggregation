@@ -30,10 +30,10 @@
 
 #define N_STATES 7
 
-#define SENSING_RADIUS 1.0f
+#define SENSING_RADIUS 0.1f
 #define SPEED 0.1f
 #define SENSING_RANGE 1
-#define ODOR_THRESHOLD 1e-4f
+#define ODOR_THRESHOLD 0.0001
 #define ON_FOOD_SPEED_SCALE 0.09f// scale = exp(mu) => mu = log(scale)
 #define ON_FOOD_SPEED_SHAPE 0.49f// shape = sigma = 0.5 these values match the tracking data with a KS test 73% of the time < 0.05 and a p-value > 0.05 33% of the time
 
@@ -68,7 +68,7 @@
 #define SIGMA_X 10.0f   // Standard deviation in x direction
 #define SIGMA_Y 10.0f   // Standard deviation in y direction
 #define TARGET_AREA_SIDE_LENGTH 40
-#define MAX_CONCENTRATION 0.1f
+#define MAX_CONCENTRATION 1.0f
 #define GAMMA 0.0001f
 #define DIFFUSION_CONSTANT 0.005f //more than 0.01, it explodes
 #define ATTRACTION_STRENGTH 1.0//282f

@@ -88,13 +88,13 @@ __global__ void updateGrid(float* grid) {
 }
 
 //CUDA kernel to update the potential matrix
-__global__ void updatePotential(float* potential, float* attractive_pheromone, float* repulsive_pheromone, float attractive_pheromone_strength, float repulsive_pheromone_strength, curandState* states, float environmental_noise) {
+__global__ void updatePotential(float* potential, float* attractive_pheromone, float* repulsive_pheromone, float repulsive_pheromone_strength, curandState* states, float environmental_noise) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
         float potential_attractive_pheromone=0.0f, potential_repulsive_pheromone = 0.0f;
         //
-        potential_attractive_pheromone = attractive_pheromone_strength * attractive_pheromone[i * N + j];// / (ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);
+        potential_attractive_pheromone = attractive_pheromone[i * N + j];// / (ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);
 
         potential_repulsive_pheromone = -repulsive_pheromone_strength * repulsive_pheromone[i * N + j];// / (REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);
 

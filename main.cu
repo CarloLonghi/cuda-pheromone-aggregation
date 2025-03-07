@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
     //initialise the potential grid
-    updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, d_states_grids, environmental_noise);
+    updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, repulsive_pheromone, repulsive_pheromone_strength, d_states_grids, environmental_noise);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
 
 
     for (int i = 0; i < N_STEPS; ++i) {
-        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma);
+        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma, attractant_pheromone_strength);
         // Check for errors in the kernel launch
         cudaError_t err = cudaGetLastError();
         if (err != cudaSuccess) {
@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
         cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
         //update potential
-        updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, repulsive_pheromone, attractant_pheromone_strength, repulsive_pheromone_strength, d_states_grids, environmental_noise);
+        updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, repulsive_pheromone, repulsive_pheromone_strength, d_states_grids, environmental_noise);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
