@@ -2,16 +2,17 @@
 
 // Environmental variables
 #define OPTIMISING true
-#define N 256
-#define WIDTH 60.0f
-#define HEIGHT 60.0f
+#define N 128
+#define WIDTH 30.0f
+#define HEIGHT 30.0f
 #define SEED 1234
 // Simulation parameters
 #define WORM_COUNT 100
 #define MAX_WORMS 100
-#define N_STEPS 2000
-#define LOGGING_INTERVAL 1
-#define DT 1.0f
+#define TIME 1000
+#define DT 0.1f
+#define N_STEPS int(TIME / DT)
+#define LOGGING_INTERVAL int(1 / DT)
 #define DEBUG false
 #define ENABLE_RANDOM_INITIAL_POSITIONS true
 #define INITIAL_AREA_NUMBER_OF_CELLS 40
@@ -25,13 +26,14 @@
 #define LOG_POSITIONS true
 #define LOG_ANGLES false
 #define LOG_VELOCITIES false
+#define PHEROMONE_DELAY int(5 / DT)
 
 // Agent parameters
 
 #define N_STATES 7
 
 #define SENSING_RADIUS 0.1f
-#define SPEED 0.1f
+#define SPEED 0.1f * DT
 #define SENSING_RANGE 1
 #define ODOR_THRESHOLD 0.0001
 #define ON_FOOD_SPEED_SCALE 0.09f// scale = exp(mu) => mu = log(scale)
