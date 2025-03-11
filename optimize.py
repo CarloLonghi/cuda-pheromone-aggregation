@@ -10,7 +10,7 @@ NUM_EXPERIMENTS = 5
 
 class AggregationProblem(Problem):
     def __init__(self, ):
-        super().__init__(objective_sense="max", objective_func=run_simulation, solution_length=8, dtype=torch.float32, 
+        super().__init__(objective_sense="max", objective_func=run_simulation, solution_length=4, dtype=torch.float32, 
                          device="cpu", eval_data_length=2, seed=42, num_actors=1, bounds=[0., 1.])
 
 def run_simulation(weights: List[float]):
@@ -19,13 +19,17 @@ def run_simulation(weights: List[float]):
     density = 0
 
     weights = weights.clone()
-    weights[1:4] *= 0.01
-    weights[5:8] *= 0.01
+    weights[1:4] *= 0.1
+    #weights[1:4] *= 0.01
+    #weights[5:8] *= 0.01
 
     for i in range(NUM_EXPERIMENTS):
+        # output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()),
+        #                                    str(weights[2].item()), str(weights[3].item()),  str(weights[4].item()), str(weights[5].item()),
+        #                                     str(weights[6].item()), str(weights[7].item()), "0"], text=True).split()
         output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()),
-                                           str(weights[2].item()), str(weights[3].item()),  str(weights[4].item()), str(weights[5].item()),
-                                            str(weights[6].item()), str(weights[7].item()), "0"], text=True).split()
+                                           str(weights[2].item()), str(weights[3].item()),  "0", "0",
+                                            "0", "0", "0"], text=True).split()
         fitness += int(output[0])
         msd += float(output[1])
         density += float(output[2])
@@ -34,7 +38,7 @@ def run_simulation(weights: List[float]):
     msd /= NUM_EXPERIMENTS
     density /= NUM_EXPERIMENTS
 
-    logging.info(f"     Solution = {weights}, fitness = {fitness}, msd = {msd}, density = {density}")
+    logging.info(f"     Solution = {weights}, fitness = {fitness:.2f}, msd = {msd:.2f}, pheromone density = {density:.2f}")
     return torch.tensor([fitness, msd, density])
 
 
@@ -44,18 +48,18 @@ if __name__ == "__main__":
 
     feature_grid = MAPElites.make_feature_grid(
         lower_bounds=torch.tensor([0., 0]),
-        upper_bounds=torch.tensor([2000., 20]),
+        upper_bounds=torch.tensor([200., 15]),
         num_bins=10
     )
 
-    mutation = GaussianMutation(problem=problem, stdev=0.1)
+    mutation = GaussianMutation(problem=problem, stdev=0.01)
     operators = [mutation,]
     searcher = MAPElites(problem, operators=operators, feature_grid=feature_grid, re_evaluate=False)
 
     num_generations = 20
 
     data = torch.zeros((num_generations, len(searcher.population), 3))
-    solutions = torch.zeros((num_generations, len(searcher.population), 8))
+    solutions = torch.zeros((num_generations, len(searcher.population), 4))
 
     logging.basicConfig(
         filename="results/res.log",
@@ -65,7 +69,7 @@ if __name__ == "__main__":
     )
     logging.info('STARTING OPTIMIZATION')
 
-    for generation in range(50):
+    for generation in range(num_generations):
         searcher.step()
 
         # save solutions and data to files

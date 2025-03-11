@@ -128,10 +128,12 @@ def load_and_animate_agents_and_multiple_heatmaps(json_file_path, primary_heatma
     # Extract parameters
     parameters = data['parameters']
     N = parameters['N']
+    WORM_COUNT = parameters['WORM_COUNT']
     LOGGING_INTERVAL = parameters['LOGGING_INTERVAL']
     N_STEPS = parameters['N_STEPS']
     WIDTH = parameters['WIDTH']
     HEIGHT = parameters['HEIGHT']
+    MAX_CONCENTRATION = parameters['MAX_CONCENTRATION']
     print(parameters)
 
     # Prepare the figure and axis
@@ -142,32 +144,32 @@ def load_and_animate_agents_and_multiple_heatmaps(json_file_path, primary_heatma
     ax[1].set_ylim(0, HEIGHT)    
 
     # Create a list of scatter plot objects for each agent
-    primary_scatters = [ax[0].plot([], [], 'o', color='magenta', markersize=1)[0] for _ in range(N)]
-    additional_scatters = [ax[1].plot([], [], 'o', color='magenta', markersize=1)[0] for _ in range(N)]
+    primary_scatters = [ax[0].plot([], [], 'o', color='magenta', markersize=1)[0] for _ in range(WORM_COUNT)]
+    additional_scatters = [ax[1].plot([], [], 'o', color='magenta', markersize=1)[0] for _ in range(WORM_COUNT)]
     # position_matrix = [[data[str(agent)][timestep] for timestep in range(int(N_STEPS//LOGGING_INTERVAL))] for agent in range(N)]
-    position_matrix = data['positions']
+    position_matrix = np.array(data['positions'])[:,::LOGGING_INTERVAL,:]
 
     # Parse primary heatmap data from .txt files
     timesteps = N_STEPS // LOGGING_INTERVAL
-    primary_matrices = []
-    for t in range(0, N_STEPS, LOGGING_INTERVAL):
+    primary_matrices = np.zeros((N_STEPS//LOGGING_INTERVAL, N, N))
+    for tidx, t in enumerate(range(0, N_STEPS, LOGGING_INTERVAL)):
         file_path = os.path.join(primary_heatmap_folder, f'{single_file_name1}_{t}.txt')
         with open(file_path, 'r') as f:
             matrix = np.transpose(np.loadtxt(f))
-            primary_matrices.append(matrix)
+            primary_matrices[tidx] = matrix
 
     # Parse additional heatmap data from .txt files
-    additional_matrices = []
-    for t in range(0, N_STEPS, LOGGING_INTERVAL):
+    additional_matrices = np.zeros((N_STEPS//LOGGING_INTERVAL, N, N))
+    for tidx, t in enumerate(range(0, N_STEPS, LOGGING_INTERVAL)):
         file_path = os.path.join(additional_heatmap_folder, f'{single_file_name2}_{t}.txt')
         with open(file_path, 'r') as f:
             matrix = np.transpose(np.loadtxt(f))
-            additional_matrices.append(matrix)
+            additional_matrices[tidx] = matrix
 
     primary_grid = primary_matrices.copy()
     additional_grid = additional_matrices.copy()
-    primary_im = ax[0].imshow(primary_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Blues', alpha=0.5)
-    additional_im = ax[1].imshow(additional_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Reds', alpha=0.5)
+    primary_im = ax[0].imshow(primary_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Blues', alpha=0.5, vmin=0.0, vmax=MAX_CONCENTRATION)
+    additional_im = ax[1].imshow(additional_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Reds', alpha=0.5, vmin=0.0, vmax=MAX_CONCENTRATION)
 
     # Add colorbars
     primary_cbar = fig.colorbar(primary_im, ax=ax[0])

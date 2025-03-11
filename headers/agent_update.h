@@ -73,14 +73,15 @@ __device__ int select_next_state(float* probabilities, curandState* local_state,
 }
 
 // CUDA kernel to update the position of each agent
-__global__ void moveAgents(Agent* agents, curandState* states,  float* potential, /*int* agent_count_grid,*/ int worm_count, int timestep,
-     float sigma, float attractive_pheromone_strength) {
+__global__ void moveAgents(Agent* agents, curandState* states,  float* potential, int worm_count, int timestep,
+     float sigma, float attractive_pheromone_strength, int* agent_count_grid) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
 
         float max_concentration_x = 0.0;
         float max_concentration_y = 0.0;
-        int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DX);
+        int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DY);
+        agent_count_grid[agent_x * N + agent_y] -= 1;
         float sensed_potential = potential[agent_x * N + agent_y];//potential[agent_x * N + agent_y];
         //sensed_potential = ATTRACTION_STRENGTH * logf(sensed_potential + ATTRACTION_SCALE);
         //add a small perceptual noise to the potential
@@ -164,6 +165,10 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         if (agents[id].x >= WIDTH) agents[id].x -= WIDTH;
         if (agents[id].y < 0) agents[id].y += HEIGHT;
         if (agents[id].y >= HEIGHT) agents[id].y -= HEIGHT;
+
+        agent_x = (int)round(agents[id].x / DX);
+        agent_y = (int)round(agents[id].y / DY);
+        agent_count_grid[agent_x * N + agent_y] += 1;
     }
 }
 #endif //UNTITLED_AGENT_UPDATE_H

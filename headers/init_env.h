@@ -306,9 +306,9 @@ __global__ void initAttractiveAndRepulsivePheromoneGrid(float* attractive_pherom
         }
         else {
             attractive_pheromone[i * N + j] = ATTRACTANT_PHEROMONE_SECRETION_RATE * ATTRACTANT_PHEROMONE_DECAY_RATE *
-                                              (float) agent_density_grid[i * N + j] / (DX * DX);
+                                              (float) agent_density_grid[i * N + j] / (DX * DY);
             repulsive_pheromone[i * N + j] = REPULSIVE_PHEROMONE_SECRETION_RATE * REPULSIVE_PHEROMONE_DECAY_RATE *
-                                             (float) agent_density_grid[i * N + j] / (DX * DX);
+                                             (float) agent_density_grid[i * N + j] / (DX * DY);
         }
         //printf("Repulsive pheromone at (%d, %d): %f\n", i, j, repulsive_pheromone[i * N + j]);
     }
