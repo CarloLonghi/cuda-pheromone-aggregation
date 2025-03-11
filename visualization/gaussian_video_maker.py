@@ -147,7 +147,7 @@ def load_and_animate_agents_and_multiple_heatmaps(json_file_path, primary_heatma
     primary_scatters = [ax[0].plot([], [], 'o', color='magenta', markersize=1)[0] for _ in range(WORM_COUNT)]
     additional_scatters = [ax[1].plot([], [], 'o', color='magenta', markersize=1)[0] for _ in range(WORM_COUNT)]
     # position_matrix = [[data[str(agent)][timestep] for timestep in range(int(N_STEPS//LOGGING_INTERVAL))] for agent in range(N)]
-    position_matrix = np.array(data['positions'])[:,::LOGGING_INTERVAL,:]
+    position_matrix = np.array(data['positions'])
 
     # Parse primary heatmap data from .txt files
     timesteps = N_STEPS // LOGGING_INTERVAL
