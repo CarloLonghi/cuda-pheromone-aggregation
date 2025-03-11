@@ -176,6 +176,7 @@ int main(int argc, char* argv[]) {
     cudaDeviceSynchronize();
     cudaMemcpy(h_potential, potential, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
+    float mean_pheromone[N_STEPS] = {0};
 
     for (int i = 0; i < N_STEPS; ++i) {
         moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma, attractant_pheromone_strength);
@@ -214,6 +215,15 @@ int main(int argc, char* argv[]) {
         if (err != cudaSuccess) {
             printf("CUDA error in updateGrids: %s\n", cudaGetErrorString(err));
         }
+
+        // compute pheromone density
+        for (int phi = 0; phi < N; ++phi){
+            for (int phj = 0; phj < N; ++phj){
+                mean_pheromone[i] += h_attractive_pheromone[phi * N + phj] + h_repulsive_pheromone[phi * N + phj];
+            }
+        }
+        mean_pheromone[i] /= WIDTH * HEIGHT;
+
         cudaDeviceSynchronize();
         // copy data from device to host
         cudaMemcpy(h_attractive_pheromone, attractive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
@@ -304,7 +314,7 @@ int main(int argc, char* argv[]) {
     int neighbor_count = 0;
     for (int i = 0; i < N_STEPS; ++i){
         reset_matrix(adjacency_matrix);
-        get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, 5);
+        get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, 10);
         neighbor_count = 0;
         for (int j = 0; j < worm_count; ++j){
             for (int k = 0; k < worm_count; ++k){
@@ -317,7 +327,14 @@ int main(int argc, char* argv[]) {
     }
     worm_density /= N_STEPS;
 
-    std::cout << biggest_size << " " << mean_squared_disp << " " << worm_density << std::endl;
+    // compute mean pheromone density
+    float pheromone_density = 0;
+    for (int i = 0; i < TIME; ++i){
+        pheromone_density += mean_pheromone[i];
+    }
+    pheromone_density /= TIME;
+
+    std::cout << biggest_size << " " << mean_squared_disp << " " << pheromone_density<< std::endl;
 
     cudaFree(d_agents);
     cudaFree(d_states);

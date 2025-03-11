@@ -11,14 +11,10 @@ import json
 
 # weights = solutions[idx]
 
-weights = torch.tensor([0.8836, 0.9050, 0.3841, 0.9648, 0.3937, 0.6005, 0.2602, 0.7983])
-# weights[1:4] *= 0.01
-# weights[5:8] *= 0.01
-#weights = torch.tensor([1, 0.009, 0.002, 0.0002, 0.0, 0.0, 0.0, 0.0])
-weights = torch.tensor([1.0000, 0.0900, 0.0005, 0.0020, 0.0000, 0.0000, 0.0000, 0.0000])
+weights = torch.tensor([0.1605, 0.06, 0.0000, 0.1000, 0.0000, 0.0000, 0.0000, 0.0000])
 
-output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()),
-                                           str(weights[2].item()), str(weights[3].item()),  str(weights[4].item()), str(weights[5].item()),
+output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()), str(weights[2].item()), 
+                                            str(weights[3].item()),  str(weights[4].item()), str(weights[5].item()),
                                             str(weights[6].item()), str(weights[7].item()), "1"], text=True).split()
 
 base_dir = "/home/carlo/babots/cuda_agent_based_sim/json/"
@@ -71,15 +67,15 @@ fig, ax1 = plt.subplots()
 ax1.plot(max_clusters, label="Max", color=colors[0])
 ax1.tick_params(axis='y', labelcolor=colors[0])
 ax1.set_ylabel("Max", color=colors[0])
-ax1.set_ylim(1, 10)
+# ax1.set_ylim(1, 10)
 
 ax2 = ax1.twinx()
 ax2.plot(mean_clusters, label="Mean", color=colors[1])
 ax2.tick_params(axis='y', labelcolor=colors[1])
 ax2.set_ylabel("Mean", color=colors[1])
-ax2.set_ylim(1, 1.5)
+# ax2.set_ylim(1, 1.5)
 
 plt.title(f"{weights[0].item():.4f} {weights[1].item():.4f} {weights[2].item():.4f} {weights[3].item():.4f} {weights[4].item():.4f} {weights[5].item():.4f} {weights[6].item():.4f} {weights[7].item():.4f}")
 
-plt.savefig(f"./results/plots/{weights[0].item():.4f}_{weights[1].item():.4f}_{weights[2].item():.4f}_{weights[3].item():.4f}_{weights[4].item():.4f}_{weights[5].item():.4f}_{weights[6].item():.4f}_{weights[7].item():.4f}_test.png")
+# plt.savefig(f"./results/plots/{weights[0].item():.4f}_{weights[1].item():.4f}_{weights[2].item():.4f}_{weights[3].item():.4f}_{weights[4].item():.4f}_{weights[5].item():.4f}_{weights[6].item():.4f}_{weights[7].item():.4f}_test.png")
 # plt.show()

@@ -191,7 +191,8 @@ void saveAllDataToJSON(const char* filename, float* positions, Agent* agents, in
     json_data["inside_area"] = nlohmann::json::array();
     json_data["parameters"] = {{"WIDTH",            WIDTH},
                                {"HEIGHT",           HEIGHT},
-                               {"N", worm_count},
+                               {"N",                N},
+                               {"WORM_COUNT",       WORM_COUNT},
                                {"LOGGING_INTERVAL", LOGGING_INTERVAL},
                                {"N_STEPS",          N_STEPS},
                                {"SENSING_RADIUS",   SENSING_RADIUS},
