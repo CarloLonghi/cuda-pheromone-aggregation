@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
     //initialise the potential grid
-    updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, repulsive_pheromone, repulsive_pheromone_strength, d_states_grids, environmental_noise);
+    updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, attractant_pheromone_strength, repulsive_pheromone, repulsive_pheromone_strength, d_states_grids, environmental_noise);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     float mean_pheromone[TIME] = {0};
 
     for (int i = 0; i < N_STEPS; ++i) {
-        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma, attractant_pheromone_strength);
+        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma);
         // Check for errors in the kernel launch
         cudaError_t err = cudaGetLastError();
         if (err != cudaSuccess) {
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
         cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
         //update potential
-        updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, repulsive_pheromone, repulsive_pheromone_strength, d_states_grids, environmental_noise);
+        updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, attractant_pheromone_strength, repulsive_pheromone, repulsive_pheromone_strength, d_states_grids, environmental_noise);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
@@ -293,22 +293,22 @@ int main(int argc, char* argv[]) {
     }
 
     // compute worm density
-    float worm_density = 0;
-    int neighbor_count = 0;
-    for (int i = 0; i < TIME; ++i){
-        reset_matrix(adjacency_matrix);
-        get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, 10);
-        neighbor_count = 0;
-        for (int j = 0; j < worm_count; ++j){
-            for (int k = 0; k < worm_count; ++k){
-                if (adjacency_matrix[j][k] == true){
-                    neighbor_count += 1;
-                }
-            }
-        }
-        worm_density += neighbor_count / worm_count;
-    }
-    worm_density /= TIME;
+    // float worm_density = 0;
+    // int neighbor_count = 0;
+    // for (int i = 0; i < TIME; ++i){
+    //     reset_matrix(adjacency_matrix);
+    //     get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, 10);
+    //     neighbor_count = 0;
+    //     for (int j = 0; j < worm_count; ++j){
+    //         for (int k = 0; k < worm_count; ++k){
+    //             if (adjacency_matrix[j][k] == true){
+    //                 neighbor_count += 1;
+    //             }
+    //         }
+    //     }
+    //     worm_density += neighbor_count / worm_count;
+    // }
+    // worm_density /= TIME;
 
     // compute mean pheromone density
     float pheromone_density = 0;

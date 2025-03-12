@@ -26,7 +26,7 @@
 #define LOG_POSITIONS true
 #define LOG_ANGLES false
 #define LOG_VELOCITIES false
-#define PHEROMONE_DELAY int(5 / DT)
+#define PHEROMONE_DELAY int(10 / DT)
 
 // Agent parameters
 

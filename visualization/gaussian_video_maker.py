@@ -168,8 +168,8 @@ def load_and_animate_agents_and_multiple_heatmaps(json_file_path, primary_heatma
 
     primary_grid = primary_matrices.copy()
     additional_grid = additional_matrices.copy()
-    primary_im = ax[0].imshow(primary_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Blues', alpha=0.5, vmin=0.0, vmax=MAX_CONCENTRATION)
-    additional_im = ax[1].imshow(additional_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Reds', alpha=0.5, vmin=0.0, vmax=MAX_CONCENTRATION)
+    primary_im = ax[0].imshow(primary_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Blues', alpha=0.5, vmin=0.0, vmax=primary_grid.max())
+    additional_im = ax[1].imshow(additional_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Reds', alpha=0.5, vmin=0.0, vmax=additional_grid.max())
 
     # Add colorbars
     primary_cbar = fig.colorbar(primary_im, ax=ax[0])

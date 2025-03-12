@@ -6,11 +6,11 @@ from typing import List
 import subprocess
 import logging
 
-NUM_EXPERIMENTS = 5
+NUM_EXPERIMENTS = 3
 
 class AggregationProblem(Problem):
     def __init__(self, ):
-        super().__init__(objective_sense="max", objective_func=run_simulation, solution_length=4, dtype=torch.float32, 
+        super().__init__(objective_sense="max", objective_func=run_simulation, solution_length=8, dtype=torch.float32, 
                          device="cpu", eval_data_length=2, seed=42, num_actors=1, bounds=[0., 1.])
 
 def run_simulation(weights: List[float]):
@@ -19,16 +19,16 @@ def run_simulation(weights: List[float]):
     density = 0
 
     weights = weights.clone()
-    weights[1:4] *= 0.01
-    # weights[5:8] *= 0.01
+    weights[1:4] *= 0.1
+    weights[5:8] *= 0.01
 
     for i in range(NUM_EXPERIMENTS):
-        # output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()),
-        #                                    str(weights[2].item()), str(weights[3].item()),  str(weights[4].item()), str(weights[5].item()),
-        #                                     str(weights[6].item()), str(weights[7].item()), "0"], text=True).split()
         output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()),
-                                           str(weights[2].item()), str(weights[3].item()),  str(weights[4].item()),
-                                            "0", "0", "0", "0", "0"], text=True).split()        
+                                           str(weights[2].item()), str(weights[3].item()),  str(weights[4].item()), str(weights[5].item()),
+                                            str(weights[6].item()), str(weights[7].item()), "0"], text=True).split()
+        # output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()),
+        #                                    str(weights[2].item()), str(weights[3].item()),
+        #                                     "0", "0", "0", "0", "0"], text=True).split()        
         fitness += int(output[0])
         msd += float(output[1])
         density += float(output[2])
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     feature_grid = MAPElites.make_feature_grid(
         lower_bounds=torch.tensor([0., 0]),
-        upper_bounds=torch.tensor([200., 15]),
+        upper_bounds=torch.tensor([200., 20]),
         num_bins=10
     )
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     num_generations = 20
 
     data = torch.zeros((num_generations, len(searcher.population), 3))
-    solutions = torch.zeros((num_generations, len(searcher.population), 4))
+    solutions = torch.zeros((num_generations, len(searcher.population), 8))
 
     logging.basicConfig(
         filename="results/res.log",
