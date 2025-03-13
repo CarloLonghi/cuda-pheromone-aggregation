@@ -73,7 +73,7 @@ __device__ int select_next_state(float* probabilities, curandState* local_state,
 
 // CUDA kernel to update the position of each agent
 __global__ void moveAgents(Agent* agents, curandState* states,  float* potential, /*int* agent_count_grid,*/ int worm_count, int timestep,
-     float sigma) {
+    float sigma, float k) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
 
@@ -118,7 +118,7 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         // shape = explorationState->speed_spread;
         //float random_angle = curand_normal(&states[id]) * M_PI/4;//sample_from_von_mises(mu, kappa, &states[id]);//wrapped_cauchy(0.0, 0.6, &states[id]);////
 
-        float random_angle = sample_from_von_mises(agents[id].angle, KAPPA, &states[id]);
+        float random_angle = sample_from_von_mises(agents[id].angle, k, &states[id]);
         new_angle = random_angle;
 
         if (abs(max_concentration)>=PHEROMONE_THRESHOLD && (max_concentration_x!=0 && max_concentration_y!=0) ) {

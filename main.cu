@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     float k = 0;
     int log_worms_data = 0;
 
-    if (argc - 1 == 9){
+    if (argc - 1 == 10){
         attractant_pheromone_strength = std::stof(argv[1]);
         attractant_pheromone_secretion_rate = std::stof(argv[2]);
         attractant_pheromone_decay_rate = std::stof(argv[3]);        
@@ -102,10 +102,11 @@ int main(int argc, char* argv[]) {
         repulsive_pheromone_secretion_rate = std::stof(argv[6]);
         repulsive_pheromone_decay_rate = std::stof(argv[7]);
         repulsive_pheromone_diffusion_rate = std::stof(argv[8]);
-        log_worms_data = std::stoi(argv[9]);
+        k = std::stof(argv[9]);
+        log_worms_data = std::stoi(argv[10]);
     }
     else{
-        std::cout << "The number of parameters is incorrect, it should be 9 but is " << argc - 1 << std::endl;
+        std::cout << "The number of parameters is incorrect, it should be 10 but is " << argc - 1 << std::endl;
         return 1;
     }
 
@@ -169,7 +170,7 @@ int main(int argc, char* argv[]) {
     float mean_pheromone[TIME] = {0};
 
     for (int i = 0; i < N_STEPS; ++i) {
-        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma);
+        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma, k);
         // Check for errors in the kernel launch
         cudaError_t err = cudaGetLastError();
         if (err != cudaSuccess) {
