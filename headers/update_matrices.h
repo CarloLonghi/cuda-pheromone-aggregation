@@ -70,29 +70,6 @@ __global__ void updateGrids(float* attractive_pheromone, float* repulsive_pherom
     }
 }
 
-//CUDA kernel to update the grid of the chemical concentration using a reaction-diffusion equation
-__global__ void updateGrid(float* grid) {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if (i < N && j < N) {
-
-        float laplacian_value = laplacian(grid, i, j);
-
-        float new_concentration = grid[i * N + j] + DT * (DIFFUSION_CONSTANT * laplacian_value - GAMMA * grid[i * N + j]);
-        if (new_concentration < 0) new_concentration = 0.0f;
-        if (new_concentration > MAX_CONCENTRATION) new_concentration = MAX_CONCENTRATION;
-        //check if the grid is a valid float number
-        if (isnan(new_concentration) || isinf(new_concentration)) {
-            printf("Invalid concentration %f at (%d, %d)\n", new_concentration, i, j);
-            printf("Laplacian value %f\n", laplacian_value);
-            printf("Old concentration %f\n", grid[i * N + j]);
-
-        }
-
-        grid[i * N + j] = new_concentration;
-    }
-}
-
 //CUDA kernel to update the potential matrix
 __global__ void updatePotential(float* potential, float* attractive_pheromone, float attractive_pheromone_strengths, float* repulsive_pheromone, float repulsive_pheromone_strength, curandState* states, float environmental_noise) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;

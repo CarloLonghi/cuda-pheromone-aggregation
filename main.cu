@@ -8,7 +8,6 @@
 #include "headers/agent_update.h"
 #include "headers/update_matrices.h"
 #include "headers/logging.h"
-#include "headers/gaussian_odour.h"
 #include <stdbool.h>
 
 // Function to perform DFS traversal
@@ -84,14 +83,14 @@ int main(int argc, char* argv[]) {
 
     // Record the start event
     cudaEventRecord(start, 0);
-    float attractant_pheromone_strength = ATTRACTANT_PHEROMONE_STRENGTH, repulsive_pheromone_strength = REPULSIVE_PHEROMONE_STRENGTH, sigma = SIGMA, environmental_noise = ENVIRONMENTAL_NOISE;
-    float attractant_pheromone_diffusion_rate = ATTRACTANT_PHEROMONE_DIFFUSION_RATE, attractant_pheromone_decay_rate = ATTRACTANT_PHEROMONE_DECAY_RATE, attractant_pheromone_secretion_rate = ATTRACTANT_PHEROMONE_SECRETION_RATE;
-    float repulsive_pheromone_diffusion_rate = REPULSIVE_PHEROMONE_DIFFUSION_RATE, repulsive_pheromone_decay_rate = REPULSIVE_PHEROMONE_DECAY_RATE, repulsive_pheromone_secretion_rate = REPULSIVE_PHEROMONE_SECRETION_RATE;
+    float attractant_pheromone_strength, repulsive_pheromone_strength, sigma = SIGMA, environmental_noise = ENVIRONMENTAL_NOISE;
+    float attractant_pheromone_diffusion_rate, attractant_pheromone_decay_rate, attractant_pheromone_secretion_rate;
+    float repulsive_pheromone_diffusion_rate, repulsive_pheromone_decay_rate, repulsive_pheromone_secretion_rate;
     float* attractive_pheromone, * repulsive_pheromone, * h_attractive_pheromone = new float[N * N];
     float* h_repulsive_pheromone = new float[N * N], * h_potential = new float[N * N], * potential;
     int worm_count = WORM_COUNT, * agent_count_grid, * agent_count_delay;
     int * h_agent_count_grid = new int[N * N];
-    //printf("Found %d arguments\n", argc-1);
+    float k = 0;
     int log_worms_data = 0;
 
     if (argc - 1 == 9){

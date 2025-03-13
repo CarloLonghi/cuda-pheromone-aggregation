@@ -247,56 +247,11 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
     }
 }
 
-// CUDA kernel to initialize the chemical grid concentration
-__global__ void initGrid(float* grid, curandState* states) {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if (i < N && j < N) {
-        //place 100 units of chemical in the square in the middle of the grid with length 20
-        if (i >= 3 * N / 4 -  TARGET_AREA_SIDE_LENGTH/2 && i < 3 * N / 4 + TARGET_AREA_SIDE_LENGTH/2 && j >= N / 2 - TARGET_AREA_SIDE_LENGTH/2 && j < N / 2 + TARGET_AREA_SIDE_LENGTH/2) {
-        //if (i >=N / 2 - TARGET_AREA_SIDE_LENGTH/2 && i <  N / 2 + TARGET_AREA_SIDE_LENGTH/2 && j >= N / 2 - TARGET_AREA_SIDE_LENGTH/2 && j < N / 2 + TARGET_AREA_SIDE_LENGTH/2) {
-            grid[i * N + j] = MAX_CONCENTRATION * (1.0f + curand_normal(&states[i*N+j]));
-        } else{
-            grid[i * N + j] = 0.0f;
-        }
-    }
-}
-
-// CUDA kernel to initialize the chemical grid concentration in an approximated circle of radius TARGET_AREA_SIDE_LENGTH/2
-__global__ void initGridWithCircle(float* grid, curandState* states) {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if (i < N && j < N) {
-        //place 100 units of chemical in the circle in the middle of the grid with radius 20
-        if ((i - 3 * N / 4) * (i - 3 * N / 4) + (j - N / 2) * (j - N / 2) <= (TARGET_AREA_SIDE_LENGTH / 2) * (TARGET_AREA_SIDE_LENGTH / 2)) {
-            grid[i * N + j] = MAX_CONCENTRATION * (1.0f + curand_normal(&states[i*N+j]));
-        } else{
-            grid[i * N + j] = 0.0f;
-        }
-    }
-}
-
-
-// CUDA kernel to initialize the chemical grid with two squares of chemical placed in the lower left and upper right corners. size 10x10 cells each
-__global__ void initGridWithTwoSquares(float* grid) {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if (i < N && j < N) {
-        int upper_right_center_x = 3*N/4;
-        int upper_right_center_y = 3*N/4;
-        int lower_left_center_x = N/4;
-        int lower_left_center_y = N/4;
-        if ((i >= upper_right_center_x - 5 && i < upper_right_center_x + 5 && j >= upper_right_center_y - 5 && j < upper_right_center_y + 5) || (i >= lower_left_center_x - 5 && i < lower_left_center_x + 5 && j >= lower_left_center_y - 5 && j < lower_left_center_y + 5)) {
-            grid[i * N + j] = MAX_CONCENTRATION;
-        } else{
-            grid[i * N + j] = 0.0f;
-        }
-    }
-}
-
 
 // CUDA kernel to initialize the pheromone grids
-__global__ void initAttractiveAndRepulsivePheromoneGrid(float* attractive_pheromone, float* repulsive_pheromone, int* agent_density_grid) {
+__global__ void initAttractiveAndRepulsivePheromoneGrid(float* attractive_pheromone, float attractive_pheromone_secretion_rate, float attractive_pheromone_decay_rate, 
+                                                    float* repulsive_pheromone, float repulsive_pheromone_secretion_rate, float repulsive_pheromone_decay_rate,
+                                                    int* agent_density_grid) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
@@ -305,9 +260,9 @@ __global__ void initAttractiveAndRepulsivePheromoneGrid(float* attractive_pherom
             repulsive_pheromone[i * N + j] = 0.0f;
         }
         else {
-            attractive_pheromone[i * N + j] = ATTRACTANT_PHEROMONE_SECRETION_RATE * ATTRACTANT_PHEROMONE_DECAY_RATE *
+            attractive_pheromone[i * N + j] = attractive_pheromone_secretion_rate * attractive_pheromone_decay_rate *
                                               (float) agent_density_grid[i * N + j] / (DX * DX);
-            repulsive_pheromone[i * N + j] = REPULSIVE_PHEROMONE_SECRETION_RATE * REPULSIVE_PHEROMONE_DECAY_RATE *
+            repulsive_pheromone[i * N + j] = repulsive_pheromone_secretion_rate * repulsive_pheromone_decay_rate *
                                              (float) agent_density_grid[i * N + j] / (DX * DX);
         }
         //printf("Repulsive pheromone at (%d, %d): %f\n", i, j, repulsive_pheromone[i * N + j]);

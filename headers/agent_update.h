@@ -8,7 +8,6 @@
 #include <random>
 #include <limits>
 #include <cmath>
-#include "gaussian_odour.h"
 #include "numeric_functions.h"
 // Function to sample from a von Mises distribution
 __device__ float sample_from_von_mises(float mu, float kappa, curandState* state) {
@@ -122,7 +121,7 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         float random_angle = sample_from_von_mises(agents[id].angle, KAPPA, &states[id]);
         new_angle = random_angle;
 
-        if (abs(max_concentration)>=ODOR_THRESHOLD && (max_concentration_x!=0 && max_concentration_y!=0) ) {
+        if (abs(max_concentration)>=PHEROMONE_THRESHOLD && (max_concentration_x!=0 && max_concentration_y!=0) ) {
             // Brownian Motion
             float norm = sqrt(max_concentration_x * max_concentration_x + max_concentration_y * max_concentration_y);
             float direction_x = max_concentration_x / norm;
