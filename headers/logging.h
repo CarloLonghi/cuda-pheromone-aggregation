@@ -197,7 +197,8 @@ void saveAllDataToJSON(const char* filename, float* positions, Agent* agents, in
                                {"N_STEPS",          N_STEPS},
                                {"SENSING_RADIUS",   SENSING_RADIUS},
                                {"SPEED",            SPEED},
-                               {"PHEROMONE_THRESHOLD",   PHEROMONE_THRESHOLD},};
+                               {"PHEROMONE_THRESHOLD",   PHEROMONE_THRESHOLD},
+                               {"MAX_CONCENTRATION",    MAX_CONCENTRATION}};
     for (int i = 0; i < worm_count; ++i) {
         nlohmann::json agent_data;
         if(LOG_POSITIONS){

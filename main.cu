@@ -268,20 +268,20 @@ int main(int argc, char* argv[]) {
     }
 
     // track clusters
-    int cluster_sizes[TIME] = {0};
     bool adjacency_matrix[MAX_WORMS][MAX_WORMS] = {false};
-    for (int i = 0; i < TIME; ++i){
-        reset_matrix(adjacency_matrix);
-        get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, 1);
-        cluster_sizes[i] = find_clusters(adjacency_matrix);
-    }
+    get_adjacency_matrix(adjacency_matrix, worm_count, positions, TIME - 1, 1);
+    int biggest_size = find_clusters(adjacency_matrix);
 
-    int biggest_size = 0;
-    for (int i = 0; i < TIME; ++i){
-        if (cluster_sizes[i] > biggest_size){
-            biggest_size = cluster_sizes[i];
-        }
-    }
+    // compute worm density
+    // int neighbor_count = 0;
+    // for (int j = 0; j < worm_count; ++j){
+    //     for (int k = 0; k < worm_count; ++k){
+    //         if (adjacency_matrix[j][k] == true && j != k){
+    //             neighbor_count += 1;
+    //         }
+    //     }
+    // }
+    // float worm_density = neighbor_count / worm_count; 
 
     // compute mean squared displacement
     float mean_squared_disp, diff_x, diff_y, sq_dist = 0;
@@ -292,32 +292,11 @@ int main(int argc, char* argv[]) {
         mean_squared_disp += (sq_dist - mean_squared_disp) / (i + 1);
     }
 
-    // compute worm density
-    // float worm_density = 0;
-    // int neighbor_count = 0;
-    // for (int i = 0; i < TIME; ++i){
-    //     reset_matrix(adjacency_matrix);
-    //     get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, 10);
-    //     neighbor_count = 0;
-    //     for (int j = 0; j < worm_count; ++j){
-    //         for (int k = 0; k < worm_count; ++k){
-    //             if (adjacency_matrix[j][k] == true){
-    //                 neighbor_count += 1;
-    //             }
-    //         }
-    //     }
-    //     worm_density += neighbor_count / worm_count;
-    // }
-    // worm_density /= TIME;
-
     // compute mean pheromone density
     float pheromone_density = 0;
-    for (int i = 0; i < TIME; ++i){
-        pheromone_density += mean_pheromone[i];
-    }
-    pheromone_density /= TIME;
+    pheromone_density = mean_pheromone[TIME - 1];
 
-    std::cout << biggest_size << " " << mean_squared_disp << " " << pheromone_density<< std::endl;
+    std::cout << biggest_size << " " << mean_squared_disp << " " << pheromone_density << std::endl;
 
     cudaFree(d_agents);
     cudaFree(d_states);

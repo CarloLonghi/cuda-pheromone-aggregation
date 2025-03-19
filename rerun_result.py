@@ -11,11 +11,11 @@ import json
 
 # weights = solutions[idx]
 
-weights = torch.tensor([0.1605, 0.06, 0.0000, 0.1000, 0.0000, 0.0000, 0.0000, 0.0000])
+weights = torch.tensor([0.9036537040216455, 0.0500, 0.0300, 0.0800, 0.41022241226142564, 0.0300, 0.0200, 0.0050, 7.0])
 
 output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()), str(weights[2].item()), 
                                             str(weights[3].item()),  str(weights[4].item()), str(weights[5].item()),
-                                            str(weights[6].item()), str(weights[7].item()), "1"], text=True).split()
+                                            str(weights[6].item()), str(weights[7].item()), str(weights[8].item()), "1"], text=True).split()
 
 base_dir = "/home/carlo/babots/cuda_agent_based_sim/json/"
 with open(base_dir + "agents_all_data.json", 'r') as f:
@@ -75,7 +75,7 @@ ax2.tick_params(axis='y', labelcolor=colors[1])
 ax2.set_ylabel("Mean", color=colors[1])
 # ax2.set_ylim(1, 1.5)
 
-plt.title(f"{weights[0].item():.4f} {weights[1].item():.4f} {weights[2].item():.4f} {weights[3].item():.4f} {weights[4].item():.4f} {weights[5].item():.4f} {weights[6].item():.4f} {weights[7].item():.4f}")
+plt.title(f"{weights[0].item():.4f} {weights[1].item():.4f} {weights[2].item():.4f} {weights[3].item():.4f} {weights[4].item():.4f} {weights[5].item():.4f} {weights[6].item():.4f} {weights[7].item():.4f} {weights[8].item():.4f}")
 
-# plt.savefig(f"./results/plots/{weights[0].item():.4f}_{weights[1].item():.4f}_{weights[2].item():.4f}_{weights[3].item():.4f}_{weights[4].item():.4f}_{weights[5].item():.4f}_{weights[6].item():.4f}_{weights[7].item():.4f}_test.png")
+# plt.savefig(f"./results/plots/{weights[0].item():.4f}_{weights[1].item():.4f}_{weights[2].item():.4f}_{weights[3].item():.4f}_{weights[4].item():.4f}_{weights[5].item():.4f}_{weights[6].item():.4f}_{weights[7].item():.4f}_{weights[8].item():.4f}_test.png")
 # plt.show()

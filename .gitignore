@@ -5,3 +5,11 @@ build/
 *.mp4
 .*gif
 results/
+map_elites/archives
+map_elites/run_plots
+map_elites/archive_*
+map_elites/cvt.log
+map_elites/res.log
+map_elites/archive.pkl
+map_elites/__pycache__
+map_elites/cache

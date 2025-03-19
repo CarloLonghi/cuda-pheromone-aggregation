@@ -1,90 +1,66 @@
-from evotorch import Problem
-from evotorch.algorithms import MAPElites
-import torch
-from evotorch.operators import GaussianMutation
+import map_elites.cvt as cvt_map_elites
 from typing import List
 import subprocess
 import logging
-
-NUM_EXPERIMENTS = 3
-
-class AggregationProblem(Problem):
-    def __init__(self, ):
-        super().__init__(objective_sense="max", objective_func=run_simulation, solution_length=8, dtype=torch.float32, 
-                         device="cpu", eval_data_length=2, seed=42, num_actors=1, bounds=[0., 1.])
+import numpy as np
 
 def run_simulation(weights: List[float]):
+    num_experiments = 3
     fitness = 0
     msd = 0
     density = 0
 
-    weights = weights.clone()
     weights[1:4] *= 0.1
-    weights[5:8] *= 0.01
+    weights[5:8] *= 0.1
+    weights[8] *= 7
 
-    for i in range(NUM_EXPERIMENTS):
+    for i in range(num_experiments):
         output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()),
                                            str(weights[2].item()), str(weights[3].item()),  str(weights[4].item()), str(weights[5].item()),
-                                            str(weights[6].item()), str(weights[7].item()), "0"], text=True).split()
-        # output = subprocess.check_output(['./main', str(weights[0].item()), str(weights[1].item()),
-        #                                    str(weights[2].item()), str(weights[3].item()),
-        #                                     "0", "0", "0", "0", "0"], text=True).split()        
+                                            str(weights[6].item()), str(weights[7].item()), str(weights[8].item()), "0"], text=True).split()
+        # output = subprocess.check_output(['./main', str(weights[0].item()), "0.0500", "0.0300", "0.0800",
+        #                                     str(weights[1].item()), "0.0300", "0.0200", "0.0050", "7", "0"], text=True).split()        
         fitness += int(output[0])
         msd += float(output[1])
         density += float(output[2])
         
-    fitness /= NUM_EXPERIMENTS
-    msd /= NUM_EXPERIMENTS
-    density /= NUM_EXPERIMENTS
+    fitness /= num_experiments
+    msd /= num_experiments
+    density /= num_experiments
 
     logging.info(f"     Solution = {weights}, fitness = {fitness:.2f}, msd = {msd:.2f}, pheromone density = {density:.2f}")
-    return torch.tensor([fitness, msd, density])
-
+    return fitness, np.array([msd / 300, density / 30]) # 20 for worm density
 
 if __name__ == "__main__":
 
-    problem = AggregationProblem()
-
-    feature_grid = MAPElites.make_feature_grid(
-        lower_bounds=torch.tensor([0., 0]),
-        upper_bounds=torch.tensor([200., 20]),
-        num_bins=10
-    )
-
-    mutation = GaussianMutation(problem=problem, stdev=0.01)
-    operators = [mutation,]
-    searcher = MAPElites(problem, operators=operators, feature_grid=feature_grid, re_evaluate=False)
-
-    num_generations = 20
-
-    data = torch.zeros((num_generations, len(searcher.population), 3))
-    solutions = torch.zeros((num_generations, len(searcher.population), 8))
-
     logging.basicConfig(
-        filename="results/res.log",
+        filename="./map_elites/res.log",
         encoding="utf-8",
         filemode="w",
         level=logging.INFO
     )
-    logging.info('STARTING OPTIMIZATION')
 
-    for generation in range(num_generations):
-        searcher.step()
-
-        # save solutions and data to files
-        fitnesses = []
-        for i, solution in enumerate(searcher.population):
-            if searcher.filled[i]:
-                cluster = float(solution.evals[0])
-                msd = float(solution.evals[1])
-                density = float(solution.evals[2])
-                data[generation, i, 0] = cluster
-                data[generation, i, 1] = msd
-                data[generation, i, 2] = density
-                solutions[generation, i] = solution.values
-                fitnesses.append(cluster)
-
-        logging.info(f"GENERATION: {generation + 1}: best fitness = {max(fitnesses)}, mean fitness = {sum(fitnesses)/len(fitnesses)}")
-
-        torch.save(data, f='results/data.pt')
-        torch.save(solutions, f="results/solutions.pt")
+    params = {
+        # more of this -> higher-quality CVT
+        "cvt_samples": 25000,
+        # we evaluate in batches to parallelize
+        "batch_size": 15,
+        # proportion of niches to be filled before starting
+        "random_init": 0.1,
+        # batch for random initialization
+        "random_init_batch": 100,
+        # when to write results (one generation = one batch)
+        "dump_period": 10,
+        # do we use several cores?
+        "parallel": True,
+        # do we cache the result of CVT and reuse?
+        "cvt_use_cache": True,
+        # min/max of parameters
+        "min": 0,
+        "max": 1,
+        # only useful if you use the 'iso_dd' variation operator
+        "iso_sigma": 0.01,
+        "line_sigma": 0.2        
+    }
+    archive = cvt_map_elites.compute(2, 9, run_simulation, n_niches=1000, max_evals=1000, log_file=open('./map_elites/cvt.log', 'w'),
+                                     params=params, resume=True)
