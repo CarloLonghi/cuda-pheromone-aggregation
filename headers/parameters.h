@@ -37,6 +37,9 @@
 #define PHEROMONE_THRESHOLD 0.0001
 #define MAX_CONCENTRATION 1.0 // of the pheromone
 
+#define ALIGNMENT_RADIUS 0.05f
+#define ALIGNMENT_STRENGTH 0.5f
+
 // Noise parameters
 #define SIGMA 1e-8f
 #define ENVIRONMENTAL_NOISE 0.0f

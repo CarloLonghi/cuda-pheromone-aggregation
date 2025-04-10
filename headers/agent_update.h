@@ -79,7 +79,7 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
 
         float max_concentration_x = 0.0;
         float max_concentration_y = 0.0;
-        int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DX);
+        int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DY);
         float sensed_potential = potential[agent_x * N + agent_y];//potential[agent_x * N + agent_y];
         //sensed_potential = ATTRACTION_STRENGTH * logf(sensed_potential + ATTRACTION_SCALE);
         //add a small perceptual noise to the potential
@@ -109,6 +109,24 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
                 max_concentration_y = sinf(angle);
             }
         }
+
+        // find neighbors alignment angle
+        int num_neighbors = 0;
+        float align_x = 0, align_y = 0;
+        for (int i = 0; i < WORM_COUNT; ++i){
+            if (i != id){
+                float diffx = agents[id].x - agents[i].x;
+                float diffy = agents[id].y - agents[i].y;
+                float dist = sqrt(diffx * diffx + diffy * diffy);
+                if (dist < ALIGNMENT_RADIUS){
+                    num_neighbors += 1;
+                    align_x += cosf(agents[i].angle);
+                    align_y += sinf(agents[i].angle);
+                }
+            }
+        }
+        align_x /= num_neighbors;
+        align_y /= num_neighbors;
 
         float fx, fy, new_angle;
         // float mu, kappa;
@@ -155,6 +173,11 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
 
         fx = cosf(agents[id].angle);
         fy = sinf(agents[id].angle);
+
+        if (num_neighbors > 0){
+            fx += align_x * ALIGNMENT_STRENGTH;
+            fy += align_y * ALIGNMENT_STRENGTH;
+        }
 
         float norm = sqrt(fx * fx + fy * fy);
         fx = fx / norm;
