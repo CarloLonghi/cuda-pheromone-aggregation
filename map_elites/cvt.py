@@ -117,6 +117,12 @@ def compute(dim_map, dim_x, f,
     kdt = KDTree(c, leaf_size=30, metric='euclidean')
     cm.__write_centroids(c)
 
+    if resume:
+        log_mode = 'a'
+    else:
+        log_mode = 'w'
+    log_file = open(log_file, log_mode) 
+
     archive = {} # init archive (empty)
     n_evals = 0 # number of evaluations since the beginning
     b_evals = 0 # number evaluation since the last dump
@@ -162,12 +168,12 @@ def compute(dim_map, dim_x, f,
             b_evals = 0
             __pickle_archive(archive)
 
-        # write log
-        if log_file != None:
-            fit_list = np.array([x.fitness for x in archive.values()])
-            log_file.write("{} {} {} {} {} {} {}\n".format(n_evals, len(archive.keys()),
+            # write log
+            if log_file != None:
+                fit_list = np.array([x.fitness for x in archive.values()])
+                log_file.write("{} {} {} {} {} {} {}\n".format(n_evals, len(archive.keys()),
                     fit_list.max(), np.mean(fit_list), np.median(fit_list),
                     np.percentile(fit_list, 5), np.percentile(fit_list, 95)))
-            log_file.flush()
+                log_file.flush()
     cm.__save_archive(archive, n_evals)
     return archive

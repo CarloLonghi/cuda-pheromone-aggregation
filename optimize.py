@@ -7,8 +7,8 @@ import numpy as np
 def run_simulation(weights: List[float]):
     num_experiments = 3
     fitness = 0
-    msd = 0
-    density = 0
+    desc1 = 0
+    desc2 = 0
 
     weights[1:4] *= 0.1
     weights[5:8] *= 0.1
@@ -20,37 +20,28 @@ def run_simulation(weights: List[float]):
                                             str(weights[6].item()), str(weights[7].item()), str(weights[8].item()), "0"], text=True).split()
         # output = subprocess.check_output(['./main', str(weights[0].item()), "0.0500", "0.0300", "0.0800",
         #                                     str(weights[1].item()), "0.0300", "0.0200", "0.0050", "7", "0"], text=True).split()        
-        fitness += int(output[0])
-        msd += float(output[1])
-        density += float(output[2])
-        
-    fitness /= num_experiments
-    msd /= num_experiments
-    density /= num_experiments
+        fitness += float(output[0])
+        desc1 += float(output[1])
+        desc2 += float(output[2])
 
-    logging.info(f"     Solution = {weights}, fitness = {fitness:.2f}, msd = {msd:.2f}, pheromone density = {density:.2f}")
-    return fitness, np.array([msd / 300, density / 30]) # 20 for worm density
+    fitness /= num_experiments
+    desc1 /= num_experiments
+    desc2 /= num_experiments
+    return fitness, np.array([desc1 / 300, desc2 / 0.1]) # 20 for worm density
 
 if __name__ == "__main__":
-
-    logging.basicConfig(
-        filename="./map_elites/res.log",
-        encoding="utf-8",
-        filemode="w",
-        level=logging.INFO
-    )
 
     params = {
         # more of this -> higher-quality CVT
         "cvt_samples": 25000,
         # we evaluate in batches to parallelize
-        "batch_size": 15,
+        "batch_size": 1,
         # proportion of niches to be filled before starting
         "random_init": 0.1,
         # batch for random initialization
         "random_init_batch": 100,
         # when to write results (one generation = one batch)
-        "dump_period": 10,
+        "dump_period": 15,
         # do we use several cores?
         "parallel": True,
         # do we cache the result of CVT and reuse?
@@ -62,5 +53,5 @@ if __name__ == "__main__":
         "iso_sigma": 0.01,
         "line_sigma": 0.2        
     }
-    archive = cvt_map_elites.compute(2, 9, run_simulation, n_niches=1000, max_evals=1000, log_file=open('./map_elites/cvt.log', 'w'),
+    archive = cvt_map_elites.compute(2, 9, run_simulation, n_niches=1000, max_evals=1000, log_file='./map_elites/cvt.log',
                                      params=params, resume=True)
