@@ -40,6 +40,11 @@
 #define ALIGNMENT_RADIUS 0.05f
 #define ALIGNMENT_STRENGTH 0.5f
 
+// Descriptor parameters
+#define CLUSTERING_RADIUS 0.5f
+#define NEIGHBOR_RADIUS 1.0f
+#define MSD_WINDOW 10
+
 // Noise parameters
 #define SIGMA 1e-8f
 #define ENVIRONMENTAL_NOISE 0.0f

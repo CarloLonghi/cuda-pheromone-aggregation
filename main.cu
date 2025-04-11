@@ -268,9 +268,14 @@ int main(int argc, char* argv[]) {
     }
 
     // track clusters
+    float cluster_size = 0;
     bool adjacency_matrix[MAX_WORMS][MAX_WORMS] = {false};
-    get_adjacency_matrix(adjacency_matrix, worm_count, positions, TIME - 1, 1);
-    int biggest_size = find_clusters(adjacency_matrix);
+    for (int i = 0; i < TIME; ++i){
+        reset_matrix(adjacency_matrix);
+        get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, CLUSTERING_RADIUS);
+        cluster_size += find_clusters(adjacency_matrix);
+    }
+    cluster_size /= N_STEPS;
 
     // compute worm density
     // int neighbor_count = 0;
@@ -281,22 +286,63 @@ int main(int argc, char* argv[]) {
     //         }
     //     }
     // }
-    // float worm_density = neighbor_count / worm_count; 
+    // float worm_density = neighbor_count / worm_count;
+
+    // compute distance to neighbors
+    float avg_dist = 0, avg_dist_worm = 0, dist = 0, diffx = 0, diffy = 0;
+    int num_neighbors;
+    for (int i = 0; i < TIME; ++i){
+        reset_matrix(adjacency_matrix);
+        get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, NEIGHBOR_RADIUS);
+        avg_dist_worm = 0;
+        for (int j = 0; j < worm_count; ++j){
+            dist = 0;
+            num_neighbors = 0;
+            for (int k = 0; k < worm_count; ++k){
+                if (j != k){
+                    if (adjacency_matrix[j][k] == true){
+                        num_neighbors += 1;
+                        diffx = positions[(i * worm_count + j) * 2] - positions[(i * worm_count + k) * 2];
+                        diffy = positions[(i * worm_count + j) * 2 + 1] - positions[(i * worm_count + k) * 2 + 1];
+                        dist += sqrt(diffx * diffx + diffy * diffy);
+                    }
+                }
+            }
+            if (num_neighbors > 0){
+                avg_dist_worm += dist / num_neighbors;
+            }
+        }
+        avg_dist += avg_dist_worm / worm_count;
+    }
+    avg_dist /= N_STEPS;    
 
     // compute mean squared displacement
-    float mean_squared_disp, diff_x, diff_y, sq_dist = 0;
-    for (int i = 0; i < worm_count; ++i){
-        diff_x = (positions[((TIME - 1) * worm_count + i) * 2] - positions[i * 2]);
-        diff_y = (positions[((TIME - 1) * worm_count + i) * 2 + 1] - positions[i * 2 + 1]);
-        sq_dist = diff_x * diff_x + diff_y * diff_y;
-        mean_squared_disp += (sq_dist - mean_squared_disp) / (i + 1);
+    float time_averaged_msd, mean_squared_disp, diff_x, diff_y, sq_dist = 0;
+    for (int t = 0; t < TIME - MSD_WINDOW; t += MSD_WINDOW){
+        mean_squared_disp = 0;
+        for (int i = 0; i < worm_count; ++i){
+            diff_x = (positions[((t + MSD_WINDOW) * worm_count + i) * 2] - positions[(t * worm_count + i) * 2]);
+            if (diff_x > SPEED / DT * MSD_WINDOW){
+                diff_x = (positions[((t + MSD_WINDOW) * worm_count + i) * 2] - WIDTH - positions[(t * worm_count + i) * 2]);
+            }
+            if (diff_x < -SPEED / DT * MSD_WINDOW){
+                diff_x = (positions[((t + MSD_WINDOW) * worm_count + i) * 2] + WIDTH - positions[(t * worm_count + i) * 2]);
+            }            
+            diff_y = (positions[((t + MSD_WINDOW) * worm_count + i) * 2 + 1] - positions[(t * worm_count + i) * 2 + 1]);
+            if (diff_y > SPEED / DT * MSD_WINDOW){
+                diff_y = (positions[((t + MSD_WINDOW) * worm_count + i) * 2 + 1] - HEIGHT - positions[(t * worm_count + i) * 2 + 1]);
+            }
+            if (diff_y < -SPEED / DT * MSD_WINDOW){
+                diff_y = (positions[((t + MSD_WINDOW) * worm_count + i) * 2 + 1] + HEIGHT - positions[(t * worm_count + i) * 2 + 1]);
+            }            
+            sq_dist = diff_x * diff_x + diff_y * diff_y;
+            mean_squared_disp += (sq_dist - mean_squared_disp) / (i + 1);
+        }
+        time_averaged_msd += mean_squared_disp;
     }
+    time_averaged_msd /= TIME / MSD_WINDOW;
 
-    // compute mean pheromone density
-    float pheromone_density = 0;
-    pheromone_density = mean_pheromone[TIME - 1];
-
-    std::cout << biggest_size << " " << mean_squared_disp << " " << pheromone_density << std::endl;
+    std::cout << cluster_size << " " << time_averaged_msd << " " << avg_dist << std::endl;
 
     cudaFree(d_agents);
     cudaFree(d_states);
