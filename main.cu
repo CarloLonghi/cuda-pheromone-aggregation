@@ -8,6 +8,7 @@
 #include "headers/agent_update.h"
 #include "headers/update_matrices.h"
 #include "headers/logging.h"
+#include "headers/gaussian_odour.h"
 #include <stdbool.h>
 
 // Function to perform DFS traversal
@@ -86,6 +87,7 @@ int main(int argc, char* argv[]) {
     float attractant_pheromone_strength, repulsive_pheromone_strength, sigma = SIGMA, environmental_noise = ENVIRONMENTAL_NOISE;
     float attractant_pheromone_diffusion_rate, attractant_pheromone_decay_rate, attractant_pheromone_secretion_rate;
     float repulsive_pheromone_diffusion_rate, repulsive_pheromone_decay_rate, repulsive_pheromone_secretion_rate;
+    float odour_strength;
     float* attractive_pheromone, * repulsive_pheromone, * h_attractive_pheromone = new float[N * N];
     float* h_repulsive_pheromone = new float[N * N], * h_potential = new float[N * N], * potential;
     int worm_count = WORM_COUNT, * agent_count_grid, * agent_count_delay;
@@ -93,7 +95,7 @@ int main(int argc, char* argv[]) {
     float k = 0;
     int log_worms_data = 0;
 
-    if (argc - 1 == 10){
+    if (argc - 1 == 11){
         attractant_pheromone_strength = std::stof(argv[1]);
         attractant_pheromone_secretion_rate = std::stof(argv[2]);
         attractant_pheromone_decay_rate = std::stof(argv[3]);        
@@ -102,8 +104,9 @@ int main(int argc, char* argv[]) {
         repulsive_pheromone_secretion_rate = std::stof(argv[6]);
         repulsive_pheromone_decay_rate = std::stof(argv[7]);
         repulsive_pheromone_diffusion_rate = std::stof(argv[8]);
-        k = std::stof(argv[9]);
-        log_worms_data = std::stoi(argv[10]);
+        odour_strength = std::stof(argv[9]);
+        k = std::stof(argv[10]);
+        log_worms_data = std::stoi(argv[11]);
     }
     else{
         std::cout << "The number of parameters is incorrect, it should be 10 but is " << argc - 1 << std::endl;
@@ -159,7 +162,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
     //initialise the potential grid
-    updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, attractant_pheromone_strength, repulsive_pheromone, repulsive_pheromone_strength, d_states_grids, environmental_noise);
+    updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, attractant_pheromone_strength, repulsive_pheromone, repulsive_pheromone_strength, odour_strength, d_states_grids, environmental_noise, 0);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
@@ -197,7 +200,7 @@ int main(int argc, char* argv[]) {
         cudaMemcpy(h_repulsive_pheromone, repulsive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
         //update potential
-        updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, attractant_pheromone_strength, repulsive_pheromone, repulsive_pheromone_strength, d_states_grids, environmental_noise);
+        updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, attractant_pheromone_strength, repulsive_pheromone, repulsive_pheromone_strength, odour_strength, d_states_grids, environmental_noise, i);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));

@@ -6,6 +6,7 @@
 #define UNTITLED_UPDATE_MATRICES_H
 #include <cuda_runtime.h>
 #include "numeric_functions.h"
+#include "gaussian_odour.h"
 #include <cmath>
 
 //CUDA kernel to update all the grids (except the potential and the agent count grid)
@@ -71,21 +72,22 @@ __global__ void updateGrids(float* attractive_pheromone, float* repulsive_pherom
 }
 
 //CUDA kernel to update the potential matrix
-__global__ void updatePotential(float* potential, float* attractive_pheromone, float attractive_pheromone_strengths, float* repulsive_pheromone, float repulsive_pheromone_strength, curandState* states, float environmental_noise) {
+__global__ void updatePotential(float* potential, float* attractive_pheromone, float attractive_pheromone_strengths, float* repulsive_pheromone, float repulsive_pheromone_strength, float odour_strength, curandState* states, float environmental_noise, int timestep) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     if (i < N && j < N) {
-        float potential_attractive_pheromone=0.0f, potential_repulsive_pheromone = 0.0f;
+        float potential_attractive_pheromone=0.0f, potential_repulsive_pheromone = 0.0f, potential_odour = 0.0f;
         //
         potential_attractive_pheromone = attractive_pheromone_strengths * attractive_pheromone[i * N + j];// / (ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);
 
         potential_repulsive_pheromone = -repulsive_pheromone_strength * repulsive_pheromone[i * N + j];// / (REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);
 
+        potential_odour = odour_strength * computeDensityAtPoint(i * DX, j * DY, timestep);
 
         float noise = curand_normal(&states[i * N + j]) * environmental_noise;
         if(noise>environmental_noise) noise = environmental_noise;
         if(noise<-environmental_noise) noise = -environmental_noise;
-        potential[i * N + j] = potential_attractive_pheromone + potential_repulsive_pheromone + noise;
+        potential[i * N + j] = potential_attractive_pheromone + potential_repulsive_pheromone + potential_odour + noise;
 
     }
 }
