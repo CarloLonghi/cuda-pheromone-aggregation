@@ -235,9 +235,9 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
             agents[id].x = curand_uniform(&states[id]) * WIDTH;
             agents[id].y = curand_uniform(&states[id]) * HEIGHT;
         } else {
-            //initialise in a random position inside the square centered at WIDTH/4, HEIGHT/4 with side length DX*INITIAL_AREA_NUMBER_OF_CELLS
-           agents[id].x = WIDTH / 4 - INITIAL_AREA_NUMBER_OF_CELLS/2 * DX + curand_uniform(&states[id]) * INITIAL_AREA_NUMBER_OF_CELLS * DX;
-           agents[id].y = HEIGHT / 2 - INITIAL_AREA_NUMBER_OF_CELLS/2  * DX + curand_uniform(&states[id]) * INITIAL_AREA_NUMBER_OF_CELLS * DX;
+            //initialise in a random position at the center of the environment
+           agents[id].x = WIDTH / 2 - INITIAL_AREA_SIZE/2 + curand_uniform(&states[id]) * INITIAL_AREA_SIZE;
+           agents[id].y = HEIGHT / 2 - INITIAL_AREA_SIZE/2 + curand_uniform(&states[id]) * INITIAL_AREA_SIZE;
         }
         //generate angle in the range [-pi, pi]
         agents[id].angle =(2.0f * curand_uniform(&states[id]) - 1.0f) * M_PI;
