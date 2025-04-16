@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         log_worms_data = std::stoi(argv[11]);
     }
     else{
-        std::cout << "The number of parameters is incorrect, it should be 10 but is " << argc - 1 << std::endl;
+        std::cout << "The number of parameters is incorrect, it should be 11 but is " << argc - 1 << std::endl;
         return 1;
     }
 

@@ -89,7 +89,12 @@ __device__ float fourth_order_laplacian(float* input, int i, int j){
     float laplacianY = (-input[i * N + jm2] + 16 * input[i * N + jm1] - 30 * input[i * N + j]
                         + 16 * input[i * N + jp1] - input[i * N + jp2]) /  (12 * DX * DX);
 
-    return laplacianX + laplacianY;
+    float laplacian = laplacianX + laplacianY;
+    if (i == 0 || i == N || j == 0 || j == N || i == 1 || i == N - 1 || j == 1 || j == N - 1){
+        laplacian = 0;
+    }
+
+    return laplacian;
 }
 
 #endif

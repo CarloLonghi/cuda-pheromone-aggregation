@@ -94,9 +94,21 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         //printf("Sensed potential: %f\n", sensed_potential);
         for (int i = 0; i < 32; ++i) {
             float angle = curand_uniform(&states[id]) * 2 * M_PI;
-            int sample_x = (int)round((agents[id].x + SENSING_RADIUS * cosf(angle))/DX);
-            int sample_y = (int)round((agents[id].y + SENSING_RADIUS * sinf(angle))/DY);
-            float concentration = potential[sample_x * N + sample_y];
+            int sample_x = agents[id].x + SENSING_RADIUS * cosf(angle);
+            int sample_y = agents[id].y + SENSING_RADIUS * sinf(angle);
+            if (sample_x >= WIDTH){
+                sample_x = WIDTH - 1;
+            }
+            if (sample_x < 0){
+                sample_x = 0;
+            }
+            if (sample_y >= HEIGHT){
+                sample_y = HEIGHT - 1;
+            }
+            if (sample_y < 0){
+                sample_y = 0;
+            }            
+            float concentration = potential[(int)round(sample_x / DX) * N + (int)round(sample_y / DY)];
             // Add perceptual noise if sigma is not zero
             if (sigma != 0.0f) {
                 concentration += curand_normal(&states[id]) * sigma;
@@ -195,10 +207,11 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         agents[id].y += dy;
         agents[id].speed = new_speed;
         // Apply periodic boundary conditions
-        if (agents[id].x < 0) agents[id].x += WIDTH;
-        if (agents[id].x >= WIDTH) agents[id].x -= WIDTH;
-        if (agents[id].y < 0) agents[id].y += HEIGHT;
-        if (agents[id].y >= HEIGHT) agents[id].y -= HEIGHT;
+        if (agents[id].x < 0) agents[id].x = 0;
+        if (agents[id].x > WIDTH) agents[id].x = WIDTH;
+        if (agents[id].y < 0) agents[id].y = 0;
+        if (agents[id].y > HEIGHT) agents[id].y = HEIGHT;
+
     }
 }
 #endif //UNTITLED_AGENT_UPDATE_H

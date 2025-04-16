@@ -34,11 +34,11 @@
 
 #define SENSING_RADIUS 0.1f
 #define SPEED 0.1f * DT
-#define PHEROMONE_THRESHOLD 0.0001
+#define PHEROMONE_THRESHOLD 0.00001
 #define MAX_CONCENTRATION 1.0 // of the pheromone
 
 #define ALIGNMENT_RADIUS 0.05f
-#define ALIGNMENT_STRENGTH 0.5f
+#define ALIGNMENT_STRENGTH 0.05f
 
 // Descriptor parameters
 #define CLUSTERING_RADIUS 0.5f
@@ -50,7 +50,7 @@
 #define ENVIRONMENTAL_NOISE 0.0f
 
 // Odour parameters
-#define MU_X 1.0f      // Mean x of the Gaussian
+#define MU_X 5.0f      // Mean x of the Gaussian
 #define MU_Y 30.0f      // Mean y of the Gaussian
 #define A 0.5f         // Amplitude of the Gaussian
 #define SIGMA_X 5.0f   // Standard deviation in x direction
