@@ -202,15 +202,35 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         float dx = fx * new_speed;
         float dy = fy * new_speed;
 
+        // apply boundary conditions
+        if (dx + agents[id].x >= WIDTH){
+            dx = WIDTH - agents[id].x;
+            if (dy >= 0) dy = sqrt(new_speed * new_speed - dx * dx);
+            else dy = - sqrt(new_speed * new_speed - dx * dx);
+            
+        }
+        else if (dx + agents[id].x < 0){
+            dx = -agents[id].x;
+            if (dy >= 0) dy = sqrt(new_speed * new_speed - dx * dx);
+            else dy = - sqrt(new_speed * new_speed - dx * dx);            
+        }
+
+        if (dy + agents[id].y >= HEIGHT){
+            dy = HEIGHT - agents[id].y;
+            if (dx >= 0) dx = sqrt(new_speed * new_speed - dy * dy);
+            else dx = - sqrt(new_speed * new_speed - dy * dy);
+        }
+        else if (dy + agents[id].y < 0){
+            dy = -agents[id].y;
+            if (dx >= 0) dx = sqrt(new_speed * new_speed - dy * dy);
+            else dx = - sqrt(new_speed * new_speed - dy * dy);            
+        }
+
         agents[id].previous_potential = sensed_potential;
         agents[id].x += dx;
         agents[id].y += dy;
         agents[id].speed = new_speed;
-        // Apply periodic boundary conditions
-        if (agents[id].x < 0) agents[id].x = 0;
-        if (agents[id].x > WIDTH) agents[id].x = WIDTH;
-        if (agents[id].y < 0) agents[id].y = 0;
-        if (agents[id].y > HEIGHT) agents[id].y = HEIGHT;
+
 
     }
 }
