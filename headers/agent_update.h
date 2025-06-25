@@ -124,7 +124,7 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
 
         // find neighbors alignment angle
         int num_neighbors = 0;
-        float align_x = 0, align_y = 0;
+        float align_x = 0, align_y = 0, anglediff;
         for (int i = 0; i < WORM_COUNT; ++i){
             if (i != id){
                 float diffx = agents[id].x - agents[i].x;
@@ -132,8 +132,16 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
                 float dist = sqrt(diffx * diffx + diffy * diffy);
                 if (dist < ALIGNMENT_RADIUS){
                     num_neighbors += 1;
-                    align_x += cosf(agents[i].angle);
-                    align_y += sinf(agents[i].angle);
+                    anglediff = agents[id].angle - agents[i].angle;
+                    if (anglediff > M_PI){
+                        anglediff = 2 * M_PI - anglediff;
+                    }
+                    else if (anglediff < - M_PI)
+                    {
+                        anglediff = 2 * M_PI + anglediff;
+                    }
+                    align_x += cosf(anglediff);
+                    align_y += sinf(anglediff);
                 }
             }
         }
