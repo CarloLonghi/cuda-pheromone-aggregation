@@ -130,7 +130,7 @@ def load_and_animate_agents_and_multiple_heatmaps(json_file_path, primary_heatma
     N = parameters['N']
     WORM_COUNT = parameters['WORM_COUNT']
     LOGGING_INTERVAL = parameters['LOGGING_INTERVAL']
-    N_STEPS = parameters['N_STEPS']
+    TIME = parameters['TIME']
     WIDTH = parameters['WIDTH']
     HEIGHT = parameters['HEIGHT']
     MAX_CONCENTRATION = parameters['MAX_CONCENTRATION']
@@ -150,26 +150,22 @@ def load_and_animate_agents_and_multiple_heatmaps(json_file_path, primary_heatma
     position_matrix = np.array(data['positions'])
 
     # Parse primary heatmap data from .txt files
-    timesteps = N_STEPS // LOGGING_INTERVAL
-    primary_matrices = np.zeros((N_STEPS//LOGGING_INTERVAL, N, N))
-    for tidx, t in enumerate(range(0, N_STEPS, LOGGING_INTERVAL)):
-        file_path = os.path.join(primary_heatmap_folder, f'{single_file_name1}_{t}.txt')
-        with open(file_path, 'r') as f:
-            matrix = np.transpose(np.loadtxt(f))
-            primary_matrices[tidx] = matrix
+    timesteps = TIME
+    primary_frame = np.zeros((N, N))
+    file_path = os.path.join(primary_heatmap_folder, f'{single_file_name1}_{0}.txt')
+    with open(file_path, 'r') as f:
+        matrix = np.transpose(np.loadtxt(f))
+        primary_frame = matrix
 
     # Parse additional heatmap data from .txt files
-    additional_matrices = np.zeros((N_STEPS//LOGGING_INTERVAL, N, N))
-    for tidx, t in enumerate(range(0, N_STEPS, LOGGING_INTERVAL)):
-        file_path = os.path.join(additional_heatmap_folder, f'{single_file_name2}_{t}.txt')
-        with open(file_path, 'r') as f:
-            matrix = np.transpose(np.loadtxt(f))
-            additional_matrices[tidx] = matrix
+    additional_frame = np.zeros((N, N))
+    file_path = os.path.join(additional_heatmap_folder, f'{single_file_name2}_{0}.txt')
+    with open(file_path, 'r') as f:
+        matrix = np.transpose(np.loadtxt(f))
+        additional_frame = matrix
 
-    primary_grid = primary_matrices.copy()
-    additional_grid = additional_matrices.copy()
-    primary_im = ax[0].imshow(primary_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Blues', alpha=0.5, vmin=0.0, vmax=primary_grid.max())
-    additional_im = ax[1].imshow(additional_grid[0], extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Reds', alpha=0.5, vmin=0.0, vmax=additional_grid.max())
+    primary_im = ax[0].imshow(primary_frame, extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Blues', alpha=0.5, vmin=0.0, vmax=primary_frame.max())
+    additional_im = ax[1].imshow(additional_frame, extent=[0, WIDTH, 0, HEIGHT], origin='lower', cmap='Reds', alpha=0.5, vmin=0.0, vmax=additional_frame.max())
 
     # Add colorbars
     primary_cbar = fig.colorbar(primary_im, ax=ax[0])
@@ -182,24 +178,36 @@ def load_and_animate_agents_and_multiple_heatmaps(json_file_path, primary_heatma
         for i, scatter in enumerate(zip(primary_scatters, additional_scatters)):
             scatter[0].set_data([position_matrix[i][0][0]], [position_matrix[i][0][1]])
             scatter[1].set_data([position_matrix[i][0][0]], [position_matrix[i][0][1]])
-        primary_im.set_data(primary_grid[0])
-        additional_im.set_data(additional_grid[0])
+        primary_im.set_data(primary_frame)
+        additional_im.set_data(additional_frame)
         return [primary_scatters, additional_scatters] + [primary_im, additional_im]
 
     # Animation update function
     def update(frame):
+        primary_frame = np.zeros((N, N))
+        additional_frame = np.zeros((N, N))
+        file_path = os.path.join(primary_heatmap_folder, f'{single_file_name1}_{frame}.txt')
+        with open(file_path, 'r') as f:
+            matrix = np.transpose(np.loadtxt(f))
+            primary_frame = matrix        
+
+        file_path = os.path.join(additional_heatmap_folder, f'{single_file_name2}_{frame}.txt')
+        with open(file_path, 'r') as f:
+            matrix = np.transpose(np.loadtxt(f))
+            additional_frame = matrix
+
         for i, scatter in enumerate(zip(primary_scatters, additional_scatters)):
             scatter[0].set_data([position_matrix[i][frame][0]], [position_matrix[i][frame][1]])
             scatter[1].set_data([position_matrix[i][frame][0]], [position_matrix[i][frame][1]])
-        primary_im.set_data(primary_grid[frame])
-        additional_im.set_data(additional_grid[frame])
+        primary_im.set_data(primary_frame)
+        additional_im.set_data(additional_frame)
         return [primary_scatters, additional_scatters] + [primary_im, additional_im]
 
     # Create the animation
     anim = animation.FuncAnimation(
         fig, update, init_func=init, frames=timesteps, blit=False
     )
-    anim.save('animation.mp4', writer='ffmpeg', fps=15)
+    anim.save('animation.mp4', writer='ffmpeg', fps=1)
 
 
 # Main execution
