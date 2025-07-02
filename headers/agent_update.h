@@ -202,25 +202,25 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         // apply boundary conditions
         if (dx + agents[id].x >= WIDTH){
             dx = WIDTH - agents[id].x;
-            if (dy >= 0) dy = sqrt(new_speed * new_speed - dx * dx);
-            else dy = - sqrt(new_speed * new_speed - dx * dx);
+            if (dy >= 0) dy = min(sqrt(new_speed * new_speed - dx * dx), HEIGHT - agents[id].y);
+            else dy = - min(sqrt(new_speed * new_speed - dx * dx), agents[id].y);
             
         }
         else if (dx + agents[id].x < 0){
             dx = -agents[id].x;
-            if (dy >= 0) dy = sqrt(new_speed * new_speed - dx * dx);
-            else dy = - sqrt(new_speed * new_speed - dx * dx);            
+            if (dy >= 0) dy = min(sqrt(new_speed * new_speed - dx * dx), HEIGHT - agents[id].y);
+            else dy = - min(sqrt(new_speed * new_speed - dx * dx), agents[id].y);            
         }
 
         if (dy + agents[id].y >= HEIGHT){
             dy = HEIGHT - agents[id].y;
-            if (dx >= 0) dx = sqrt(new_speed * new_speed - dy * dy);
-            else dx = - sqrt(new_speed * new_speed - dy * dy);
+            if (dx >= 0) dx = min(sqrt(new_speed * new_speed - dy * dy), WIDTH - agents[id].x);
+            else dx = - min(sqrt(new_speed * new_speed - dy * dy), agents[id].x);
         }
         else if (dy + agents[id].y < 0){
             dy = -agents[id].y;
-            if (dx >= 0) dx = sqrt(new_speed * new_speed - dy * dy);
-            else dx = - sqrt(new_speed * new_speed - dy * dy);            
+            if (dx >= 0) dx = min(sqrt(new_speed * new_speed - dy * dy), WIDTH - agents[id].x);
+            else dx = - min(sqrt(new_speed * new_speed - dy * dy), agents[id].x);            
         }
 
         agents[id].previous_potential = sensed_potential;
