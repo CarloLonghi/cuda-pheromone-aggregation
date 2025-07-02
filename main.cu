@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     float odour_strength;
     float* attractive_pheromone, * repulsive_pheromone, * h_attractive_pheromone = new float[N * N];
     float* h_repulsive_pheromone = new float[N * N], * h_potential = new float[N * N], * potential;
-    int worm_count = WORM_COUNT, * agent_count_grid, * agent_count_delay;
+    int worm_count = WORM_COUNT, * agent_count_grid;
     int * h_agent_count_grid = new int[N * N];
     float k = 0;
     int log_worms_data = 0;
@@ -136,7 +136,6 @@ int main(int argc, char* argv[]) {
 
     //initialize the agent count grid
     cudaMalloc(&agent_count_grid, N*N*sizeof(int));
-    cudaMalloc(&agent_count_delay, PHEROMONE_DELAY*N*N*sizeof(int));
     initAgentDensityGrid<<<gridSize, blockSize>>>(agent_count_grid, d_agents, worm_count);
 
     cudaError_t err = cudaGetLastError();
@@ -186,7 +185,7 @@ int main(int argc, char* argv[]) {
         //cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(int), cudaMemcpyDeviceToHost);
 
         //update all grids
-        updateGrids<<<gridSize, blockSize>>>(attractive_pheromone, repulsive_pheromone, agent_count_grid, agent_count_delay, worm_count, d_agents,
+        updateGrids<<<gridSize, blockSize>>>(attractive_pheromone, repulsive_pheromone, agent_count_grid, worm_count, d_agents,
         attractant_pheromone_diffusion_rate, attractant_pheromone_decay_rate, attractant_pheromone_secretion_rate,
         repulsive_pheromone_diffusion_rate, repulsive_pheromone_decay_rate, repulsive_pheromone_secretion_rate);
         err = cudaGetLastError();
@@ -353,7 +352,6 @@ int main(int argc, char* argv[]) {
     cudaFree(attractive_pheromone);
     cudaFree(repulsive_pheromone);
     cudaFree(agent_count_grid);
-    cudaFree(agent_count_delay);
     delete[] h_agents;
     delete[] h_potential;
     delete[] h_attractive_pheromone;

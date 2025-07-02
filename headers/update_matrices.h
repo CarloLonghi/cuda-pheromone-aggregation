@@ -10,7 +10,7 @@
 #include <cmath>
 
 //CUDA kernel to update all the grids (except the potential and the agent count grid)
-__global__ void updateGrids(float* attractive_pheromone, float* repulsive_pheromone, int* agent_count_grid, int* agent_count_delay, 
+__global__ void updateGrids(float* attractive_pheromone, float* repulsive_pheromone, int* agent_count_grid, 
                             int worm_count, Agent* agents, float attractant_pheromone_diffusion_rate, float attractant_pheromone_decay_rate,
                             float attractant_pheromone_secretion_rate, float repulsive_pheromone_diffusion_rate,
                             float repulsive_pheromone_decay_rate, float repulsive_pheromone_secretion_rate){
@@ -32,13 +32,13 @@ __global__ void updateGrids(float* attractive_pheromone, float* repulsive_pherom
         //laplacian_value = fourth_order_laplacian(attractive_pheromone, i, j);
         float new_attractive_pheromone, laplacian_attractive_pheromone = fourth_order_laplacian(attractive_pheromone, i, j);
         float new_repulsive_pheromone, laplacian_repulsive_pheromone = fourth_order_laplacian(repulsive_pheromone, i, j);
-        if(agent_count_delay[(PHEROMONE_DELAY - 1) * N*N + i * N + j] == 0){
+        if(agent_count_grid[i * N + j] == 0){
             new_attractive_pheromone =  attractive_pheromone[i * N + j] + DT * (attractant_pheromone_diffusion_rate * laplacian_attractive_pheromone - attractant_pheromone_decay_rate * attractive_pheromone[i * N + j]);
             new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (repulsive_pheromone_diffusion_rate * laplacian_repulsive_pheromone - repulsive_pheromone_decay_rate * repulsive_pheromone[i * N + j]);
         }
         else {
-            new_attractive_pheromone = attractive_pheromone[i * N + j] + DT * (attractant_pheromone_diffusion_rate * laplacian_attractive_pheromone - attractant_pheromone_decay_rate * attractive_pheromone[i * N + j] + attractant_pheromone_secretion_rate * agent_count_delay[(PHEROMONE_DELAY - 1) * N*N + i * N + j] / (DX * DX));
-            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (repulsive_pheromone_diffusion_rate * laplacian_repulsive_pheromone - repulsive_pheromone_decay_rate * repulsive_pheromone[i * N + j] + repulsive_pheromone_secretion_rate * agent_count_delay[(PHEROMONE_DELAY - 1) * N*N + i * N + j] / (DX * DX));
+            new_attractive_pheromone = attractive_pheromone[i * N + j] + DT * (attractant_pheromone_diffusion_rate * laplacian_attractive_pheromone - attractant_pheromone_decay_rate * attractive_pheromone[i * N + j] + attractant_pheromone_secretion_rate * agent_count_grid[i * N + j] / (DX * DX));
+            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (repulsive_pheromone_diffusion_rate * laplacian_repulsive_pheromone - repulsive_pheromone_decay_rate * repulsive_pheromone[i * N + j] + repulsive_pheromone_secretion_rate * agent_count_grid[i * N + j] / (DX * DX));
         }
         if (new_attractive_pheromone < 0) new_attractive_pheromone = 0.0f;
         if (new_attractive_pheromone > MAX_CONCENTRATION) new_attractive_pheromone = MAX_CONCENTRATION;
@@ -62,12 +62,6 @@ __global__ void updateGrids(float* attractive_pheromone, float* repulsive_pherom
             printf("Laplacian value %f\n", laplacian_repulsive_pheromone);
             printf("Old repulsive pheromone %f\n", repulsive_pheromone[i * N + j]);
         }
-
-        // update agent_count_delay
-        for (int t = PHEROMONE_DELAY - 1; t > 0; --t){
-            agent_count_delay[t * N*N + i * N + j] = agent_count_delay[(t - 1) * N*N + i * N + j];
-        }
-        agent_count_delay[i * N + j] =  agent_count_grid[i * N + j];
     }
 }
 
