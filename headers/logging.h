@@ -194,7 +194,7 @@ void saveAllDataToJSON(const char* filename, float* positions, Agent* agents, in
                                {"N",                N},
                                {"WORM_COUNT",       WORM_COUNT},
                                {"LOGGING_INTERVAL", LOGGING_INTERVAL},
-                               {"N_STEPS",          N_STEPS},
+                               {"TIME",          TIME},
                                {"SENSING_RADIUS",   SENSING_RADIUS},
                                {"SPEED",            SPEED},
                                {"PHEROMONE_THRESHOLD",   PHEROMONE_THRESHOLD},
