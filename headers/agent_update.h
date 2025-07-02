@@ -77,10 +77,8 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
 
-        float max_concentration_x = 0.0;
-        float max_concentration_y = 0.0;
         int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DY);
-        float sensed_potential = potential[agent_x * N + agent_y];//potential[agent_x * N + agent_y];
+        float sensed_potential = potential[agent_x * N + agent_y] + curand_normal(&states[id]) * SENSING_NOISE;//potential[agent_x * N + agent_y];
         //sensed_potential = ATTRACTION_STRENGTH * logf(sensed_potential + ATTRACTION_SCALE);
         //add a small perceptual noise to the potential
         if(sigma!=0.0f){
@@ -90,37 +88,28 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
             sensed_potential += perceptual_noise;
         }
 
-        float max_concentration = sensed_potential;
-        //printf("Sensed potential: %f\n", sensed_potential);
-        for (int i = 0; i < 32; ++i) {
-            float angle = curand_uniform(&states[id]) * 2 * M_PI;
-            int sample_x = agents[id].x + SENSING_RADIUS * cosf(angle);
-            int sample_y = agents[id].y + SENSING_RADIUS * sinf(angle);
-            if (sample_x >= WIDTH){
-                sample_x = WIDTH - 1;
-            }
-            if (sample_x < 0){
-                sample_x = 0;
-            }
-            if (sample_y >= HEIGHT){
-                sample_y = HEIGHT - 1;
-            }
-            if (sample_y < 0){
-                sample_y = 0;
-            }            
-            float concentration = potential[(int)round(sample_x / DX) * N + (int)round(sample_y / DY)];
-            // Add perceptual noise if sigma is not zero
-            if (sigma != 0.0f) {
-                concentration += curand_normal(&states[id]) * sigma;
-            }
-            //concentration = ATTRACTION_STRENGTH * logf(concentration + ATTRACTION_SCALE);
+        // compute tumble rate
+        int tail_x = (int)round((agents[id].x - 0.1 * cosf(agents[id].angle)) / DX);
+        int tail_y = (int)round((agents[id].y - 0.1 * sinf(agents[id].angle)) / DY);
+        float tail_potential = potential[tail_x * N + tail_y] + curand_normal(&states[id]) * SENSING_NOISE;
+        // float dp = sensed_potential - agents[id].previous_potential;
+        float dp = sensed_potential - tail_potential;
+        float r = 1 / (1 + exp(100 * (dp + k)));
+        // r = 0.032256911591854065; // to reproduce videos of N2 diffusion
 
-            if (abs(concentration) > abs(max_concentration)) {
-                max_concentration = concentration;
-                max_concentration_x = cosf(angle);
-                max_concentration_y = sinf(angle);
-            }
+        float fx, fy;
+        float p = curand_uniform(&states[id]);
+        if (p < r){
+            float random_angle = curand_uniform(&states[id]) * M_PI * 2;
+            agents[id].angle = random_angle;
         }
+
+        if(agents[id].angle>2 * M_PI || agents[id].angle<-2 * M_PI){
+            agents[id].angle = fmodf(agents[id].angle, 2*M_PI);
+        }
+
+        fx = cosf(agents[id].angle);
+        fy = sinf(agents[id].angle);
 
         // find neighbors alignment angle
         int num_neighbors = 0;

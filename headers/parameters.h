@@ -1,21 +1,20 @@
 // config.h
 
 // Environmental variables
-#define OPTIMISING true
-#define N 256
-#define WIDTH 60.0f
-#define HEIGHT 60.0f
+#define N 1024
+#define WIDTH 50.0f
+#define HEIGHT 50.0f
 #define SEED 1234
 // Simulation parameters
-#define WORM_COUNT 300
-#define MAX_WORMS 300
-#define TIME 1000
+#define WORM_COUNT 200
+#define MAX_WORMS 200
+#define TIME 600
 #define DT 0.1f
 #define N_STEPS int(TIME / DT)
 #define LOGGING_INTERVAL int(1 / DT)
 #define DEBUG false
 #define ENABLE_RANDOM_INITIAL_POSITIONS false
-#define INITIAL_AREA_SIZE 10.0f
+#define INITIAL_AREA_SIZE 5.0f
 #define ENABLE_MAXIMUM_NUMBER_OF_AGENTS_PER_CELL true
 #define MAXIMUM_AGENTS_PER_CELL 40
 #define LOG_POTENTIAL false
@@ -26,14 +25,15 @@
 #define LOG_POSITIONS true
 #define LOG_ANGLES false
 #define LOG_VELOCITIES false
-#define PHEROMONE_DELAY int(10 / DT)
 
 // Agent parameters
 
 #define N_STATES 7
 
+// body length = 0.5f
+
 #define SENSING_RADIUS 0.1f
-#define SPEED 0.1f * DT
+#define SPEED 0.15f
 #define PHEROMONE_THRESHOLD 0.00001
 #define MAX_CONCENTRATION 1.0 // of the pheromone
 
@@ -41,13 +41,14 @@
 #define ALIGNMENT_STRENGTH 0.05f
 
 // Descriptor parameters
-#define CLUSTERING_RADIUS 0.5f
-#define NEIGHBOR_RADIUS 1.0f
-#define MSD_WINDOW 10
+#define CLUSTERING_RADIUS 1.0f
+#define NEIGHBOR_RADIUS 0.5f
+#define MSD_WINDOW 50
 
 // Noise parameters
 #define SIGMA 1e-8f
 #define ENVIRONMENTAL_NOISE 0.0f
+#define SENSING_NOISE 0.01f // 0.01
 
 // Odour parameters
 #define MU_X 5.0f      // Mean x of the Gaussian
