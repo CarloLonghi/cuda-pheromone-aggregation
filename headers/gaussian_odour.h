@@ -51,14 +51,11 @@ __device__ float computeDensityAtPoint(float x, float y, float t) {
     }
 
     // Compute the Gaussian density value at (x, y)
+    float rt = 20*60*60 + t;
     float dx = x - MU_X;
     float dy = y - MU_Y;
-    float a_t = A * expf(-GAMMA * t * DT);
-    float sigma_x_t = SIGMA_X + 2 * DIFFUSION_CONSTANT * t * DT;
-    float sigma_y_t = SIGMA_Y + 2 * DIFFUSION_CONSTANT * t * DT;
-    float density = ODOUR_MAX_CONCENTRATION * a_t * expf(-0.5f * ((dx * dx) / (sigma_x_t * sigma_x_t) + (dy * dy) / (sigma_y_t * sigma_y_t)));
-    //fix to a time-static value
-    //density = ODOUR_MAX_CONCENTRATION * expf(-0.5f * ((dx * dx) / (SIGMA_X * SIGMA_X) + (dy * dy) / (SIGMA_Y * SIGMA_Y)));
+    float r = dx*dx + dy*dy;
+    float density = pow(10, 6) * 0.2 / (4 * M_PI * 2.64 * DIFFUSION_CONSTANT * rt) * expf(-r/(4 * DIFFUSION_CONSTANT * rt));
     return density;
 }
 #endif //UNTITLED_GAUSSIAN_ODOUR_H
