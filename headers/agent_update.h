@@ -73,7 +73,7 @@ __device__ int select_next_state(float* probabilities, curandState* local_state,
 
 // CUDA kernel to update the position of each agent
 __global__ void moveAgents(Agent* agents, curandState* states,  float* potential, /*int* agent_count_grid,*/ int worm_count, int timestep,
-    float sigma, float k) {
+    float sigma, float align_strength, float slow_factor, int slow_nc) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
 
@@ -89,12 +89,11 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         }
 
         // compute tumble rate
-        int tail_x = (int)round((agents[id].x - 0.1 * cosf(agents[id].angle)) / DX);
-        int tail_y = (int)round((agents[id].y - 0.1 * sinf(agents[id].angle)) / DY);
+        int tail_x = (int)round((agents[id].x - BODY_LENGTH * cosf(agents[id].angle)) / DX);
+        int tail_y = (int)round((agents[id].y - BODY_LENGTH * sinf(agents[id].angle)) / DY);
         float tail_potential = potential[tail_x * N + tail_y] + curand_normal(&states[id]) * SENSING_NOISE;
-        // float dp = sensed_potential - agents[id].previous_potential;
         float dp = sensed_potential - tail_potential;
-        float r = 1 / (1 + exp(100 * (dp + k)));
+        float r = (1 / (1 + expf(dp * 100 + 0.3699060651715053))) * 0.03 + 0.02;
         // r = 0.032256911591854065; // to reproduce videos of N2 diffusion
 
         float fx, fy;
@@ -113,7 +112,7 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
 
         // find neighbors alignment angle
         int num_neighbors = 0;
-        float align_x = 0, align_y = 0, anglediff;
+        float angle_x = 0, angle_y = 0;
         for (int i = 0; i < WORM_COUNT; ++i){
             if (i != id){
                 float diffx = agents[id].x - agents[i].x;
@@ -121,78 +120,25 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
                 float dist = sqrt(diffx * diffx + diffy * diffy);
                 if (dist < ALIGNMENT_RADIUS){
                     num_neighbors += 1;
-                    anglediff = agents[id].angle - agents[i].angle;
-                    if (anglediff > M_PI){
-                        anglediff = 2 * M_PI - anglediff;
-                    }
-                    else if (anglediff < - M_PI)
-                    {
-                        anglediff = 2 * M_PI + anglediff;
-                    }
-                    align_x += cosf(anglediff);
-                    align_y += sinf(anglediff);
+                    angle_x += cos(agents[i].angle);
+                    angle_y += sin(agents[i].angle);
                 }
             }
         }
-        align_x /= num_neighbors;
-        align_y /= num_neighbors;
+        float sum_length = sqrt(angle_x*angle_x + angle_y*angle_y) / num_neighbors;
 
-        float fx, fy, new_angle;
-        // float mu, kappa;
-        // mu = curand_uniform(&states[id]) * 2 * M_PI;
-        // kappa = 7;
-        // scale = explorationState->speed_scale;
-        // shape = explorationState->speed_spread;
-        //float random_angle = curand_normal(&states[id]) * M_PI/4;//sample_from_von_mises(mu, kappa, &states[id]);//wrapped_cauchy(0.0, 0.6, &states[id]);////
-
-        float random_angle = sample_from_von_mises(agents[id].angle, k, &states[id]);
-        new_angle = random_angle;
-
-        if (abs(max_concentration)>=PHEROMONE_THRESHOLD && (max_concentration_x!=0 && max_concentration_y!=0) ) {
-            // Brownian Motion
-            float norm = sqrt(max_concentration_x * max_concentration_x + max_concentration_y * max_concentration_y);
-            float direction_x = max_concentration_x / norm;
-            float direction_y = max_concentration_y / norm;
-            float bias = atan2(direction_y, direction_x);
-
-            if(bias-new_angle>=0){
-                if(bias-new_angle>=M_PI){
-                    bias = -M_PI / 4;
-                }
-                else{
-                    bias = M_PI / 4;
-                }
-            }else{
-                if(bias-new_angle<-M_PI){
-                    bias = M_PI / 4;
-                }
-
-                else{
-                    bias = -M_PI / 4;
-                }
-            }
-            new_angle += bias;
-        }
-
-        agents[id].angle = new_angle;
-
-        if(agents[id].angle>2 * M_PI || agents[id].angle<-2 * M_PI){
-            agents[id].angle = fmodf(agents[id].angle, 2*M_PI);
-        }
-
-        fx = cosf(agents[id].angle);
-        fy = sinf(agents[id].angle);
+        float new_speed = SPEED;
 
         if (num_neighbors > 0){
-            fx += align_x * ALIGNMENT_STRENGTH;
-            fy += align_y * ALIGNMENT_STRENGTH;
-        }
+            fx = fx + (1 - (align_strength * sum_length)) + (angle_x / num_neighbors) * (align_strength * sum_length);
+            fy = fy + (1 - (align_strength * sum_length)) + (angle_y / num_neighbors) * (align_strength * sum_length);;
+            new_speed /= 1 + (slow_factor  * (1 - sum_length) * (min(slow_nc, num_neighbors) / slow_nc));
+        }        
 
         float norm = sqrt(fx * fx + fy * fy);
         fx = fx / norm;
         fy = fy / norm;
 
-        float new_speed = SPEED;
         //float new_speed = curand_log_normal(&states[id], logf(scale), shape);
         //while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
         //printf("New Speed: %f with scale %f and shape %f\n", new_speed, scale, shape);

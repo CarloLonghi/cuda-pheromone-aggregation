@@ -30,25 +30,26 @@
 
 #define N_STATES 7
 
-// body length = 0.5f
+#define BODY_LENGTH 0.5f
 
 #define SENSING_RADIUS 0.1f
 #define SPEED 0.15f
-#define PHEROMONE_THRESHOLD 0.00001
+#define PHEROMONE_THRESHOLD 0.0
 #define MAX_CONCENTRATION 1.0 // of the pheromone
 
-#define ALIGNMENT_RADIUS 0.05f
-#define ALIGNMENT_STRENGTH 0.05f
+#define ALIGNMENT_RADIUS BODY_LENGTH
+#define ALIGNMENT_STRENGTH 0.05f // 0.05f
+#define SLOWING_FACTOR 5.0f // 20.0f
 
 // Descriptor parameters
-#define CLUSTERING_RADIUS 1.0f
+#define CLUSTERING_RADIUS 2 * BODY_LENGTH
 #define NEIGHBOR_RADIUS 0.5f
 #define MSD_WINDOW 50
 
 // Noise parameters
 #define SIGMA 1e-8f
 #define ENVIRONMENTAL_NOISE 0.0f
-#define SENSING_NOISE 0.01f // 0.01
+#define SENSING_NOISE 0.00f // 0.01
 
 // Odour parameters
 #define MU_X 5.0f      // Mean x of the Gaussian

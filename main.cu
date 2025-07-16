@@ -92,10 +92,11 @@ int main(int argc, char* argv[]) {
     float* h_repulsive_pheromone = new float[N * N], * h_potential = new float[N * N], * potential;
     int worm_count = WORM_COUNT, * agent_count_grid;
     int * h_agent_count_grid = new int[N * N];
-    float k = 0;
     int log_worms_data = 0;
+    float align_strength, slow_factor;
+    int slow_nc;
 
-    if (argc - 1 == 11){
+    if (argc - 1 == 13){
         attractant_pheromone_strength = std::stof(argv[1]);
         attractant_pheromone_secretion_rate = std::stof(argv[2]);
         attractant_pheromone_decay_rate = std::stof(argv[3]);        
@@ -105,8 +106,10 @@ int main(int argc, char* argv[]) {
         repulsive_pheromone_decay_rate = std::stof(argv[7]);
         repulsive_pheromone_diffusion_rate = std::stof(argv[8]);
         odour_strength = std::stof(argv[9]);
-        k = std::stof(argv[10]);
-        log_worms_data = std::stoi(argv[11]);
+        align_strength = std::stof(argv[10]);
+        slow_factor = std::stof(argv[11]);
+        slow_nc = std::stoi(argv[12]);
+        log_worms_data = std::stoi(argv[13]);
     }
     else{
         std::cout << "The number of parameters is incorrect, it should be 11 but is " << argc - 1 << std::endl;
