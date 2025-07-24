@@ -93,8 +93,59 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         int tail_y = (int)round((agents[id].y - BODY_LENGTH * sinf(agents[id].angle)) / DY);
         float tail_potential = potential[tail_x * N + tail_y] + curand_normal(&states[id]) * SENSING_NOISE;
         float dp = sensed_potential - tail_potential;
-        float r = (1 / (1 + expf(dp * 100 + 0.3699060651715053))) * 0.03 + 0.02;
-        // r = 0.032256911591854065; // to reproduce videos of N2 diffusion
+        float r = (1 / (1 + expf(dp * 100 + 0.3699060651715053))) * 0.006 + 0.002;
+        // float r = 0.0032256911591854065; // to reproduce videos of N2 diffusion
+
+        // find neighbors alignment angle
+        int num_neighbors = 0, na = 0;
+        float angle_x = 0, angle_y = 0;
+        float attr_x = 0, attr_y = 0, rep_x = 0, rep_y = 0, angle_diff = 0, align_x = 0, align_y = 0;
+        for (int i = 0; i < WORM_COUNT; ++i){
+            if (i != id){
+                float diffx = agents[id].x - agents[i].x;
+                float diffy = agents[id].y - agents[i].y;
+                float dist = sqrt(diffx * diffx + diffy * diffy);
+                if (dist < ALIGNMENT_RADIUS){
+                    num_neighbors += 1;
+                    if (sin(agents[i].angle) > 0){
+                        angle_x += cos(agents[i].angle);
+                        angle_y += sin(agents[i].angle);
+                    }
+                    else{
+                        angle_x += -cos(agents[i].angle);
+                        angle_y += -sin(agents[i].angle);
+                    }
+
+                    if (dist < REPULSION_RADIUS){
+                        rep_x += 0.1 * (dist - REPULSION_RADIUS) * (agents[i].x - agents[id].x) / dist;
+                        rep_y += 0.1 * (dist - REPULSION_RADIUS) * (agents[i].y - agents[id].y) / dist;
+                    }
+                    if (REPULSION_RADIUS <= dist & dist < ALIGNMENT_RADIUS){
+                        attr_x += (0.00002 / dist) * (agents[i].x - agents[id].x) / dist;
+                        attr_y += (0.00002 / dist) * (agents[i].y - agents[id].y) / dist;
+
+                        na += 1;
+                        angle_diff = agents[i].angle - agents[id].angle;
+                        if (angle_diff > (M_PI / 2) & angle_diff < M_PI) {
+                            align_x += cos(agents[i].angle - M_PI);
+                            align_y += sin(agents[i].angle - M_PI);
+                        }
+                        else if (angle_diff < (-M_PI / 2) & angle_diff > (-M_PI)) {
+                            align_x += cos(agents[i].angle + M_PI);
+                            align_y += sin(agents[i].angle + M_PI);
+                        }
+                        else {
+                            align_x += cos(agents[i].angle);
+                            align_y += sin(agents[i].angle);
+                        }                        
+                    }
+                }
+            }
+        }
+        if (na > 0){
+            align_x /= na;
+            align_y /= na;
+        }
 
         float fx, fy;
         float p = curand_uniform(&states[id]);
@@ -110,34 +161,21 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         fx = cosf(agents[id].angle);
         fy = sinf(agents[id].angle);
 
-        // find neighbors alignment angle
-        int num_neighbors = 0;
-        float angle_x = 0, angle_y = 0;
-        for (int i = 0; i < WORM_COUNT; ++i){
-            if (i != id){
-                float diffx = agents[id].x - agents[i].x;
-                float diffy = agents[id].y - agents[i].y;
-                float dist = sqrt(diffx * diffx + diffy * diffy);
-                if (dist < ALIGNMENT_RADIUS){
-                    num_neighbors += 1;
-                    angle_x += cos(agents[i].angle);
-                    angle_y += sin(agents[i].angle);
-                }
-            }
-        }
         float sum_length = sqrt(angle_x*angle_x + angle_y*angle_y) / num_neighbors;
 
-        float new_speed = SPEED;
-
         if (num_neighbors > 0){
-            fx = fx + (1 - (align_strength * sum_length)) + (angle_x / num_neighbors) * (align_strength * sum_length);
-            fy = fy + (1 - (align_strength * sum_length)) + (angle_y / num_neighbors) * (align_strength * sum_length);;
-            new_speed /= 1 + (slow_factor  * (1 - sum_length) * (min(slow_nc, num_neighbors) / slow_nc));
+            fx += align_x * (align_strength * sum_length) + attr_x + rep_x;
+            fy += align_y * (align_strength * sum_length) + attr_y + rep_y;    
         }        
 
         float norm = sqrt(fx * fx + fy * fy);
         fx = fx / norm;
         fy = fy / norm;
+
+        float new_speed = SPEED;
+        if (num_neighbors > 0){
+            new_speed /= 1 + (slow_factor  * (1 - sum_length) * (min(slow_nc, num_neighbors) / slow_nc));
+        }
 
         //float new_speed = curand_log_normal(&states[id], logf(scale), shape);
         //while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
@@ -168,6 +206,11 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
             if (dx >= 0) dx = min(sqrt(new_speed * new_speed - dy * dy), WIDTH - agents[id].x);
             else dx = - min(sqrt(new_speed * new_speed - dy * dy), agents[id].x);            
         }
+
+        agents[id].angle = atan2(fy, fx);
+        if(agents[id].angle>2 * M_PI || agents[id].angle<-2 * M_PI){
+            agents[id].angle = fmodf(agents[id].angle, 2*M_PI);
+        }        
 
         agents[id].previous_potential = sensed_potential;
         agents[id].x += dx;

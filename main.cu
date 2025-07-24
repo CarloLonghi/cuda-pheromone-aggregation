@@ -185,6 +185,27 @@ int main(int argc, char* argv[]) {
             printf("CUDA error in updateGrids: %s\n", cudaGetErrorString(err));
         }
 
+        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma, align_strength, slow_factor, slow_nc);
+        // Check for errors in the kernel launch
+        cudaError_t err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            printf("CUDA error: %s\n", cudaGetErrorString(err));
+        }
+        cudaDeviceSynchronize();
+
+        // Copy data from device to host
+        cudaMemcpy(h_agents, d_agents, size, cudaMemcpyDeviceToHost);
+        //cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(int), cudaMemcpyDeviceToHost);
+
+        //update potential
+        updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, attractant_pheromone_strength, repulsive_pheromone, repulsive_pheromone_strength, odour_strength, d_states_grids, environmental_noise, i);
+        err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
+        }
+        cudaDeviceSynchronize();
+        cudaMemcpy(h_potential, potential, N * N * sizeof(float), cudaMemcpyDeviceToHost);        
+
         cudaDeviceSynchronize();
         // copy data from device to host
         cudaMemcpy(h_attractive_pheromone, attractive_pheromone, N * N * sizeof(float), cudaMemcpyDeviceToHost);
@@ -217,27 +238,6 @@ int main(int argc, char* argv[]) {
         }
         // Save positions to JSON every LOGGING_INTERVAL steps
         if (i % LOGGING_INTERVAL == 0) {
-            
-            moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states,  potential, /*agent_count_grid,*/ worm_count, i, sigma, k);
-            // Check for errors in the kernel launch
-            cudaError_t err = cudaGetLastError();
-            if (err != cudaSuccess) {
-                printf("CUDA error: %s\n", cudaGetErrorString(err));
-            }
-            cudaDeviceSynchronize();
-
-            // Copy data from device to host
-            cudaMemcpy(h_agents, d_agents, size, cudaMemcpyDeviceToHost);
-            //cudaMemcpy(h_agent_count_grid, agent_count_grid, N * N * sizeof(int), cudaMemcpyDeviceToHost);
-
-            //update potential
-            updatePotential<<<gridSize, blockSize>>>(potential, attractive_pheromone, attractant_pheromone_strength, repulsive_pheromone, repulsive_pheromone_strength, odour_strength, d_states_grids, environmental_noise, i);
-            err = cudaGetLastError();
-            if (err != cudaSuccess) {
-                printf("CUDA error in updatePotential: %s\n", cudaGetErrorString(err));
-            }
-            cudaDeviceSynchronize();
-            cudaMemcpy(h_potential, potential, N * N * sizeof(float), cudaMemcpyDeviceToHost);
 
             int t = (int)(i / LOGGING_INTERVAL);
             // Store positions
