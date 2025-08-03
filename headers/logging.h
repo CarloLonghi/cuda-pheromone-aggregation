@@ -92,10 +92,10 @@ void saveGridToJSON(const char* filename, float* h_grid, int worm_count) {
         initialized = true;
     }
 
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
+    for (int i = 0; i < NN; ++i) {
+        for (int j = 0; j < NN; ++j) {
             //use (i, j) as the key for the JSON object
-            log[std::to_string(i)+","+std::to_string(j)].push_back({h_grid[i * N + j]});
+            log[std::to_string(i)+","+std::to_string(j)].push_back({h_grid[i * NN + j]});
         }
     }
 
@@ -191,13 +191,11 @@ void saveAllDataToJSON(const char* filename, float* positions, Agent* agents, in
     json_data["inside_area"] = nlohmann::json::array();
     json_data["parameters"] = {{"WIDTH",            WIDTH},
                                {"HEIGHT",           HEIGHT},
-                               {"N",                N},
+                               {"N",                NN},
                                {"WORM_COUNT",       WORM_COUNT},
                                {"LOGGING_INTERVAL", LOGGING_INTERVAL},
                                {"TIME",          TIME},
-                               {"SENSING_RADIUS",   SENSING_RADIUS},
                                {"SPEED",            SPEED},
-                               {"PHEROMONE_THRESHOLD",   PHEROMONE_THRESHOLD},
                                {"MAX_CONCENTRATION",    MAX_CONCENTRATION}};
     for (int i = 0; i < worm_count; ++i) {
         nlohmann::json agent_data;

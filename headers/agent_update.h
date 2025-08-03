@@ -9,6 +9,7 @@
 #include <limits>
 #include <cmath>
 #include "numeric_functions.h"
+
 // Function to sample from a von Mises distribution
 __device__ float sample_from_von_mises(float mu, float kappa, curandState* state) {
     // Handle kappa = 0 (uniform distribution)
@@ -51,34 +52,23 @@ __device__ float sample_from_von_mises(float mu, float kappa, curandState* state
     }
 }
 
-__device__ int select_next_state(float* probabilities, curandState* local_state, int num_states) {
-    // Generate a random value between 0 and 1
-    float random_val = curand_uniform(local_state);
+__device__ int2 getGridCell(float2 pos) {
+    return make_int2(floor(pos.x / CELL_SIZE),
+                    floor(pos.y / CELL_SIZE));
+}
 
-    // Cumulative probability tracking
-    float cumulative_prob = 0.0f;
-
-    // Iterate through probabilities to select state
-    for (int i = 0; i < num_states; i++) {
-        cumulative_prob += probabilities[i];
-        // If random value is less than cumulative probability, select this state
-        if (random_val <= cumulative_prob) {
-            return i;
-        }
-    }
-    printf("Error: No state selected\n");
-    // Fallback to last state if no state is selected (should rarely happen)
-    return num_states - 1;
+__device__ unsigned int flattenCellIndex(int2 cell) {
+    return cell.x * GRID_DIM_X + cell.y;
 }
 
 // CUDA kernel to update the position of each agent
-__global__ void moveAgents(Agent* agents, curandState* states,  float* potential, /*int* agent_count_grid,*/ int worm_count, int timestep,
-    float sigma, float align_strength, float slow_factor, int slow_nc) {
+__global__ void moveAgents(Agent* agents, curandState* states, int* cellStart, int* cellEnd,  float* potential,
+     /*int* agent_count_grid,*/ int worm_count, int timestep, float sigma, float align_strength, float slow_factor, int slow_nc) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
 
         int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DY);
-        float sensed_potential = potential[agent_x * N + agent_y] + curand_normal(&states[id]) * SENSING_NOISE;//potential[agent_x * N + agent_y];
+        float sensed_potential = potential[agent_x * NN+ agent_y] + curand_normal(&states[id]) * SENSING_NOISE;//potential[agent_x *+ agent_y];
         //sensed_potential = ATTRACTION_STRENGTH * logf(sensed_potential + ATTRACTION_SCALE);
         //add a small perceptual noise to the potential
         if(sigma!=0.0f){
@@ -91,53 +81,72 @@ __global__ void moveAgents(Agent* agents, curandState* states,  float* potential
         // compute tumble rate
         int tail_x = (int)round((agents[id].x - BODY_LENGTH * cosf(agents[id].angle)) / DX);
         int tail_y = (int)round((agents[id].y - BODY_LENGTH * sinf(agents[id].angle)) / DY);
-        float tail_potential = potential[tail_x * N + tail_y] + curand_normal(&states[id]) * SENSING_NOISE;
+        float tail_potential = potential[tail_x * NN + tail_y] + curand_normal(&states[id]) * SENSING_NOISE;
         float dp = sensed_potential - tail_potential;
         float r = (1 / (1 + expf(dp * 100 + 0.3699060651715053))) * 0.006 + 0.002;
         // float r = 0.0032256911591854065; // to reproduce videos of N2 diffusion
 
-        // find neighbors alignment angle
         int num_neighbors = 0, na = 0;
         float angle_x = 0, angle_y = 0;
-        float attr_x = 0, attr_y = 0, rep_x = 0, rep_y = 0, angle_diff = 0, align_x = 0, align_y = 0;
-        for (int i = 0; i < WORM_COUNT; ++i){
-            if (i != id){
-                float diffx = agents[id].x - agents[i].x;
-                float diffy = agents[id].y - agents[i].y;
-                float dist = sqrt(diffx * diffx + diffy * diffy);
-                if (dist < ALIGNMENT_RADIUS){
-                    num_neighbors += 1;
-                    if (sin(agents[i].angle) > 0){
-                        angle_x += cos(agents[i].angle);
-                        angle_y += sin(agents[i].angle);
-                    }
-                    else{
-                        angle_x += -cos(agents[i].angle);
-                        angle_y += -sin(agents[i].angle);
-                    }
+        float attr_x = 0, attr_y = 0, rep_x = 0, rep_y = 0, angle_diff = 0, align_x = 0, align_y = 0; 
 
-                    if (dist < REPULSION_RADIUS){
-                        rep_x += 0.1 * (dist - REPULSION_RADIUS) * (agents[i].x - agents[id].x) / dist;
-                        rep_y += 0.1 * (dist - REPULSION_RADIUS) * (agents[i].y - agents[id].y) / dist;
-                    }
-                    if (REPULSION_RADIUS <= dist & dist < ALIGNMENT_RADIUS){
-                        attr_x += (0.00002 / dist) * (agents[i].x - agents[id].x) / dist;
-                        attr_y += (0.00002 / dist) * (agents[i].y - agents[id].y) / dist;
+        int2 cell = getGridCell(make_float2(agents[id].x, agents[id].y));
+        for(int y = -1; y <= 1; y++) {
+            for(int x = -1; x <= 1; x++) {
+                int2 neighborCell = make_int2(cell.x + x, cell.y + y);
+                
+                // Skip if cell is outside simulation bounds
+                if (neighborCell.x >= 0 & neighborCell.y >= 0 &
+                    neighborCell.x < GRID_DIM_X & neighborCell.y < GRID_DIM_Y){
 
-                        na += 1;
-                        angle_diff = agents[i].angle - agents[id].angle;
-                        if (angle_diff > (M_PI / 2) & angle_diff < M_PI) {
-                            align_x += cos(agents[i].angle - M_PI);
-                            align_y += sin(agents[i].angle - M_PI);
+                    unsigned int neighborHash = flattenCellIndex(neighborCell);
+                    
+                    // Get start and end index for this cell
+                    int startIdx = cellStart[neighborHash];
+                    int endIdx = cellEnd[neighborHash];                   
+
+                    // Iterate through all particles in this cell
+                    for(int j = startIdx; j < endIdx; j++) {
+                        if (j != id) {  // Skip self-interaction
+                            float diffx = agents[id].x - agents[j].x;
+                            float diffy = agents[id].y - agents[j].y;
+                            float dist = sqrt(diffx * diffx + diffy * diffy);
+                            if (dist < ALIGNMENT_RADIUS){
+                                num_neighbors += 1;
+                                if (sin(agents[j].angle) > 0){
+                                    angle_x += cos(agents[j].angle);
+                                    angle_y += sin(agents[j].angle);
+                                }
+                                else{
+                                    angle_x += -cos(agents[j].angle);
+                                    angle_y += -sin(agents[j].angle);
+                                }
+
+                                if (dist < REPULSION_RADIUS){
+                                    rep_x += 0.1 * (dist - REPULSION_RADIUS) * (agents[j].x - agents[id].x) / dist;
+                                    rep_y += 0.1 * (dist - REPULSION_RADIUS) * (agents[j].y - agents[id].y) / dist;
+                                }
+                                if (REPULSION_RADIUS <= dist & dist < ALIGNMENT_RADIUS){
+                                    attr_x += (0.00002 / dist) * (agents[j].x - agents[id].x) / dist;
+                                    attr_y += (0.00002 / dist) * (agents[j].y - agents[id].y) / dist;
+
+                                    na += 1;
+                                    angle_diff = agents[j].angle - agents[id].angle;
+                                    if (angle_diff > (M_PI / 2) & angle_diff < M_PI) {
+                                        align_x += cos(agents[j].angle - M_PI);
+                                        align_y += sin(agents[j].angle - M_PI);
+                                    }
+                                    else if (angle_diff < (-M_PI / 2) & angle_diff > (-M_PI)) {
+                                        align_x += cos(agents[j].angle + M_PI);
+                                        align_y += sin(agents[j].angle + M_PI);
+                                    }
+                                    else {
+                                        align_x += cos(agents[j].angle);
+                                        align_y += sin(agents[j].angle);
+                                    }                        
+                                }
+                            }
                         }
-                        else if (angle_diff < (-M_PI / 2) & angle_diff > (-M_PI)) {
-                            align_x += cos(agents[i].angle + M_PI);
-                            align_y += sin(agents[i].angle + M_PI);
-                        }
-                        else {
-                            align_x += cos(agents[i].angle);
-                            align_y += sin(agents[i].angle);
-                        }                        
                     }
                 }
             }

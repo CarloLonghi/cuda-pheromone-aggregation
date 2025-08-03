@@ -1,7 +1,7 @@
 // config.h
 
 // Environmental variables
-#define N 1024
+#define NN 1024
 #define WIDTH 50.0f
 #define HEIGHT 50.0f
 #define SEED 1234
@@ -34,10 +34,10 @@
 #define MAX_CONCENTRATION 1.0 // of the pheromone
 
 #define ALIGNMENT_RADIUS BODY_LENGTH
-#define REPULSION_RADIUS BODY_LENGTH * 0.2
+#define REPULSION_RADIUS (BODY_LENGTH * 0.2)
 
 // Descriptor parameters
-#define CLUSTERING_RADIUS 2 * BODY_LENGTH
+#define CLUSTERING_RADIUS (2 * BODY_LENGTH)
 #define NEIGHBOR_RADIUS 0.5f
 #define MSD_WINDOW 50
 
@@ -49,7 +49,6 @@
 // Odour parameters
 #define MU_X 5.0f      // Mean x of the Gaussian
 #define MU_Y 25.0f      // Mean y of the Gaussian
-#define A 0.5f         // Amplitude of the Gaussian
 #define SIGMA_X 5.0f   // Standard deviation in x direction
 #define SIGMA_Y 5.0f   // Standard deviation in y direction
 #define TARGET_AREA_SIDE_LENGTH 40
@@ -60,5 +59,9 @@
 // CUDA parameters
 #define BLOCK_SIZE 32
 
-__constant__ float DX = WIDTH/N;
-__constant__ float DY = HEIGHT/N;
+#define CELL_SIZE  (2.0f * ALIGNMENT_RADIUS)  // Size should be ≥ interaction range
+#define GRID_DIM_X (int)ceil(WIDTH / CELL_SIZE)
+#define GRID_DIM_Y (int)ceil(HEIGHT / CELL_SIZE)
+
+__constant__ float DX = WIDTH/NN;
+__constant__ float DY = HEIGHT/NN;

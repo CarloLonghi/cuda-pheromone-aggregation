@@ -255,18 +255,18 @@ __global__ void initAttractiveAndRepulsivePheromoneGrid(float* attractive_pherom
                                                     int* agent_density_grid) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if (i < N && j < N) {
-        if(agent_density_grid[i * N + j] == 0){
-            attractive_pheromone[i * N + j] = 0.0f;
-            repulsive_pheromone[i * N + j] = 0.0f;
+    if (i < NN && j < NN) {
+        if(agent_density_grid[i * NN + j] == 0){
+            attractive_pheromone[i * NN + j] = 0.0f;
+            repulsive_pheromone[i * NN + j] = 0.0f;
         }
         else {
-            attractive_pheromone[i * N + j] = attractive_pheromone_secretion_rate * attractive_pheromone_decay_rate *
-                                              (float) agent_density_grid[i * N + j] / (DX * DX);
-            repulsive_pheromone[i * N + j] = repulsive_pheromone_secretion_rate * repulsive_pheromone_decay_rate *
-                                             (float) agent_density_grid[i * N + j] / (DX * DX);
+            attractive_pheromone[i * NN + j] = attractive_pheromone_secretion_rate * attractive_pheromone_decay_rate *
+                                              (float) agent_density_grid[i * NN + j] / (DX * DX);
+            repulsive_pheromone[i * NN + j] = repulsive_pheromone_secretion_rate * repulsive_pheromone_decay_rate *
+                                             (float) agent_density_grid[i * NN + j] / (DX * DX);
         }
-        //printf("Repulsive pheromone at (%d, %d): %f\n", i, j, repulsive_pheromone[i * N + j]);
+        //printf("Repulsive pheromone at (%d, %d): %f\n", i, j, repulsive_pheromone[i * NN + j]);
     }
 }
 
@@ -274,14 +274,14 @@ __global__ void initAttractiveAndRepulsivePheromoneGrid(float* attractive_pherom
 __global__ void initAgentDensityGrid(int* agent_count_grid, Agent* agents, int worm_count){
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if (i < N && j < N) {
-        agent_count_grid[i * N + j] = 0;
+    if (i < NN && j < NN) {
+        agent_count_grid[i * NN + j] = 0;
         for (int k = 0; k < worm_count; ++k) {
             int agent_x = (int)round(agents[k].x / DX);
             int agent_y = (int)round(agents[k].y / DY);
             if (agent_x == i && agent_y == j) {
                 // printf("Agent at (%d, %d)\n", i, j);
-                agent_count_grid[i * N + j] += 1;
+                agent_count_grid[i * NN + j] += 1;
             }
         }
     }

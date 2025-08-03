@@ -22,11 +22,11 @@ __device__ float wrapped_cauchy(float mu, float sigma, curandState* state){
 __device__ float gradientX(float* grid, int i, int j) {
     // Periodic boundary conditions
     int leftIndex = i - 1;
-    if (leftIndex < 0) leftIndex += N;
+    if (leftIndex < 0) leftIndex += NN;
     int rightIndex = i + 1;
-    if (rightIndex >= N) rightIndex -= N;
-    float left = grid[leftIndex * N + j];
-    float right = grid[rightIndex * N + j];
+    if (rightIndex >= NN) rightIndex -= NN;
+    float left = grid[leftIndex * NN + j];
+    float right = grid[rightIndex * NN + j];
 
     return (right - left) / (2.0f * DX);  // Central difference
 }
@@ -34,30 +34,30 @@ __device__ float gradientX(float* grid, int i, int j) {
 // Function to compute the gradient in the Y direction (partial derivative)
 __device__ float gradientY(float* grid, int i, int j) {
     int downIndex = j - 1;
-    if (downIndex < 0) downIndex += N;
+    if (downIndex < 0) downIndex += NN;
     int upIndex = j + 1;
-    if (upIndex >= N) upIndex -= N;
-    float down = grid[i * N + downIndex];
-    float up = grid[i * N + upIndex];
+    if (upIndex >= NN) upIndex -= NN;
+    float down = grid[i * NN + downIndex];
+    float up = grid[i * NN + upIndex];
 
     return (up - down) / (2.0f * DX);  // Central difference
 }
 
 // Function to compute the Laplacian (second derivative)
 __device__ float laplacian(float* grid, int i, int j) {
-    float center = grid[i * N + j];
+    float center = grid[i * NN + j];
     int leftIndex = i - 1;
-    if (leftIndex < 0) leftIndex += N;
+    if (leftIndex < 0) leftIndex += NN;
     int rightIndex = i + 1;
-    if (rightIndex >= N) rightIndex -= N;
+    if (rightIndex >= NN) rightIndex -= NN;
     int downIndex = j - 1;
-    if (downIndex < 0) downIndex += N;
+    if (downIndex < 0) downIndex += NN;
     int upIndex = j + 1;
-    if (upIndex >= N) upIndex -= N;
-    float left = grid[leftIndex * N + j];
-    float right = grid[rightIndex * N + j];
-    float down = grid[i * N + downIndex];
-    float up = grid[i * N + upIndex];
+    if (upIndex >= NN) upIndex -= NN;
+    float left = grid[leftIndex * NN + j];
+    float right = grid[rightIndex * NN + j];
+    float down = grid[i * NN + downIndex];
+    float up = grid[i * NN + upIndex];
 
     float laplacian = (left + right + up + down - 4.0f * center) / (DX * DX);
     if (isnan(laplacian) || isinf(laplacian)) {
@@ -73,24 +73,24 @@ __device__ float laplacian(float* grid, int i, int j) {
 
 // function to compute the 4th order laplacian
 __device__ float fourth_order_laplacian(float* input, int i, int j){
-    int im2 = (i - 2 + N) % N;
-    int im1 = (i - 1 + N) % N;
-    int ip1 = (i + 1) % N;
-    int ip2 = (i + 2) % N;
+    int im2 = (i - 2 + NN) % NN;
+    int im1 = (i - 1 + NN) % NN;
+    int ip1 = (i + 1) % NN;
+    int ip2 = (i + 2) % NN;
 
-    int jm2 = (j - 2 + N) % N;
-    int jm1 = (j - 1 + N) % N;
-    int jp1 = (j + 1) % N;
-    int jp2 = (j + 2) % N;
+    int jm2 = (j - 2 + NN) % NN;
+    int jm1 = (j - 1 + NN) % NN;
+    int jp1 = (j + 1) % NN;
+    int jp2 = (j + 2) % NN;
 
-    float laplacianX = (-input[im2 * N + j] + 16 * input[im1 * N + j] - 30 * input[i * N + j]
-                        + 16 * input[ip1 * N + j] - input[ip2 * N + j]) / (12 * DX * DX);
+    float laplacianX = (-input[im2 * NN + j] + 16 * input[im1 * NN + j] - 30 * input[i * NN + j]
+                        + 16 * input[ip1 * NN + j] - input[ip2 * NN + j]) / (12 * DX * DX);
 
-    float laplacianY = (-input[i * N + jm2] + 16 * input[i * N + jm1] - 30 * input[i * N + j]
-                        + 16 * input[i * N + jp1] - input[i * N + jp2]) /  (12 * DX * DX);
+    float laplacianY = (-input[i * NN + jm2] + 16 * input[i * NN + jm1] - 30 * input[i * NN + j]
+                        + 16 * input[i * NN + jp1] - input[i * NN + jp2]) /  (12 * DX * DX);
 
     float laplacian = laplacianX + laplacianY;
-    if (i == 0 || i == N || j == 0 || j == N || i == 1 || i == N - 1 || j == 1 || j == N - 1){
+    if (i == 0 || i == NN || j == 0 || j == NN || i == 1 || i == NN - 1 || j == 1 || j == NN - 1){
         laplacian = 0;
     }
 

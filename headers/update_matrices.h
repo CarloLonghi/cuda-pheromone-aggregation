@@ -16,15 +16,15 @@ __global__ void updateGrids(float* attractive_pheromone, float* repulsive_pherom
                             float repulsive_pheromone_decay_rate, float repulsive_pheromone_secretion_rate){
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if (i < N && j < N && i>=0 && j>=0) {
+    if (i < NN && j < NN && i>=0 && j>=0) {
         // update agent_count_grid
-        agent_count_grid[i * N + j] = 0;
+        agent_count_grid[i * NN + j] = 0;
         for (int k = 0; k < worm_count; ++k) {
             int agent_x = (int)round(agents[k].x / DX);
             int agent_y = (int)round(agents[k].y / DY);
             if (agent_x == i && agent_y == j) {
                 // printf("Agent at (%d, %d)\n", i, j);
-                agent_count_grid[i * N + j] += 1;
+                agent_count_grid[i * NN + j] += 1;
             }
         }
 
@@ -69,19 +69,19 @@ __global__ void updateGrids(float* attractive_pheromone, float* repulsive_pherom
 __global__ void updatePotential(float* potential, float* attractive_pheromone, float attractive_pheromone_strengths, float* repulsive_pheromone, float repulsive_pheromone_strength, float odour_strength, curandState* states, float environmental_noise, int timestep) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
-    if (i < N && j < N) {
+    if (i < NN && j < NN) {
         float potential_attractive_pheromone=0.0f, potential_repulsive_pheromone = 0.0f, potential_odour = 0.0f;
         //
-        potential_attractive_pheromone = attractive_pheromone_strengths * attractive_pheromone[i * N + j];// / (ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * N + j]);
+        potential_attractive_pheromone = attractive_pheromone_strengths * attractive_pheromone[i * NN + j];// / (ATTRACTANT_PHEROMONE_SCALE + attractive_pheromone[i * NN + j]);
 
-        potential_repulsive_pheromone = -repulsive_pheromone_strength * repulsive_pheromone[i * N + j];// / (REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * N + j]);
+        potential_repulsive_pheromone = -repulsive_pheromone_strength * repulsive_pheromone[i * NN + j];// / (REPULSIVE_PHEROMONE_SCALE + repulsive_pheromone[i * NN + j]);
 
         potential_odour = odour_strength * computeDensityAtPoint(i * DX, j * DY, timestep);
 
-        float noise = curand_normal(&states[i * N + j]) * environmental_noise;
+        float noise = curand_normal(&states[i * NN + j]) * environmental_noise;
         if(noise>environmental_noise) noise = environmental_noise;
         if(noise<-environmental_noise) noise = -environmental_noise;
-        potential[i * N + j] = potential_attractive_pheromone + potential_repulsive_pheromone + potential_odour + noise;
+        potential[i * NN + j] = potential_attractive_pheromone + potential_repulsive_pheromone + potential_odour + noise;
 
     }
 }
