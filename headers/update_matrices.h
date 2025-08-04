@@ -32,35 +32,35 @@ __global__ void updateGrids(float* attractive_pheromone, float* repulsive_pherom
         //laplacian_value = fourth_order_laplacian(attractive_pheromone, i, j);
         float new_attractive_pheromone, laplacian_attractive_pheromone = fourth_order_laplacian(attractive_pheromone, i, j);
         float new_repulsive_pheromone, laplacian_repulsive_pheromone = fourth_order_laplacian(repulsive_pheromone, i, j);
-        if(agent_count_grid[i * N + j] == 0){
-            new_attractive_pheromone =  attractive_pheromone[i * N + j] + DT * (attractant_pheromone_diffusion_rate * laplacian_attractive_pheromone - attractant_pheromone_decay_rate * attractive_pheromone[i * N + j]);
-            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (repulsive_pheromone_diffusion_rate * laplacian_repulsive_pheromone - repulsive_pheromone_decay_rate * repulsive_pheromone[i * N + j]);
+        if(agent_count_grid[i * NN + j] == 0){
+            new_attractive_pheromone =  attractive_pheromone[i * NN + j] + DT * (attractant_pheromone_diffusion_rate * laplacian_attractive_pheromone - attractant_pheromone_decay_rate * attractive_pheromone[i * NN + j]);
+            new_repulsive_pheromone = repulsive_pheromone[i * NN + j] + DT * (repulsive_pheromone_diffusion_rate * laplacian_repulsive_pheromone - repulsive_pheromone_decay_rate * repulsive_pheromone[i * NN + j]);
         }
         else {
-            new_attractive_pheromone = attractive_pheromone[i * N + j] + DT * (attractant_pheromone_diffusion_rate * laplacian_attractive_pheromone - attractant_pheromone_decay_rate * attractive_pheromone[i * N + j] + attractant_pheromone_secretion_rate * agent_count_grid[i * N + j] / (DX * DX));
-            new_repulsive_pheromone = repulsive_pheromone[i * N + j] + DT * (repulsive_pheromone_diffusion_rate * laplacian_repulsive_pheromone - repulsive_pheromone_decay_rate * repulsive_pheromone[i * N + j] + repulsive_pheromone_secretion_rate * agent_count_grid[i * N + j] / (DX * DX));
+            new_attractive_pheromone = attractive_pheromone[i * NN + j] + DT * (attractant_pheromone_diffusion_rate * laplacian_attractive_pheromone - attractant_pheromone_decay_rate * attractive_pheromone[i * NN + j] + attractant_pheromone_secretion_rate * agent_count_grid[i * NN + j] / (DX * DX));
+            new_repulsive_pheromone = repulsive_pheromone[i * NN + j] + DT * (repulsive_pheromone_diffusion_rate * laplacian_repulsive_pheromone - repulsive_pheromone_decay_rate * repulsive_pheromone[i * NN + j] + repulsive_pheromone_secretion_rate * agent_count_grid[i * NN + j] / (DX * DX));
         }
         if (new_attractive_pheromone < 0) new_attractive_pheromone = 0.0f;
         if (new_attractive_pheromone > MAX_CONCENTRATION) new_attractive_pheromone = MAX_CONCENTRATION;
-        attractive_pheromone[i * N + j] = new_attractive_pheromone;
+        attractive_pheromone[i * NN + j] = new_attractive_pheromone;
 
         if(isnan(new_attractive_pheromone) || isinf(new_attractive_pheromone)){
             printf("Invalid attractive pheromone %f at (%d, %d)\n", new_attractive_pheromone, i, j);
             printf("Laplacian value %f\n", laplacian_attractive_pheromone);
-            printf("Old attractive pheromone %f\n", attractive_pheromone[i * N + j]);
+            printf("Old attractive pheromone %f\n", attractive_pheromone[i * NN + j]);
         }
 
         //update repulsive pheromone
-        //printf("Repulsive pheromone at (%d, %d): %f\n", i, j, repulsive_pheromone[i * N + j]);
+        //printf("Repulsive pheromone at (%d, %d): %f\n", i, j, repulsive_pheromone[i * NN + j]);
 
         if (new_repulsive_pheromone < 0) new_repulsive_pheromone = 0.0f;
         if (new_repulsive_pheromone > MAX_CONCENTRATION) new_repulsive_pheromone = MAX_CONCENTRATION;
-        repulsive_pheromone[i * N + j] = new_repulsive_pheromone;
+        repulsive_pheromone[i * NN + j] = new_repulsive_pheromone;
 
         if(isnan(new_repulsive_pheromone) || isinf(new_repulsive_pheromone)){
             printf("Invalid repulsive pheromone %f at (%d, %d)\n", new_repulsive_pheromone, i, j);
             printf("Laplacian value %f\n", laplacian_repulsive_pheromone);
-            printf("Old repulsive pheromone %f\n", repulsive_pheromone[i * N + j]);
+            printf("Old repulsive pheromone %f\n", repulsive_pheromone[i * NN + j]);
         }
     }
 }

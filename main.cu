@@ -14,11 +14,11 @@
 #include <thrust/device_ptr.h>
 
 // Function to perform DFS traversal
-void dfs(bool adjMatrix[MAX_WORMS][MAX_WORMS], bool visited[MAX_WORMS], int node, int cluster[], int *size) {
+void dfs(bool adjMatrix[WORM_COUNT][WORM_COUNT], bool visited[WORM_COUNT], int node, int cluster[], int *size) {
     visited[node] = true;
     cluster[(*size)++] = node;
     
-    for (int i = 0; i < MAX_WORMS; i++) {
+    for (int i = 0; i < WORM_COUNT; i++) {
         if (adjMatrix[node][i] && !visited[i]) {
             dfs(adjMatrix, visited, i, cluster, size);
         }
@@ -26,13 +26,13 @@ void dfs(bool adjMatrix[MAX_WORMS][MAX_WORMS], bool visited[MAX_WORMS], int node
 }
 
 // Function to find and print clusters
-int find_clusters(bool adjMatrix[MAX_WORMS][MAX_WORMS]) {
-    bool visited[MAX_WORMS] = {false};
+int find_clusters(bool adjMatrix[WORM_COUNT][WORM_COUNT]) {
+    bool visited[WORM_COUNT] = {false};
     int biggest_size = 0;
     
-    for (int i = 0; i < MAX_WORMS; i++) {
+    for (int i = 0; i < WORM_COUNT; i++) {
         if (!visited[i]) {
-            int cluster[MAX_WORMS]; // Temporary storage for cluster elements
+            int cluster[WORM_COUNT]; // Temporary storage for cluster elements
             int size = 0;
             
             dfs(adjMatrix, visited, i, cluster, &size);
@@ -53,10 +53,10 @@ int get_adjacency_matrix(bool* adjacency_matrix, int worm_count, float* position
             diff_y = (positions[(t * worm_count + j) * 2 + 1] - positions[(t * worm_count + k) * 2 + 1]);
             dist = sqrt(diff_x * diff_x + diff_y * diff_y);
             if (dist <= r){
-                adjacency_matrix[j*MAX_WORMS + k] = true;
+                adjacency_matrix[j*WORM_COUNT + k] = true;
             }
             else{
-                adjacency_matrix[j*MAX_WORMS + k] = false;
+                adjacency_matrix[j*WORM_COUNT + k] = false;
             }
         }
     }
@@ -64,9 +64,9 @@ int get_adjacency_matrix(bool* adjacency_matrix, int worm_count, float* position
 }
 
 int reset_matrix(bool* adjacency_matrix){
-    for (int i = 0; i < MAX_WORMS; ++i){
-        for (int j = 0; j < MAX_WORMS; ++j){
-            adjacency_matrix[i*MAX_WORMS + j] = false;
+    for (int i = 0; i < WORM_COUNT; ++i){
+        for (int j = 0; j < WORM_COUNT; ++j){
+            adjacency_matrix[i*WORM_COUNT + j] = false;
         }
     }
     return 0;
@@ -95,7 +95,7 @@ __global__ void computeCellIndices(Agent* agents, int* cellIndices, int worm_cou
 __global__ void buildGrid(Agent* agents, int* cellIndices, 
                         int* cellStart, int* cellEnd, int num_agents) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < MAX_WORMS){
+    if (idx < WORM_COUNT){
 
         // Special case for first particle
         if (idx == 0) {
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     int worm_count = WORM_COUNT, * agent_count_grid;
     int * h_agent_count_grid = new int[NN * NN];
     int log_worms_data = 0;
-    float *angles = new float[MAX_WORMS * TIME];
+    float *angles = new float[WORM_COUNT * TIME];
     float align_strength, slow_factor;
     int slow_nc;
 
@@ -334,7 +334,7 @@ int main(int argc, char* argv[]) {
 
     // track clusters
     // float cluster_size = 0;
-    // bool adjacency_matrix[MAX_WORMS][MAX_WORMS] = {false};
+    // bool adjacency_matrix[WORM_COUNT][WORM_COUNT] = {false};
     // for (int i = 0; i < TIME; ++i){
     //     reset_matrix(adjacency_matrix);
     //     get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, CLUSTERING_RADIUS);
@@ -343,8 +343,8 @@ int main(int argc, char* argv[]) {
     // cluster_size /= TIME;
 
     // // compute worm density
-    // //bool adjacency_matrix[MAX_WORMS][MAX_WORMS] = {false};
-    // bool* adjacency_matrix = (bool*)malloc(MAX_WORMS * MAX_WORMS * sizeof(bool));
+    // //bool adjacency_matrix[WORM_COUNT][WORM_COUNT] = {false};
+    // bool* adjacency_matrix = (bool*)malloc(WORM_COUNT * WORM_COUNT * sizeof(bool));
     // int neighbor_count = 0, nc;
     // float angle_x = 0, angle_y = 0, dir_mag = 0, dm = 0, avg_nc = 0, avg_dm = 0;
     // for (int t = 60; t < TIME; ++t){
@@ -358,7 +358,7 @@ int main(int argc, char* argv[]) {
     //         nc = 0;
     //         for (int k = 0; k < worm_count; ++k){
     //             // if (adjacency_matrix[j][k] == true && j != k){
-    //             if (adjacency_matrix[j*MAX_WORMS + k] == true && j != k){
+    //             if (adjacency_matrix[j*WORM_COUNT + k] == true && j != k){
     //                 nc += 1;
     //                 angle_x += cos(angles[t * worm_count + k]);
     //                 angle_y += sin(angles[t * worm_count + k]);
