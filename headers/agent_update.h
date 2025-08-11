@@ -163,10 +163,6 @@ __global__ void moveAgents(Agent* agents, curandState* states, int* cellStart, i
             agents[id].angle = random_angle;
         }
 
-        if(agents[id].angle>2 * M_PI || agents[id].angle<-2 * M_PI){
-            agents[id].angle = fmodf(agents[id].angle, 2*M_PI);
-        }
-
         fx = cosf(agents[id].angle);
         fy = sinf(agents[id].angle);
 
@@ -219,7 +215,8 @@ __global__ void moveAgents(Agent* agents, curandState* states, int* cellStart, i
         agents[id].angle = atan2(fy, fx);
         if(agents[id].angle>2 * M_PI || agents[id].angle<-2 * M_PI){
             agents[id].angle = fmodf(agents[id].angle, 2*M_PI);
-        }        
+        }
+        if(agents[id].angle < 0) agents[id].angle += 2 * M_PI;      
 
         agents[id].previous_potential = sensed_potential;
         agents[id].x += dx;

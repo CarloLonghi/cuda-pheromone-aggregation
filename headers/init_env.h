@@ -30,7 +30,7 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
             agents[id].y = HEIGHT / 2 + sin(angle) * curand_uniform(&states[id]) * INITIAL_AREA_SIZE;           
         }
         //generate angle in the range [-pi, pi]
-        agents[id].angle =(2.0f * curand_uniform(&states[id]) - 1.0f) * M_PI;
+        agents[id].angle =(2.0f * curand_uniform(&states[id])) * M_PI;
         agents[id].speed = SPEED;
         agents[id].previous_potential = 0.0f;
         agents[id].cumulative_potential = 0.0f;
