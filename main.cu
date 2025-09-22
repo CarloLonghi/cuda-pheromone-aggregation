@@ -12,6 +12,44 @@
 #include <stdbool.h>
 #include <thrust/sort.h>
 #include <thrust/device_ptr.h>
+#include "Eigen/Dense"
+#include <vector>
+
+using namespace Eigen;
+
+std::vector<Vector2d> convert1DArrayTo2DVector(float* data, int num_points) {
+    std::vector<Vector2d> points;
+    points.reserve(num_points);
+    
+    for (int i = 0; i < num_points; ++i) {
+        double x = data[2 * i];      // x coordinate
+        double y = data[2 * i + 1];  // y coordinate
+        points.emplace_back(x, y);
+    }
+    
+    return points;
+}
+
+Matrix2d computeCovariance(const std::vector<Vector2d>& points) {
+    if (points.empty()) return Matrix2d::Zero();
+    
+    // Compute mean
+    Vector2d mean = Vector2d::Zero();
+    for (const auto& p : points) {
+        mean += p;
+    }
+    mean /= points.size();
+    
+    // Compute covariance
+    Matrix2d cov = Matrix2d::Zero();
+    for (const auto& p : points) {
+        Vector2d diff = p - mean;
+        cov += diff * diff.transpose();
+    }
+    cov /= (points.size() - 1);  // Sample covariance
+    
+    return cov;
+}
 
 // Function to perform DFS traversal
 void dfs(bool *adjMatrix, bool visited[WORM_COUNT], int node, int cluster[], int *size) {
@@ -440,7 +478,55 @@ int main(int argc, char* argv[]) {
     // }
     // mean_dist /= worm_count;
 
-    // std::cout << mean_dist << " " << avg_nc << " " << avg_dm << std::endl;
+    // float* last_pos = new float[worm_count * 2];
+    // for (int i = 0; i < worm_count; i++){
+    //     last_pos[i * 2] = positions[((TIME - 1) * worm_count + i) * 2];
+    //     last_pos[i * 2 + 1] = positions[((TIME - 1) * worm_count + i) * 2 + 1];
+    // }
+
+    // float elong = 0, tot_n = 0;
+    // for (int i = 0; i < worm_count; i++){
+    //     int * neighbors = new int[worm_count];
+    //     int nn = 0;
+    //     for (int j = 0; j < worm_count; j++){
+    //         if (i != j){
+    //             float dx = last_pos[j * 2] - last_pos[i * 2];
+    //             float dy = last_pos[j * 2 + 1] - last_pos[i * 2 + 1];
+    //             float dist = sqrt(dx * dx + dy * dy);
+    //             if (dist < ARM_RANGE){
+    //                 neighbors[nn] = j;
+    //                 nn += 1;
+    //             }
+    //         }
+    //     }
+    //     if (nn > 10) {
+    //         float *npos = new float[nn * 2];
+    //         for (int n = 0; n < nn; n++){
+    //             npos[n * 2] = last_pos[neighbors[n] * 2];
+    //             npos[n * 2 + 1] = last_pos[neighbors[n] * 2 + 1];
+    //         }
+    //         std::vector<Vector2d> points = convert1DArrayTo2DVector(npos, nn);
+    //         Matrix2d cov = computeCovariance(points);
+    //         SelfAdjointEigenSolver<Matrix2d> solver(cov);
+    //         Vector2d eigenvalues = solver.eigenvalues();
+    //         if (eigenvalues[0] > eigenvalues[1] & eigenvalues[1] > 0) elong += nn * (eigenvalues[0] / eigenvalues[1]);
+    //         else if (eigenvalues[0] > 0) elong += nn * (eigenvalues[1] / eigenvalues[0]);  
+
+    //         tot_n += nn;
+    //     }    
+    // }
+    // elong /= (worm_count + tot_n);
+
+    // // std::vector<Vector2d> points = convert1DArrayTo2DVector(last_pos, worm_count);
+
+    // // // Compute covariance matrix
+    // // Matrix2d cov = computeCovariance(points);
+    
+    // // // Compute eigenvalues
+    // // SelfAdjointEigenSolver<Matrix2d> solver(cov);
+    // // Vector2d eigenvalues = solver.eigenvalues();
+    
+    // std::cout << cluster_size << " " << time_averaged_msd << " " << elong << std::endl;
 
     // free(adjacency_matrix);
 
