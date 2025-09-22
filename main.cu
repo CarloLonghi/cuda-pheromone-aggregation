@@ -14,19 +14,19 @@
 #include <thrust/device_ptr.h>
 
 // Function to perform DFS traversal
-void dfs(bool adjMatrix[WORM_COUNT][WORM_COUNT], bool visited[WORM_COUNT], int node, int cluster[], int *size) {
+void dfs(bool *adjMatrix, bool visited[WORM_COUNT], int node, int cluster[], int *size) {
     visited[node] = true;
     cluster[(*size)++] = node;
     
     for (int i = 0; i < WORM_COUNT; i++) {
-        if (adjMatrix[node][i] && !visited[i]) {
+        if (adjMatrix[node*WORM_COUNT + i] && !visited[i]) {
             dfs(adjMatrix, visited, i, cluster, size);
         }
     }
 }
 
 // Function to find and print clusters
-int find_clusters(bool adjMatrix[WORM_COUNT][WORM_COUNT]) {
+int find_clusters(bool *adjMatrix) {
     bool visited[WORM_COUNT] = {false};
     int biggest_size = 0;
     
@@ -334,13 +334,13 @@ int main(int argc, char* argv[]) {
 
     // track clusters
     // float cluster_size = 0;
-    // bool adjacency_matrix[WORM_COUNT][WORM_COUNT] = {false};
-    // for (int i = 0; i < TIME; ++i){
+    // bool* adjacency_matrix = (bool*)malloc(WORM_COUNT * WORM_COUNT * sizeof(bool));
+    // for (int i = 0; i < TIME; i += MSD_WINDOW){
     //     reset_matrix(adjacency_matrix);
     //     get_adjacency_matrix(adjacency_matrix, worm_count, positions, i, CLUSTERING_RADIUS);
     //     cluster_size += find_clusters(adjacency_matrix);
     // }
-    // cluster_size /= TIME;
+    // cluster_size /= TIME / MSD_WINDOW;
 
     // // compute worm density
     // //bool adjacency_matrix[WORM_COUNT][WORM_COUNT] = {false};
