@@ -181,11 +181,10 @@ int main(int argc, char* argv[]) {
     int worm_count = WORM_COUNT, * agent_count_grid;
     int * h_agent_count_grid = new int[NN * NN];
     int log_worms_data = 0;
+    float align_strength, slow_factor, attr_strength, rep_strength;
     float *angles = new float[WORM_COUNT * TIME];
-    float align_strength, slow_factor;
-    int slow_nc;
 
-    if (argc - 1 == 13){
+    if (argc - 1 == 14){
         attractant_pheromone_strength = std::stof(argv[1]);
         attractant_pheromone_secretion_rate = std::stof(argv[2]);
         attractant_pheromone_decay_rate = std::stof(argv[3]);        
@@ -197,11 +196,12 @@ int main(int argc, char* argv[]) {
         odour_strength = std::stof(argv[9]);
         align_strength = std::stof(argv[10]);
         slow_factor = std::stof(argv[11]);
-        slow_nc = std::stoi(argv[12]);
-        log_worms_data = std::stoi(argv[13]);
+        attr_strength = std::stof(argv[12]);
+        rep_strength = std::stof(argv[13]);
+        log_worms_data = std::stoi(argv[14]);
     }
     else{
-        std::cout << "The number of parameters is incorrect, it should be 11 but is " << argc - 1 << std::endl;
+        std::cout << "The number of parameters is incorrect, it should be 14 but is " << argc - 1 << std::endl;
         return 1;
     }
 
@@ -227,11 +227,6 @@ int main(int argc, char* argv[]) {
     dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE);
 
     int grid_dim = GRID_DIM_X * GRID_DIM_Y;
-
-    int* cellStart, *cellEnd, *cellIndices;
-    cudaMalloc(&cellStart, grid_dim * sizeof(int));
-    cudaMalloc(&cellEnd, grid_dim * sizeof(int));
-    cudaMalloc(&cellIndices, worm_count * sizeof(int));
 
     //initialize the agent count grid
     cudaMalloc(&agent_count_grid, NN*NN*sizeof(int));
@@ -279,13 +274,7 @@ int main(int argc, char* argv[]) {
             printf("CUDA error in updateGrids: %s\n", cudaGetErrorString(err));
         }
 
-        cudaMemset(cellStart, 0, grid_dim * sizeof(int));
-        cudaMemset(cellEnd, 0, grid_dim * sizeof(int));
-        computeCellIndices<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, cellIndices, worm_count, CELL_SIZE);
-        sortParticlesByCell(d_agents, cellIndices, worm_count);
-        buildGrid<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, cellIndices, cellStart, cellEnd, worm_count);
-
-        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states, cellStart, cellEnd, potential, /*agent_count_grid,*/ worm_count, i, sigma, align_strength, slow_factor, slow_nc);
+        moveAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states, potential, /*agent_count_grid,*/ worm_count, i, sigma, align_strength, slow_factor, attr_strength, rep_strength);
         // Check for errors in the kernel launch
         cudaError_t err = cudaGetLastError();
         if (err != cudaSuccess) {

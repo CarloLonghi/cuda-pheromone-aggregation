@@ -33,12 +33,12 @@
 // Descriptor parameters
 #define CLUSTERING_RADIUS (2 * BODY_LENGTH)
 #define NEIGHBOR_RADIUS 0.5f
-#define MSD_WINDOW 50
+#define MSD_WINDOW 10
+#define ARM_RANGE (BODY_LENGTH * 2.0)
 
 // Noise parameters
-#define SIGMA 1e-8f
-#define ENVIRONMENTAL_NOISE 0.0f
-#define SENSING_NOISE 0.00f // 0.01
+#define SIGMA 0.1f
+#define ENVIRONMENTAL_NOISE 1.0f
 
 // Odour parameters
 #define MU_X 5.0f      // Mean x of the Gaussian
@@ -47,10 +47,6 @@
 
 // CUDA parameters
 #define BLOCK_SIZE 32
-
-#define CELL_SIZE  (2.0f * ALIGNMENT_RADIUS)  // Size should be ≥ interaction range
-#define GRID_DIM_X (int)ceil(WIDTH / CELL_SIZE)
-#define GRID_DIM_Y (int)ceil(HEIGHT / CELL_SIZE)
 
 __constant__ float DX = WIDTH/NN;
 __constant__ float DY = HEIGHT/NN;
