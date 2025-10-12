@@ -19,15 +19,16 @@ struct Agent {
 __global__ void initAgents(Agent* agents, curandState* states, unsigned long seed, int worm_count) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
-        curand_init(seed, id, 0, &states[id]);
+        curand_init(seed + id, id, 0, &states[id]);
         if (ENABLE_RANDOM_INITIAL_POSITIONS) {
             agents[id].x = curand_uniform(&states[id]) * WIDTH;
             agents[id].y = curand_uniform(&states[id]) * HEIGHT;
         } else {
             //initialise in a random position at the center of the environment
-            float angle = curand_uniform(&states[id]) * 2 * M_PI;
-            agents[id].x = WIDTH / 2 + cos(angle) * curand_uniform(&states[id]) * INITIAL_AREA_SIZE;
-            agents[id].y = HEIGHT / 2 + sin(angle) * curand_uniform(&states[id]) * INITIAL_AREA_SIZE;           
+            float angle = curand_uniform(&states[id]) * M_PI;
+            float pos = curand_normal(&states[id]);
+            agents[id].x = WIDTH / 2 + cos(angle) * pos * INITIAL_AREA_SIZE;
+            agents[id].y = HEIGHT / 2 + sin(angle) * pos * INITIAL_AREA_SIZE;           
         }
         //generate angle in the range [0, 2pi]
         agents[id].angle =(2.0f * curand_uniform(&states[id])) * M_PI;

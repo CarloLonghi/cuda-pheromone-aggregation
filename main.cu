@@ -115,45 +115,6 @@ __global__ void initialize_rng(curandState* states, unsigned long seed) {
     curand_init(seed + id, id, 0, &states[id]); // Unique seed for each thread
 }
 
-__global__ void computeCellIndices(Agent* agents, int* cellIndices, int worm_count, 
-                                  float cellSize) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= worm_count) return;
-
-    // Get particle position
-    float2 pos = make_float2(agents[idx].x, agents[idx].y);
-
-    // Calculate grid cell coordinates (clamp to grid bounds)
-    int2 cell = getGridCell(pos);
-
-    // Flatten 3D cell index to 1D (row-major order)
-    cellIndices[idx] = flattenCellIndex(cell);
-}
-
-__global__ void buildGrid(Agent* agents, int* cellIndices, 
-                        int* cellStart, int* cellEnd, int num_agents) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < WORM_COUNT){
-
-        // Special case for first particle
-        if (idx == 0) {
-            cellStart[cellIndices[0]] = 0;
-        }
-        else {
-            // If this particle is in a different cell than previous
-            if (cellIndices[idx] != cellIndices[idx-1]) {
-                cellEnd[cellIndices[idx-1]] = idx;
-                cellStart[cellIndices[idx]] = idx;
-            }
-        }
-
-        // Special case for last particle
-        if (idx == num_agents - 1) {
-            cellEnd[cellIndices[idx]] = idx + 1;
-        }
-    }
-}
-
 
 void sortParticlesByCell(Agent* d_agents, int* d_cellIndices, int worm_count) {
     // Wrap raw pointers with Thrust device pointers
@@ -215,9 +176,9 @@ int main(int argc, char* argv[]) {
     cudaMalloc(&d_states, worm_count * sizeof(curandState));
     cudaMalloc(&d_states_grids, NN * NN * sizeof(curandState));
     cudaMalloc(&potential, NN*NN*sizeof(float));
-    initialize_rng<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_states, SEED);
+    initialize_rng<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_states, rd());
     // Initialize agent positions and random states
-    initAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states, time(NULL), worm_count);
+    initAgents<<<(worm_count + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_agents, d_states, rd(), worm_count);
     //printf("Initializing agents\n");
 
     cudaDeviceSynchronize();

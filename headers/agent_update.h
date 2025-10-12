@@ -77,12 +77,10 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
                     total_inf += exp(- dist / ALIGNMENT_RADIUS / slow_factor);
 
                     if (dist < REPULSION_RADIUS & dist > 0){
-                        // 0.1
                         rep_x += rep_strength * (dist - REPULSION_RADIUS) * (agents[j].x - agents[id].x) / dist;
                         rep_y += rep_strength * (dist - REPULSION_RADIUS) * (agents[j].y - agents[id].y) / dist;
                     }
                     if (REPULSION_RADIUS <= dist & dist < ALIGNMENT_RADIUS){
-                        // 0.00002
                         attr_x += (attr_strength / dist) * (agents[j].x - agents[id].x) / dist;
                         attr_y += (attr_strength / dist) * (agents[j].y - agents[id].y) / dist;
 
@@ -94,8 +92,9 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
             }
         }
         if (na > 0){
-            align_x /= na;
-            align_y /= na;
+            float s = sqrt(align_x*align_x + align_y*align_y);
+            align_x /= s;
+            align_y /= s;
         }
 
         align_angle = 0.5 * atan2(align_y, align_x);
@@ -128,7 +127,10 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         fx = cosf(agents[id].angle);
         fy = sinf(agents[id].angle);
 
-        float sum_length = sqrt(angle_x*angle_x + angle_y*angle_y) / num_neighbors;
+        float sum_length = 1;
+        if (num_neighbors > 0){
+            sum_length = sqrt(angle_x*angle_x + angle_y*angle_y) / num_neighbors;
+        }
 
         if (num_neighbors > 0){
             fx += align_x * (align_strength * sum_length) + attr_x + rep_x + curand_normal(&states[id]) * sigma;
@@ -158,7 +160,7 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         float tail_potential = potential[tail_x * NN + tail_y];
         float dp = sensed_potential - tail_potential;
         float r = DT * ((1 / (1 + expf(dp * 100 + 1.359744321607823))) * 0.06 + 0.02);
-        r = 0.032256911591854065;
+        r = DT * 0.032256911591854065;
         float p = curand_uniform(&states[id]);
         if (p < r){
             float random_angle = curand_uniform(&states[id]) * M_PI * 2;
@@ -168,7 +170,7 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         }       
 
         float new_speed = SPEED;
-        if (num_neighbors > 0){
+        if (num_neighbors > 0 & slow_factor > 0){
             new_speed *= exp((1 - sum_length) * -total_inf);
         }
 

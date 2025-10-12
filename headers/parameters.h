@@ -1,19 +1,18 @@
 // config.h
 
 // Environmental variables
-#define NN 1024
+#define NN 256
 #define WIDTH 50.0f
 #define HEIGHT 50.0f
-#define SEED 1234
 // Simulation parameters
-#define WORM_COUNT 200
-#define TIME 600
+#define WORM_COUNT 10000
+#define TIME 120
 #define DT 0.1f
 #define N_STEPS int(TIME / DT)
-#define LOGGING_INTERVAL int(1 / DT)
+#define LOGGING_INTERVAL 1
 #define DEBUG false
 #define ENABLE_RANDOM_INITIAL_POSITIONS false
-#define INITIAL_AREA_SIZE 2.5f
+#define INITIAL_AREA_SIZE 1.0f
 #define LOG_POTENTIAL false
 #define LOG_GRID false
 #define LOG_PHEROMONES false
