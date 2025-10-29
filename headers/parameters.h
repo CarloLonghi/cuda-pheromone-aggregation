@@ -6,28 +6,28 @@
 #define HEIGHT 50.0f
 // Simulation parameters
 #define WORM_COUNT 10000
-#define TIME 120
+#define TIME 900
 #define DT 0.1f
 #define N_STEPS int(TIME / DT)
-#define LOGGING_INTERVAL 1
+#define LOGGING_INTERVAL 10
 #define DEBUG false
 #define ENABLE_RANDOM_INITIAL_POSITIONS false
-#define INITIAL_AREA_SIZE 1.0f
+#define INITIAL_AREA_SIZE 2.5f
 #define LOG_POTENTIAL false
 #define LOG_GRID false
 #define LOG_PHEROMONES false
 #define LOG_AGENT_COUNT_GRID false
 #define LOG_GENERIC_TARGET_DATA false
 #define LOG_POSITIONS true
-#define LOG_ANGLES false
+#define LOG_ANGLES true
 #define LOG_VELOCITIES false
 
 // Agent parameters
-#define BODY_LENGTH 0.5f
-#define SPEED 0.15f * DT
+#define BODY_LENGTH 0.25f
+#define SPEED (0.3f * BODY_LENGTH * DT)
 #define MAX_CONCENTRATION 1.0 // of the pheromone
-#define ALIGNMENT_RADIUS BODY_LENGTH
-#define REPULSION_RADIUS (BODY_LENGTH * 0.2)
+#define ALIGNMENT_RADIUS (BODY_LENGTH)
+#define REPULSION_RADIUS (BODY_LENGTH*0.5f)
 
 // Descriptor parameters
 #define CLUSTERING_RADIUS (2 * BODY_LENGTH)
@@ -36,8 +36,9 @@
 #define ARM_RANGE (BODY_LENGTH * 2.0)
 
 // Noise parameters
-#define SIGMA 0.1f
-#define ENVIRONMENTAL_NOISE 1.0f
+#define SIGMA 0.1f // 0.015f
+#define GAMMA (SPEED * 0.1f)
+#define ENVIRONMENTAL_NOISE  1.0f
 
 // Odour parameters
 #define MU_X 5.0f      // Mean x of the Gaussian

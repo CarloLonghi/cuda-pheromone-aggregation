@@ -143,9 +143,10 @@ int main(int argc, char* argv[]) {
     int * h_agent_count_grid = new int[NN * NN];
     int log_worms_data = 0;
     float align_strength, slow_factor, attr_strength, rep_strength;
-    float *angles = new float[WORM_COUNT * TIME];
+    char* target_json;
+    char *exp_num;
 
-    if (argc - 1 == 14){
+    if (argc - 1 == 16){
         attractant_pheromone_strength = std::stof(argv[1]);
         attractant_pheromone_secretion_rate = std::stof(argv[2]);
         attractant_pheromone_decay_rate = std::stof(argv[3]);        
@@ -160,18 +161,22 @@ int main(int argc, char* argv[]) {
         attr_strength = std::stof(argv[12]);
         rep_strength = std::stof(argv[13]);
         log_worms_data = std::stoi(argv[14]);
+        target_json = argv[15];
+        exp_num = argv[16];
     }
     else{
-        std::cout << "The number of parameters is incorrect, it should be 14 but is " << argc - 1 << std::endl;
+        std::cout << "The number of parameters is incorrect, it should be 16 but is " << argc - 1 << std::endl;
         return 1;
     }
 
-    const char* target_json = "/home/carlo/babots/cuda_agent_based_sim/json/agents_all_data.json";
+    std::random_device rd;
+
     Agent* d_agents, *h_agents = new Agent[worm_count];
     curandState* d_states, *d_states_grids;
     bool broken = false;
     size_t size = worm_count * sizeof(Agent);
-    auto* positions = new float[worm_count * TIME * 2]; // Matrix to store positions (x, y) for each agent at each timestep
+    auto* positions = new float[worm_count * (N_STEPS / LOGGING_INTERVAL) * 2]; // Matrix to store positions (x, y) for each agent at each timestep
+    float *angles = new float[worm_count * (N_STEPS / LOGGING_INTERVAL)];
     cudaMalloc(&d_agents, size);
     cudaMalloc(&d_states, worm_count * sizeof(curandState));
     cudaMalloc(&d_states_grids, NN * NN * sizeof(curandState));
@@ -186,8 +191,6 @@ int main(int argc, char* argv[]) {
     cudaDeviceSynchronize();
     dim3 gridSize((NN + BLOCK_SIZE - 1) / BLOCK_SIZE, (NN + BLOCK_SIZE - 1) / BLOCK_SIZE);
     dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE);
-
-    int grid_dim = GRID_DIM_X * GRID_DIM_Y;
 
     //initialize the agent count grid
     cudaMalloc(&agent_count_grid, NN*NN*sizeof(int));
@@ -294,12 +297,8 @@ int main(int argc, char* argv[]) {
             for (int j = 0; j < worm_count; ++j) {
                 positions[(t * worm_count + j) * 2] = h_agents[j].x;
                 positions[(t * worm_count + j) * 2 + 1] = h_agents[j].y;
-            }
-
-            // store angles
-            for (int j = 0; j < worm_count; ++j) {
                 angles[t * worm_count + j] = h_agents[j].angle;
-            }            
+            }          
 
             if(LOG_POTENTIAL) {
                 logMatrixToFile("/home/carlo/babots/cuda_agent_based_sim/logs/potential/potential_step_", h_potential, NN, NN, i);
@@ -317,7 +316,7 @@ int main(int argc, char* argv[]) {
 
     }
     if(log_worms_data == 1) {
-        saveAllDataToJSON(target_json, positions, h_agents ,worm_count, TIME);
+        saveAllDataToJSON(target_json, exp_num, positions, angles, h_agents ,worm_count, N_STEPS / LOGGING_INTERVAL);
     }
 
     // track clusters

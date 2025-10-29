@@ -14,3 +14,7 @@ map_elites/archive.pkl
 map_elites/__pycache__
 map_elites/cache
 Eigen
+img_data/*
+*.png
+*.dat
+bf/*

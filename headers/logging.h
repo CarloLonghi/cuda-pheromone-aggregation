@@ -5,6 +5,8 @@
 #ifndef UNTITLED_LOGGING_H
 #define UNTITLED_LOGGING_H
 #include <cuda_runtime.h>
+#include <zlib.h>
+
 
 using json = nlohmann::json;
 
@@ -183,39 +185,25 @@ void saveInsideAreaToJSON(const char* filename, Agent* h_agents, int worm_count,
     outFile.close();
 }
 
-void saveAllDataToJSON(const char* filename, float* positions, Agent* agents, int worm_count, int n_steps) {
-    nlohmann::json json_data;
-    if(LOG_POSITIONS){
-    json_data["positions"] = nlohmann::json::array();
-    }
-    json_data["inside_area"] = nlohmann::json::array();
-    json_data["parameters"] = {{"WIDTH",            WIDTH},
-                               {"HEIGHT",           HEIGHT},
-                               {"N",                NN},
-                               {"WORM_COUNT",       WORM_COUNT},
-                               {"LOGGING_INTERVAL", LOGGING_INTERVAL},
-                               {"TIME",          TIME},
-                               {"SPEED",            SPEED},
-                               {"MAX_CONCENTRATION",    MAX_CONCENTRATION}};
-    for (int i = 0; i < worm_count; ++i) {
-        nlohmann::json agent_data;
-        if(LOG_POSITIONS){
-        agent_data["positions"] = nlohmann::json::array();
-        }
-        if(LOG_POSITIONS) {
-            for (int j = 0; j < n_steps; ++j) {
-                agent_data["positions"].push_back(
-                    {positions[(j * worm_count + i) * 2], positions[(j * worm_count + i) * 2 + 1]});
-            }
-        }
-        if(LOG_POSITIONS){
-        json_data["positions"].push_back(agent_data["positions"]);
-        }
-    }
+void saveCompressed(const float* data, size_t size, const std::string& filename) {
+    uLongf compressed_size = compressBound(size * sizeof(float));
+    std::vector<Bytef> compressed(compressed_size);
+    
+    compress(compressed.data(), &compressed_size,
+             reinterpret_cast<const Bytef*>(data),
+             size * sizeof(float));
+    
+    std::ofstream file(filename, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(compressed.data()), compressed_size);
+}
 
-    std::ofstream file(filename);
-    file << json_data.dump(4);
-    file.close();
+void saveAllDataToJSON(const char* folder, const char* exp_num, float* positions, float* angles, Agent* agents, int worm_count, int n_steps) {
+
+    std::string pos_file = std::string(folder).append("/").append(exp_num).append("_pos.dat");
+    std::string ang_file = std::string(folder).append("/").append(exp_num).append("_ang.dat");
+    
+    saveCompressed(positions, n_steps * worm_count * 2, pos_file);
+    saveCompressed(angles, n_steps * worm_count, ang_file);
 }
 
 #endif //UNTITLED_LOGGING_H
