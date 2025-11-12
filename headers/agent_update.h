@@ -10,6 +10,12 @@
 #include <cmath>
 #include "numeric_functions.h"
 
+__device__ float gaussian_core_force(float r, float epsr, float epsa) {
+    float sr = 1.0;
+    float sa = 2.0;
+    return 2 * r / (sr * sr) * epsr * std::exp(-(r/sr)*(r/sr)) - 2 * r / (sa * sa) * epsa * std::exp(-(r/sa)*(r/sa));
+}
+
 // Function to sample from a von Mises distribution
 __device__ float sample_from_von_mises(float mu, float kappa, curandState* state) {
     // Handle kappa = 0 (uniform distribution)
@@ -56,7 +62,7 @@ __device__ float sample_from_von_mises(float mu, float kappa, curandState* state
 // CUDA kernel to update the position of each agent
 __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
      /*int* agent_count_grid,*/ int worm_count, int timestep, float sigma, float align_strength, float slow_factor,
-    float attr_strength, float rep_strength) {
+    float espa, float espr) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     if (id < worm_count) {
 
@@ -71,69 +77,52 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
                 float dist = sqrt(diffx * diffx + diffy * diffy);
                 if (dist < ALIGNMENT_RADIUS){
                     num_neighbors += 1;
-                    agr += (cosf(2 * (agents[j].angle - agents[id].angle)) + 1) / 2;
-                    align_x += cosf(2 * agents[j].angle);
-                    align_y += sinf(2 * agents[j].angle);                    
+                    align_x += cosf(agents[j].angle - agents[id].angle) * cosf(agents[j].angle);
+                    align_y += cosf(agents[j].angle - agents[id].angle) * sinf(agents[j].angle);              
 
                     total_inf += (1 - dist / ALIGNMENT_RADIUS); 
 
-                    if (dist < REPULSION_RADIUS & dist > 0){
-                        rep_x += rep_strength * (dist - REPULSION_RADIUS) * (agents[j].x - agents[id].x) / dist;
-                        rep_y += rep_strength * (dist - REPULSION_RADIUS) * (agents[j].y - agents[id].y) / dist;
-                    }
-                    if (REPULSION_RADIUS <= dist & dist < ALIGNMENT_RADIUS){
-                        attr_x += (attr_strength / dist) * (agents[j].x - agents[id].x) / dist;
-                        attr_y += (attr_strength / dist) * (agents[j].y - agents[id].y) / dist;                       
-                    }
+                    float gcf = gaussian_core_force(dist / ALIGNMENT_RADIUS * 3, espr, espa);
+                    attr_x += gcf * (agents[id].x - agents[j].x) / dist;
+                    attr_y += gcf * (agents[id].y - agents[j].y) / dist;
                 }
             }
         }
-        if (num_neighbors > 0){
-            float s = sqrt(align_x*align_x + align_y*align_y);
-            align_x /= s;
-            align_y /= s;
-        }
 
-        align_angle = 0.5 * atan2(align_y, align_x);
-        angle_diff = align_angle - agents[id].angle;
-        angle_diff = fmodf(angle_diff, 2 * M_PI);
-
-        if (angle_diff > (M_PI / 2) & angle_diff <= ((3.0 / 2) * M_PI)) {
-            align_x = cos(align_angle - M_PI);
-            align_y = sin(align_angle - M_PI);
-        }
-        else if (angle_diff > ((3.0 / 2) * M_PI)) {
-            align_x = cos(align_angle - 2 * M_PI);
-            align_y = sin(align_angle - 2 * M_PI);
-        } 
-        else if (angle_diff < (-M_PI / 2) & angle_diff >= (-(3.0 / 2) * M_PI)) {
-            align_x = cos(align_angle + M_PI);
-            align_y = sin(align_angle + M_PI);
-        }
-        else if (angle_diff < (-(3.0 / 2) * M_PI)) {
-            align_x = cos(align_angle + 2 * M_PI);
-            align_y = sin(align_angle + 2 * M_PI);                                        
-        }
-        else {
-            align_x = cos(align_angle);
-            align_y = sin(align_angle);
-        }                        
-
-        float fx, fy;
+        float fx, fy, nx, ny;
 
         fx = cosf(agents[id].angle);
         fy = sinf(agents[id].angle);
 
         if (num_neighbors > 0){
-            agr /= num_neighbors;
+            agr = sqrt(align_x * align_x + align_y * align_y) / num_neighbors;
+
+            nx = fx + align_x * align_strength / num_neighbors + attr_x + curand_normal(&states[id]) * sigma;
+            ny = fy + align_y * align_strength / num_neighbors + attr_y + curand_normal(&states[id]) * sigma;
+
+            float norm = sqrt(nx * nx + ny * ny);
+            nx = (nx / norm);
+            ny = (ny / norm);
+            
+            float dot = fx * nx + fy * ny;
+            float cross = fx * ny - fy * nx;
+            float angle_diff = atan2(cross, dot);
+            float max_ta = 1.0 * DT;
+            angle_diff = max(min(angle_diff, max_ta), -max_ta);
+            
+            nx = cosf(angle_diff);
+            ny = sinf(angle_diff);
+
+            float ox = fx * nx - fy * ny;
+            float oy = fy * nx + fx * ny;     
+            
+            fx = ox;
+            fy = oy;
         }
 
-        fx += align_x * (align_strength * agr) + attr_x + rep_x + curand_normal(&states[id]) * sigma;
-        fy += align_y * (align_strength * agr) + attr_y + rep_y + curand_normal(&states[id]) * sigma;
-
-        float norm = sqrt(fx * fx + fy * fy);
-        fx = (fx / norm);
-        fy = (fy / norm);
+        // float norm = sqrt(fx * fx + fy * fy);
+        // fx = (fx / norm);
+        // fy = (fy / norm);
 
         agents[id].angle = atan2(fy, fx);
         if(agents[id].angle > (2 * M_PI) || agents[id].angle < (-2 * M_PI)){
