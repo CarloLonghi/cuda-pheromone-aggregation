@@ -2,16 +2,16 @@
 
 // Environmental variables
 #define NN 256
-#define WIDTH 50.0f
-#define HEIGHT 50.0f
+#define WIDTH 256.0f
+#define HEIGHT 256.0f
 // Simulation parameters
 #define WORM_COUNT 10000
-#define TIME 900
+#define TIME 200
 #define DT 0.1f
 #define N_STEPS int(TIME / DT)
 #define LOGGING_INTERVAL 10
 #define DEBUG false
-#define ENABLE_RANDOM_INITIAL_POSITIONS false
+#define ENABLE_RANDOM_INITIAL_POSITIONS true
 #define INITIAL_AREA_SIZE 2.5f
 #define LOG_POTENTIAL false
 #define LOG_GRID false
@@ -24,9 +24,9 @@
 
 // Agent parameters
 #define BODY_LENGTH 0.25f
-#define SPEED (0.3f * BODY_LENGTH * DT)
+#define SPEED 0.5f //(0.3f * BODY_LENGTH * DT)
 #define MAX_CONCENTRATION 1.0 // of the pheromone
-#define ALIGNMENT_RADIUS (BODY_LENGTH)
+#define ALIGNMENT_RADIUS 1.0f
 #define REPULSION_RADIUS (BODY_LENGTH*0.5f)
 
 // Descriptor parameters
