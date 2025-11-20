@@ -12,7 +12,7 @@ using json = nlohmann::json;
 
 
 struct Agent {
-    float x, y, angle, speed, previous_potential, cumulative_potential;  // Position in 2D space
+    float x, y, angle, speed, previous_potential, cumulative_potential, omega;  // Position in 2D space
 };
 
 // CUDA kernel to initialize the position of each agent
@@ -35,6 +35,7 @@ __global__ void initAgents(Agent* agents, curandState* states, unsigned long see
         agents[id].speed = SPEED;
         agents[id].previous_potential = 0.0f;
         agents[id].cumulative_potential = 0.0f;
+        agents[id].omega = 0.0f;
     }
 }
 

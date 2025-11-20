@@ -2,10 +2,10 @@
 
 // Environmental variables
 #define NN 256
-#define WIDTH 256.0f
-#define HEIGHT 256.0f
+#define WIDTH 128.0f
+#define HEIGHT 128.0f
 // Simulation parameters
-#define WORM_COUNT 10000
+#define WORM_COUNT 20000
 #define TIME 200
 #define DT 0.1f
 #define N_STEPS int(TIME / DT)

@@ -77,8 +77,8 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
                 float dist = sqrt(diffx * diffx + diffy * diffy);
                 if (dist < ALIGNMENT_RADIUS){
                     num_neighbors += 1;
-                    align_x += copysignf(1.0, cosf(agents[j].angle - agents[id].angle)) * cosf(agents[j].angle);
-                    align_y += copysignf(1.0, cosf(agents[j].angle - agents[id].angle)) * sinf(agents[j].angle);  
+                    align_x += cosf(agents[j].angle - agents[id].angle) * cosf(agents[j].angle);
+                    align_y += cosf(agents[j].angle - agents[id].angle) * sinf(agents[j].angle);                      
                     align += sinf(2 * (agents[j].angle - agents[id].angle));            
 
                     total_inf += (1 - dist / ALIGNMENT_RADIUS); 
@@ -92,42 +92,24 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
 
         float fx, fy, nx, ny;
 
-        // fx = cosf(agents[id].angle);
-        // fy = sinf(agents[id].angle);
+        if (num_neighbors > 0){
+            float norm = sqrt(align_x * align_x + align_y * align_y);
+            align_x /= norm;
+            align_y /= norm;
+            float align_angle = atan2(align_y, align_x);
+            float diff = align_angle - agents[id].angle;
+            diff = atan2(sinf(diff), cosf(diff));
+            agents[id].angle += align_strength * diff;
+        }
 
-        float eta = 0.2;
-        float noise = (curand_uniform(&states[id]) * M_PI - (M_PI / 2)) * eta;
-        float ox = cosf(noise);
-        float oy = sinf(noise);  
+        float theta = 100;
+        float sigma = 0.06;
+        agents[id].omega += -(agents[id].omega / theta) + curand_normal(&states[id]) * (sigma * sigma);
+        agents[id].angle += agents[id].omega;         
 
-        align_x += cosf(agents[id].angle);
-        align_y += sinf(agents[id].angle);
+        fx = cosf(agents[id].angle);
+        fy = sinf(agents[id].angle);
 
-        float norm = sqrt(align_x * align_x + align_y * align_y);
-        agr = sqrt(align_x * align_x + align_y * align_y) / num_neighbors;
-
-        float ax = align_x * align_strength / norm;
-        float ay = align_y * align_strength / norm;
-
-        nx = ax * ox - ay * oy;
-        ny = ax * oy + ay * ox;            
-
-        norm = sqrt(nx * nx + ny * ny);
-        fx = (nx / norm);
-        fy = (ny / norm);
-
-        // float norm = sqrt(fx * fx + fy * fy);
-        // fx = (fx / norm);
-        // fy = (fy / norm);
-
-        agents[id].angle = atan2(fy, fx);
-        // if(agents[id].angle > (2 * M_PI) || agents[id].angle < (-2 * M_PI)){
-        //     agents[id].angle = fmodf(agents[id].angle, 2 * M_PI);
-        // }
-        // if(agents[id].angle < 0) {
-        //     agents[id].angle += 2 * M_PI; 
-        // }
-        
         int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DY);
         float sensed_potential = potential[agent_x * NN+ agent_y];//potential[agent_x *+ agent_y];
         //sensed_potential = ATTRACTION_STRENGTH * logf(sensed_potential + ATTRACTION_SCALE);
