@@ -5,14 +5,14 @@
 #define WIDTH 128.0f
 #define HEIGHT 128.0f
 // Simulation parameters
-#define WORM_COUNT 20000
+#define WORM_COUNT 10000
 #define TIME 200
 #define DT 0.1f
 #define N_STEPS int(TIME / DT)
 #define LOGGING_INTERVAL 10
 #define DEBUG false
-#define ENABLE_RANDOM_INITIAL_POSITIONS true
-#define INITIAL_AREA_SIZE 2.5f
+#define ENABLE_RANDOM_INITIAL_POSITIONS false
+#define INITIAL_AREA_SIZE 10.0f
 #define LOG_POTENTIAL false
 #define LOG_GRID false
 #define LOG_PHEROMONES false
@@ -24,10 +24,10 @@
 
 // Agent parameters
 #define BODY_LENGTH 0.25f
-#define SPEED 0.5f //(0.3f * BODY_LENGTH * DT)
+#define SPEED 0.3f * DT //(0.3f * BODY_LENGTH * DT)
 #define MAX_CONCENTRATION 1.0 // of the pheromone
-#define ALIGNMENT_RADIUS 1.0f
-#define REPULSION_RADIUS (BODY_LENGTH*0.5f)
+#define ALIGNMENT_RADIUS 0.5f
+#define REPULSION_RADIUS (ALIGNMENT_RADIUS*0.5f)
 
 // Descriptor parameters
 #define CLUSTERING_RADIUS (2 * BODY_LENGTH)

@@ -68,7 +68,7 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
 
         int num_neighbors = 0;
         float angle_x = 0, angle_y = 0;
-        float attr_x = 0, attr_y = 0, rep_x = 0, rep_y = 0, angle_diff = 0, align_x = 0, align_y = 0, align_angle = 0, total_inf = 0, agr = 0, align = 0; 
+        float attr_x = 0, attr_y = 0, rep_x = 0, rep_y = 0, angle_diff = 0, align_x = 0, align_y = 0, align_angle = 0, total_inf = 0, agr = 0; 
 
         for (int j = 0; j < worm_count; j++){
             if (j != id) {  // Skip self-interaction
@@ -79,13 +79,12 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
                     num_neighbors += 1;
                     align_x += cosf(agents[j].angle - agents[id].angle) * cosf(agents[j].angle);
                     align_y += cosf(agents[j].angle - agents[id].angle) * sinf(agents[j].angle);                      
-                    align += sinf(2 * (agents[j].angle - agents[id].angle));            
 
                     total_inf += (1 - dist / ALIGNMENT_RADIUS); 
 
-                    float gcf = gaussian_core_force(dist / ALIGNMENT_RADIUS * 3, espr, espa);
+                    float gcf = gaussian_core_force(dist / ALIGNMENT_RADIUS * 4, espr, espa);
                     attr_x += gcf * (agents[id].x - agents[j].x) / dist;
-                    attr_y += gcf * (agents[id].y - agents[j].y) / dist;
+                    attr_y += gcf * (agents[id].y - agents[j].y) / dist;         
                 }
             }
         }
@@ -94,21 +93,26 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
 
         if (num_neighbors > 0){
             float norm = sqrt(align_x * align_x + align_y * align_y);
+            agr = norm / num_neighbors;
             align_x /= norm;
             align_y /= norm;
             float align_angle = atan2(align_y, align_x);
             float diff = align_angle - agents[id].angle;
             diff = atan2(sinf(diff), cosf(diff));
-            agents[id].angle += align_strength * diff;
+            agents[id].angle += (align_strength * diff) * DT;
         }
 
         float theta = 100;
         float sigma = 0.06;
-        agents[id].omega += -(agents[id].omega / theta) + curand_normal(&states[id]) * (sigma * sigma);
-        agents[id].angle += agents[id].omega;         
+        agents[id].omega += (-(agents[id].omega / theta) + curand_normal(&states[id]) * (sigma * sigma)) * DT;
+        agents[id].angle += (agents[id].omega) * DT;
 
-        fx = cosf(agents[id].angle);
-        fy = sinf(agents[id].angle);
+        fx = cosf(agents[id].angle) + attr_x + rep_x;
+        fy = sinf(agents[id].angle) + attr_y + rep_y;
+        float norm = sqrt(fx * fx + fy * fy);
+        fx /= norm;
+        fy /= norm;
+        agents[id].angle = atan2(fy, fx);
 
         int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DY);
         float sensed_potential = potential[agent_x * NN+ agent_y];//potential[agent_x *+ agent_y];
@@ -122,21 +126,21 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         float dp = sensed_potential - tail_potential;
         float r = DT * ((1 / (1 + expf(dp * 100 + 1.359744321607823))) * 0.06 + 0.02);
         r = DT * 0.032256911591854065 / 4;
-        // r = DT * 0.008064227897963516;
+        r = DT * 0.008064227897963516;
 
-        // float p = curand_uniform(&states[id]);
-        // if (p < r){
-        //     float random_angle = curand_uniform(&states[id]) * M_PI * 2;
-        //     agents[id].angle = random_angle;
-        //     fx = cosf(agents[id].angle);
-        //     fy = sinf(agents[id].angle);                
-        // }       
+        float p = curand_uniform(&states[id]);
+        if (p < r){
+            float random_angle = curand_uniform(&states[id]) * M_PI * 2;
+            agents[id].angle = random_angle;
+            fx = cosf(agents[id].angle);
+            fy = sinf(agents[id].angle);                
+        }       
 
         float new_speed = SPEED;
-        // if (num_neighbors > 0 & slow_factor > 0){
-        //     new_speed *= exp(slow_factor * (1 - agr) * -total_inf);
-        // }
-        // new_speed += curand_normal(&states[id]) * GAMMA;
+        if (num_neighbors > 0 & slow_factor > 0){
+            new_speed *= exp(slow_factor * -total_inf);
+        }
+        new_speed += curand_normal(&states[id]) * GAMMA;
 
         //float new_speed = curand_log_normal(&states[id], logf(scale), shape);
         //while(new_speed>MAX_ALLOWED_SPEED) new_speed = curand_log_normal(&states[id], logf(scale), shape);
@@ -145,38 +149,38 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         float dy = fy * new_speed;
 
         // apply boundary conditions
-        // if (dx + agents[id].x >= WIDTH){
-        //     dx = WIDTH - agents[id].x;
-        //     if (dy >= 0) dy = min(sqrt(new_speed * new_speed - dx * dx), HEIGHT - agents[id].y);
-        //     else dy = - min(sqrt(new_speed * new_speed - dx * dx), agents[id].y);
+        if (dx + agents[id].x >= WIDTH){
+            dx = WIDTH - agents[id].x;
+            if (dy >= 0) dy = min(sqrt(new_speed * new_speed - dx * dx), HEIGHT - agents[id].y);
+            else dy = - min(sqrt(new_speed * new_speed - dx * dx), agents[id].y);
             
-        // }
-        // else if (dx + agents[id].x < 0){
-        //     dx = -agents[id].x;
-        //     if (dy >= 0) dy = min(sqrt(new_speed * new_speed - dx * dx), HEIGHT - agents[id].y);
-        //     else dy = - min(sqrt(new_speed * new_speed - dx * dx), agents[id].y);            
-        // }
+        }
+        else if (dx + agents[id].x < 0){
+            dx = -agents[id].x;
+            if (dy >= 0) dy = min(sqrt(new_speed * new_speed - dx * dx), HEIGHT - agents[id].y);
+            else dy = - min(sqrt(new_speed * new_speed - dx * dx), agents[id].y);            
+        }
 
-        // if (dy + agents[id].y >= HEIGHT){
-        //     dy = HEIGHT - agents[id].y;
-        //     if (dx >= 0) dx = min(sqrt(new_speed * new_speed - dy * dy), WIDTH - agents[id].x);
-        //     else dx = - min(sqrt(new_speed * new_speed - dy * dy), agents[id].x);
-        // }
-        // else if (dy + agents[id].y < 0){
-        //     dy = -agents[id].y;
-        //     if (dx >= 0) dx = min(sqrt(new_speed * new_speed - dy * dy), WIDTH - agents[id].x);
-        //     else dx = - min(sqrt(new_speed * new_speed - dy * dy), agents[id].x);            
-        // }           
+        if (dy + agents[id].y >= HEIGHT){
+            dy = HEIGHT - agents[id].y;
+            if (dx >= 0) dx = min(sqrt(new_speed * new_speed - dy * dy), WIDTH - agents[id].x);
+            else dx = - min(sqrt(new_speed * new_speed - dy * dy), agents[id].x);
+        }
+        else if (dy + agents[id].y < 0){
+            dy = -agents[id].y;
+            if (dx >= 0) dx = min(sqrt(new_speed * new_speed - dy * dy), WIDTH - agents[id].x);
+            else dx = - min(sqrt(new_speed * new_speed - dy * dy), agents[id].x);            
+        }           
         
         agents[id].previous_potential = sensed_potential;
         agents[id].x += dx;
         agents[id].y += dy;
         agents[id].speed = new_speed;
 
-        if (agents[id].x < 0) agents[id].x += WIDTH;
-        if (agents[id].x >= WIDTH) agents[id].x -= WIDTH;
-        if (agents[id].y < 0) agents[id].y += HEIGHT;
-        if (agents[id].y >= HEIGHT) agents[id].y -= HEIGHT;
+        // if (agents[id].x < 0) agents[id].x += WIDTH;
+        // if (agents[id].x >= WIDTH) agents[id].x -= WIDTH;
+        // if (agents[id].y < 0) agents[id].y += HEIGHT;
+        // if (agents[id].y >= HEIGHT) agents[id].y -= HEIGHT;
     }
 }
 #endif //UNTITLED_AGENT_UPDATE_H
