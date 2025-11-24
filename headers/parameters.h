@@ -24,10 +24,10 @@
 
 // Agent parameters
 #define BODY_LENGTH 0.25f
-#define SPEED 0.3f * DT //(0.3f * BODY_LENGTH * DT)
+#define SPEED 0.4f * DT //(0.3f * BODY_LENGTH * DT)
 #define MAX_CONCENTRATION 1.0 // of the pheromone
-#define ALIGNMENT_RADIUS 0.5f
-#define REPULSION_RADIUS (ALIGNMENT_RADIUS*0.5f)
+#define ALIGNMENT_RADIUS 1.0f
+#define REPULSION_RADIUS (ALIGNMENT_RADIUS*0.3f)
 
 // Descriptor parameters
 #define CLUSTERING_RADIUS (2 * BODY_LENGTH)

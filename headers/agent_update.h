@@ -72,20 +72,35 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
 
         for (int j = 0; j < worm_count; j++){
             if (j != id) {  // Skip self-interaction
-                float diffx = agents[id].x - agents[j].x;
-                float diffy = agents[id].y - agents[j].y;
-                float dist = sqrt(diffx * diffx + diffy * diffy);
-                if (dist < ALIGNMENT_RADIUS){
+                float dx = agents[j].x - agents[id].x;
+                float dy = agents[j].y - agents[id].y;
+
+                float cos_theta = cosf(-agents[id].angle);
+                float sin_theta = sinf(-agents[id].angle);
+
+                float x_local = dx * cos_theta - dy * sin_theta;
+                float y_local = dx * sin_theta + dy * cos_theta;
+
+                dx = (x_local / (ALIGNMENT_RADIUS * 2));
+                dy = (y_local / (ALIGNMENT_RADIUS / 2));
+
+                float dist = sqrt(dx * dx + dy * dy);
+                if (dist < 1 & dist >= 0.5){
                     num_neighbors += 1;
                     align_x += cosf(agents[j].angle - agents[id].angle) * cosf(agents[j].angle);
                     align_y += cosf(agents[j].angle - agents[id].angle) * sinf(agents[j].angle);                      
 
-                    total_inf += (1 - dist / ALIGNMENT_RADIUS); 
+                    total_inf += 1; 
 
-                    float gcf = gaussian_core_force(dist / ALIGNMENT_RADIUS * 4, espr, espa);
-                    attr_x += gcf * (agents[id].x - agents[j].x) / dist;
-                    attr_y += gcf * (agents[id].y - agents[j].y) / dist;         
+                    // float gcf = gaussian_core_force(dist / ALIGNMENT_RADIUS * 4, espr, espa);
+                    attr_x += espa * (agents[j].x - agents[id].x);
+                    attr_y += espa * (agents[j].y - agents[id].y);    
                 }
+                else if (dist < 0.3) {
+                    rep_x += espr * (agents[id].x - agents[j].x);
+                    rep_y += espr * (agents[id].y - agents[j].y); 
+                    total_inf += 1;
+                }  
             }
         }
 
@@ -102,17 +117,21 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
             agents[id].angle += (align_strength * diff) * DT;
         }
 
-        float theta = 100;
-        float sigma = 0.06;
-        agents[id].omega += (-(agents[id].omega / theta) + curand_normal(&states[id]) * (sigma * sigma)) * DT;
-        agents[id].angle += (agents[id].omega) * DT;
-
-        fx = cosf(agents[id].angle) + attr_x + rep_x;
-        fy = sinf(agents[id].angle) + attr_y + rep_y;
+        fx = cosf(agents[id].angle);
+        fy = sinf(agents[id].angle);
+        fx += attr_x + rep_x;
+        fy += attr_y + rep_y;
         float norm = sqrt(fx * fx + fy * fy);
         fx /= norm;
         fy /= norm;
         agents[id].angle = atan2(fy, fx);
+
+        float theta = 100;
+        float sigma = 0.06;
+        agents[id].omega += (-(agents[id].omega / theta) + curand_normal(&states[id]) * (sigma * sigma)) * DT;
+        agents[id].angle +=((agents[id].omega) + (curand_uniform(&states[id]) * M_PI - (M_PI / 2)) * 0.5) * DT;
+        fx = cosf(agents[id].angle);
+        fy = sinf(agents[id].angle);             
 
         int agent_x = (int)round(agents[id].x / DX), agent_y = (int)round(agents[id].y / DY);
         float sensed_potential = potential[agent_x * NN+ agent_y];//potential[agent_x *+ agent_y];
@@ -137,9 +156,7 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
         }       
 
         float new_speed = SPEED;
-        if (num_neighbors > 0 & slow_factor > 0){
-            new_speed *= exp(slow_factor * -total_inf);
-        }
+        new_speed *= exp(slow_factor * -total_inf);
         new_speed += curand_normal(&states[id]) * GAMMA;
 
         //float new_speed = curand_log_normal(&states[id], logf(scale), shape);
