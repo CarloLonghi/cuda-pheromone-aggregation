@@ -81,10 +81,12 @@ __global__ void moveAgents(Agent* agents, curandState* states, float* potential,
                     align_y += cosf(agents[j].angle - agents[id].angle) * sinf(agents[j].angle);                      
 
                     total_inf += (1 - dist / ALIGNMENT_RADIUS); 
-
-                    float gcf = gaussian_core_force(dist / ALIGNMENT_RADIUS * 4, espr, espa);
-                    attr_x += gcf * (agents[id].x - agents[j].x) / dist;
-                    attr_y += gcf * (agents[id].y - agents[j].y) / dist;         
+                    
+                    if (dist > 0){
+                        float gcf = gaussian_core_force(dist / ALIGNMENT_RADIUS * 4, espr, espa);
+                        attr_x += gcf * (agents[id].x - agents[j].x) / dist;
+                        attr_y += gcf * (agents[id].y - agents[j].y) / dist;
+                    }         
                 }
             }
         }
