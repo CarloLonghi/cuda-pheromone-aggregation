@@ -172,7 +172,7 @@ def animate(pos, primary_heatmap_folder, additional_heatmap_folder, single_file_
     anim.save('animation.mp4', writer='ffmpeg', fps=1)
 
 
-def animate_ang(pos, ang, primary_heatmap_folder, additional_heatmap_folder, single_file_name1, single_file_name2):
+def animate_heavy(pos, ang, primary_heatmap_folder, additional_heatmap_folder, single_file_name1, single_file_name2):
 
     # Prepare the figure and axis
     fig, ax = plt.subplots(1,1, figsize=(8,8))
@@ -180,14 +180,58 @@ def animate_ang(pos, ang, primary_heatmap_folder, additional_heatmap_folder, sin
     ax.set_ylim(0, HEIGHT)
 
     # Create a list of scatter plot objects for each agent
-    primary_scatters = [ax.plot([], [], marker=(1,1,0), color='magenta', markersize=6)[0] for _ in range(WORM_COUNT)]
+    primary_scatters = [[ax.plot([], [], marker='.', color='magenta', markersize=6, alpha=0.1*t)[0] for _ in range(WORM_COUNT)] for t in range(10)] # marker=(1,1,0)
+    # position_matrix = [[data[str(agent)][timestep] for timestep in range(int(N_STEPS//LOGGING_INTERVAL))] for agent in range(N)]
+    px = np.zeros((TIME, WORM_COUNT))
+    py = np.zeros((TIME, WORM_COUNT))
+    for t in range(TIME):
+        for i in range(WORM_COUNT):
+            px[t, i] = pos[(WORM_COUNT * t + i) * 2]
+            px[t, i] = pos[(WORM_COUNT * t + i) * 2 + 1]
+
+    print(f"[0/{int(TIME/DT/LOGGING_INTERVAL)}] frames processed")
+
+    # Parse primary heatmap data from .txt files
+    timesteps = 50
+
+    # Initialization function to set up the scatter plot and grid
+    def init():
+        for i in range(WORM_COUNT):
+            for j in range(10):
+                primary_scatters[j][i].set_data([px[j, i]], [py[j, i]])
+        return [primary_scatters,] # + [primary_im, additional_im]
+
+    # Animation update function
+    def update(frame):
+        print(f"\033[F[{frame*10+10}/{int(TIME/DT/LOGGING_INTERVAL)}] frames processed" )
+
+        for i in range(WORM_COUNT):
+            for j in range(10):
+                primary_scatters[j][i].set_data([px[frame + j, i]], [py[frame + j, i]])
+        return [primary_scatters,] # + [primary_im, additional_im]
+
+    # Create the animation
+    anim = animation.FuncAnimation(
+        fig, update, init_func=init, frames=timesteps, blit=False
+    )
+    anim.save('animation.mp4', writer='ffmpeg', fps=1)
+
+def animate_ang(pos, ang, primary_heatmap_folder, additional_heatmap_folder, single_file_name1, single_file_name2, skip_frames):
+
+    # Prepare the figure and axis
+    fig, ax = plt.subplots(1,1, figsize=(16,16))
+    ax.set_xlim(0, WIDTH)
+    ax.set_ylim(0, HEIGHT)
+
+    # Create a list of scatter plot objects for each agent
+    primary_scatters = [ax.plot([], [], marker=(1,1,0), color='#BC4749', markersize=12, alpha=1.0)[0] for _ in range(WORM_COUNT)]
     # position_matrix = [[data[str(agent)][timestep] for timestep in range(int(N_STEPS//LOGGING_INTERVAL))] for agent in range(N)]
     position_matrix = pos
 
     print(f"[0/{int(TIME/DT/LOGGING_INTERVAL)}] frames processed")
 
     # Parse primary heatmap data from .txt files
-    timesteps = int(TIME / 10)
+    timesteps = int(TIME/DT/LOGGING_INTERVAL / skip_frames)
 
     # Initialization function to set up the scatter plot and grid
     def init():
@@ -198,30 +242,31 @@ def animate_ang(pos, ang, primary_heatmap_folder, additional_heatmap_folder, sin
 
     # Animation update function
     def update(frame):
-        print(f"\033[F[{frame*10+10}/{int(TIME/DT/LOGGING_INTERVAL)}] frames processed" )
+        print(f"\033[F[{frame*skip_frames+skip_frames}/{int(TIME/DT/LOGGING_INTERVAL)}] frames processed" )
 
         for i, scatter in enumerate(zip(primary_scatters,)):
-            scatter[0].set_data([position_matrix[(frame*10*WORM_COUNT+i)*2]], [position_matrix[(frame*10*WORM_COUNT+i)*2 + 1]])
-            scatter[0].set_marker((1,1,ang[frame*2*WORM_COUNT+i]))
+            scatter[0].set_data([position_matrix[(frame*skip_frames*WORM_COUNT+i)*2]], [position_matrix[(frame*skip_frames*WORM_COUNT+i)*2 + 1]])
+            scatter[0].set_marker((1,1,ang[frame*skip_frames*WORM_COUNT+i]))
         return [primary_scatters,] # + [primary_im, additional_im]
 
     # Create the animation
     anim = animation.FuncAnimation(
         fig, update, init_func=init, frames=timesteps, blit=False
     )
-    anim.save('animation.mp4', writer='ffmpeg', fps=1)
+    anim.save('animation.mp4', writer='ffmpeg', fps=10)
 
 
 # Main execution
 if __name__ == "__main__":
     base_dir = "./json/"
     logs_dir = "./logs/"
-    WIDTH = 50
-    HEIGHT = 50
+    WIDTH = 128
+    HEIGHT = 128
     WORM_COUNT = 10000
-    TIME = 900   
+    TIME = 300
     DT = 0.1
     LOGGING_INTERVAL = 10
+    skip_frames = 10
     # load_and_animate_agents_and_grid2(base_dir + "agents_all_data.json", fps=30, dest_file_path=base_dir)
     # args, pos, angles = load_data_txt(base_dir + "1.txt")
     pos = read_zlib_compressed_floats(base_dir+"0_pos.dat", WORM_COUNT*int(TIME/DT/LOGGING_INTERVAL)*2)
@@ -229,4 +274,4 @@ if __name__ == "__main__":
     ang = ang / np.pi * 180 + 90
     animate_ang(pos, ang, 
             logs_dir + "attractive_pheromone/", logs_dir + "repulsive_pheromone/", 
-            "attractive_pheromone_step", "repulsive_pheromone_step")
+            "attractive_pheromone_step", "repulsive_pheromone_step", skip_frames)
