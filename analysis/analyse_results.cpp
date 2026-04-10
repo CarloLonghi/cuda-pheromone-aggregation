@@ -16,10 +16,6 @@ using namespace Eigen;
 #define WIDTH 128
 #define HEIGHT 128
 
-// Agent parameters
-#define BODY_LENGTH 0.25f
-#define SPEED 0.4f * DT // (0.3f * BODY_LENGTH * DT)
-
 // Descriptor parameters
 #define CLUSTERING_RADIUS 0.5
 #define NEIGHBOR_RADIUS 2.0
@@ -297,8 +293,8 @@ int main(int argc, char* argv[]) {
                     else tot_n += cutoff_idx;
                     //delete [] npos;
                 }
+                else tot_n += nn;
             }
-            else tot_n += nn;
         } 
         elong /= (tot_n); 
         results[(timesteps / 10) * WORM_COUNT + t / 10] = elong;
@@ -312,17 +308,17 @@ int main(int argc, char* argv[]) {
         mean_squared_disp = 0;
         for (int i = 0; i < WORM_COUNT; ++i){
             diff_x = (data[((t + MSD_WINDOW) * WORM_COUNT + i) * 2] - data[(t * WORM_COUNT + i) * 2]);
-            if (diff_x > SPEED * MSD_WINDOW / DT){
+            if (diff_x > WIDTH / 2){
                 diff_x -= WIDTH;
             }
-            if (diff_x < -SPEED * MSD_WINDOW / DT){
+            if (diff_x < -WIDTH / 2){
                 diff_x += WIDTH;
             }            
             diff_y = (data[((t + MSD_WINDOW) * WORM_COUNT + i) * 2 + 1] - data[(t * WORM_COUNT + i) * 2 + 1]);
-            if (diff_y > SPEED * MSD_WINDOW / DT){
+            if (diff_y > HEIGHT / 2){
                 diff_y -= HEIGHT;
             }
-            if (diff_y < -SPEED * MSD_WINDOW / DT){
+            if (diff_y < -HEIGHT / 2){
                 diff_y += HEIGHT;
             }            
             sq_dist = diff_x * diff_x + diff_y * diff_y;
